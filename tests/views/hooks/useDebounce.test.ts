@@ -14,7 +14,7 @@ describe("useDebounce", () => {
     jest.useRealTimers();
   });
 
-  it("invokes the callback after the delay", () => {
+  it("invokes the callback after the delay", async () => {
     const cb = jest.fn();
     const { result } = renderHook(() => useDebounce(300, cb));
 
@@ -24,13 +24,14 @@ describe("useDebounce", () => {
     expect(cb).not.toHaveBeenCalled();
     expect(result.current.status).toBe("pending");
 
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(300);
     });
     expect(cb).toHaveBeenCalledWith("a");
+    expect(result.current.status).toBe("idle");
   });
 
-  it("resets the timer when run is called again before the delay elapses", () => {
+  it("resets the timer when run is called again before the delay elapses", async () => {
     const cb = jest.fn();
     const { result } = renderHook(() => useDebounce(300, cb));
 
@@ -42,11 +43,12 @@ describe("useDebounce", () => {
     });
     expect(cb).not.toHaveBeenCalled();
 
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(100);
     });
     expect(cb).toHaveBeenCalledTimes(1);
     expect(cb).toHaveBeenCalledWith("second");
+    expect(result.current.status).toBe("idle");
   });
 
   it("cancels a pending invocation", () => {
@@ -74,7 +76,7 @@ describe("useDebounce", () => {
     expect(cb).toHaveBeenCalledTimes(1);
     expect(cb).toHaveBeenCalledWith("a");
 
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(300);
     });
     expect(cb).toHaveBeenCalledTimes(1);
