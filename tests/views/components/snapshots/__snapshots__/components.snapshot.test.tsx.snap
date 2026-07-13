@@ -1,0 +1,299 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`views/components snapshots matches snapshot: AlertDialog 1`] = `
+"
+
+ ┌──────────────────────────────────────────┐
+ │ Snapshot alert                           │
+ │                                          │
+ │ Press any key to close                   │
+ └──────────────────────────────────────────┘
+
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: ConfirmationDialog 1`] = `
+"
+ ┌──Confirm action──┐
+ │                  │
+ │ Do you want to c │
+ │ ontinue?         │
+ │                  │
+ │    Cancel<Esc> > │
+ └──────────────────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: ConfirmationDialog-quit 1`] = `
+"
+ ┌──Quit MudIssue?──────────────────────────────────────┐
+ │                                                      │
+ │ Press Ctrl+C or Enter to quit. Press any other key t │
+ │ o cancel.                                            │
+ │                                                      │
+ │                            Cancel<Esc> | Quit<Enter> │
+ └──────────────────────────────────────────────────────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: CreateIssueDialog 1`] = `
+"
+
+ ┌──Create Issue────┐
+ │                  │
+ │                  │
+ │                  │
+ │ Cancel(Confirm(C │
+ └─sc) | ─trl+D)────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: CreateIssueFromFileDialog 1`] = `
+"
+ ┌───Create Issue From File─────────────────────────┐
+ │                                                  │
+ │  File: Path to file                              │
+ │                                                  │
+ │                                                  │
+ │                                                  │
+ │                     Cancel(Esc) | Create(Enter)  │
+ └──────────────────────────────────────────────────┘
+"
+`;
+
+exports[`views/components snapshots matches snapshot: FilterTextDialog 1`] = `
+"
+ ┌Filter──────────────────────────────┐
+ │                                    │
+ │filter…                             │
+ │Alpha option                        │
+ │Beta option                         │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │        Cancel<Esc> | Confirm<Enter>│
+ └────────────────────────────────────┘
+"
+`;
+
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-one-previous 1`] = `"MI0001 > MI0002:Current title"`;
+
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-single 1`] = `"MI0001:Sample issue title"`;
+
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-three-previous-shows-last-two 1`] = `"MI0002 > MI0003 > MI0004:Current title"`;
+
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-truncated-title 1`] = `"MI0001:A very lon…"`;
+
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-two-previous 1`] = `"MI0001 > MI0002 > MI0003:Current title"`;
+
+exports[`views/components snapshots matches snapshot: IssueSearchingDialog 1`] = `
+"
+ ┌blocking────────────────────────────┐
+ │                                    │
+ │search…                             │
+ │No matching issues                  │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │                                    │
+ │           Cancel<Esc> | Link<Enter>│
+ └────────────────────────────────────┘
+"
+`;
+
+exports[`views/components snapshots matches snapshot: IssueTable 1`] = `
+"Back<Esc> | mudissue
+ > …
+ID           TITLE
+    STATUS
+PRIORITY
+MI0001       Sample
+is… open
+New<+> | Search</> >"
+`;
+
+exports[`views/components snapshots matches snapshot: IssueTable-projectNameHeader 1`] = `
+"Back<Esc> | mudissue
+ > …
+ID           TITLE
+    STATUS
+PRIORITY
+MI0001       Sample
+is… open
+New<+> | Search</> >"
+`;
+
+exports[`views/components snapshots matches snapshot: IssueViewer 1`] = `
+"MI0001
+
+
+
+
+
+
+
+
+
+
+Back<Esc> | Edit<E> | External Edit<c+e> | Prev<c+PgUp> | Next<c+PgDn> | Command<:>"
+`;
+
+exports[`views/components snapshots matches snapshot: PaletteCommandDialog 1`] = `
+"
+
+    ┌Palette Command───────────────┐
+    │                              │
+    │:                             │
+    │New<+>                   Crea…│
+    │Search</>                Filt…│
+    │Link<l>                  Link…│
+    │Touch<t>                 Bump…│
+    │Archive<a>               Arch…│
+    │Copy<y>                  Copy…│
+    │Status<s>                Set …│
+    │Priority<p>              Set …│
+    │Sort<o>                  Chan…│
+    │Shell<!>                 Open…│
+    │Project<r>               Swit…│
+    │  Cancel<Esc> | Confirm<Enter>│
+    └──────────────────────────────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: PaletteCommandDialogToolbarHelp 1`] = `
+"
+
+    ┌Shortcut──────────────────────┐
+    │                              │
+    │?                             │
+    │c+c          Quit            …│
+    │c            Copy            …│
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    │                              │
+    │  Cancel<Esc> | Confirm<Enter>│
+    └──────────────────────────────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: PickItemDialog 1`] = `
+"
+
+ ┌Recent Projects───┐
+ │Project A /very/l…│
+ │Project B /very/l…│
+ │Cancel<Esc>       │
+ └─────────────1/2──┘
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: SearchingDialog 1`] = `
+"
+
+ ┌──Search──────────┐
+ │                  │
+ │ Text:Filter      │
+ │      query       │
+ │    Cancel<Esc> > │
+ └──────────────────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: TextEditDialog 1`] = `
+"
+
+ ┌──Edit────────────┐
+ │                  │
+ │                  │
+ │     Loading…     │
+ │                  │
+ └──────────────────┘
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: TextInputDialog 1`] = `
+"
+
+ ┌──────────────────────────────────────────┐
+ │                                          │
+ │ Title: Issue title                       │
+ │ Enter - confirm, Esc - cancel            │
+ └──────────────────────────────────────────┘
+
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: Toast 1`] = `
+"
+
+      ┌──────────┐
+      │ Saved    │
+      └──────────┘
+
+
+
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: Toast-truncated 1`] = `
+"
+
+ ┌────────────────┐
+ │ This toast me… │
+ └────────────────┘
+
+
+
+
+"
+`;
+
+exports[`views/components snapshots matches snapshot: ToolBar 1`] = `"Back<Esc> | Open<Enter> | Search</>"`;

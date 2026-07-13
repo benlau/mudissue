@@ -1,0 +1,8 @@
+services:
+  mudissue:
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm
+    volumes:
+      - ..:/workspace:cached
+      - ${PRIMARY_WORKTREE}/node_modules:/workspace/node_modules:cached
+      - ${PRIMARY_WORKTREE}/.git:${PRIMARY_WORKTREE}/.git:cached
+    command: sleep infinity

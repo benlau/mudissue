@@ -1,0 +1,212 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph diamond history 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "aaa2222"
+    commit id: "bbb2222"
+    branch "No Name 1"
+    checkout "No Name 1"
+    commit id: "ddd2222"
+    checkout main
+    merge "No Name 1" id: "ccc2222""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph example01 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'pr/milestone-4'
+---
+gitGraph TB:
+    commit id: "4af7342"
+    branch FAX0112
+    branch FAX0111
+    checkout FAX0112
+    commit id: "1fb1941"
+    checkout FAX0111
+    commit id: "dd8375b"
+    commit id: "4b8f044"
+    commit id: "318fb59"
+    commit id: "fed94eb""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph example02 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'pr/milestone-4'
+---
+gitGraph TB:
+    commit id: "4af7342"
+    branch FAX0112
+    checkout "pr/milestone-4"
+    commit id: "dd8375b"
+    commit id: "4b8f044"
+    commit id: "318fb59"
+    commit id: "fed94eb"
+    commit id: "57df994" tag: "FAX0111"
+    checkout FAX0112
+    commit id: "1fb1941"
+    commit id: "ba71e53""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph for a linear history of root then child on main, emits commits oldest-first and sets mainBranchName from the second argument 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'master'
+---
+gitGraph TB:
+    commit id: "root111"
+    commit id: "tip1111""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph for a merge commit whose first parent is main and second is feature, emits one merge command merging from the feature branch name 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "1111111"
+    branch side
+    checkout main
+    commit id: "2222222" tag: "mainline"
+    checkout side
+    commit id: "3333333" tag: "side"
+    checkout main
+    merge side id: "4444444" tag: "trunk""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph main-as-root 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "a"
+    branch feature
+    checkout feature
+    commit id: "b"
+    commit id: "c"
+    commit id: "d""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph main-feature-root 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "a" tag: "feature2"
+    branch feature1
+    checkout feature1
+    commit id: "b"
+    commit id: "c"
+    commit id: "d""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph multi-branch tree 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "75dcc5e"
+    branch "0051-normal"
+    commit id: "a117319"
+    checkout main
+    commit id: "78a16ce"
+    branch "0056-rebase"
+    commit id: "1d29c3f"
+    checkout main
+    commit id: "5897053""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph single-line-multi-branch-same-head 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "aaa1111"
+    commit id: "bbb1111"
+    commit id: "ccc1111" tag: "feature""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph when a branch tip is not a graph leaf, tags that commit with the branch name (main a→b→c, feature at b) 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "aaaaaaa"
+    commit id: "bbbbbbb" tag: "feature"
+    commit id: "ccccccc""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph when a node holds multiple objectIds (e.g. after compress()), renders its commit id as the short oids of the first and last objects joined by '...' 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "aaaa555"
+    commit id: "bbbb555...dddd555"
+    commit id: "eeee555""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph when rootCommitId is missing, emits no commands even if orphan commits exist in nodes 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:"
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph when serializing to Mermaid text, prepends YAML frontmatter with mainBranchName and emits one commit line per commit in traversal order 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'master'
+---
+gitGraph TB:
+    commit id: "root111"
+    commit id: "tip1111""
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph when the graph has no commits, emits no commands and names the main branch from the second argument 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'develop'
+---
+gitGraph TB:"
+`;
+
+exports[`MermaidGitGraphAccessor.createFromGitGraph when two branch tips share one root and there is no merge, emits main-line commits before the feature tip (topological tie-break) 1`] = `
+"---
+config:
+  gitGraph:
+    mainBranchName: 'main'
+---
+gitGraph TB:
+    commit id: "aaaaaaa"
+    branch mainline
+    checkout main
+    commit id: "ccccccc"
+    checkout mainline
+    commit id: "bbbbbbb""
+`;
