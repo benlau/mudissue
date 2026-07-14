@@ -259,14 +259,14 @@ exports[`views/components snapshots matches snapshot: TextEditDialog 1`] = `
 
 exports[`views/components snapshots matches snapshot: TextInputDialog 1`] = `
 "
-
- ┌──────────────────────────────────────────┐
- │                                          │
- │ Title: Issue title                       │
- │ Enter - confirm, Esc - cancel            │
- └──────────────────────────────────────────┘
-
-
+ ┌───Change Issue ID┐
+ │                  │
+ │  New ID:e.g.     │
+ │         MI0      │
+ │                  │
+ │                  │
+ │  Cancel(Confirm  │
+ └──Esc) | (Enter)──┘
 "
 `;
 

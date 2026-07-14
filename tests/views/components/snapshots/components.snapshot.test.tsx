@@ -42,6 +42,7 @@ import {
 import { useCreateIssueDialogStore } from "../../../../src/store/CreateIssueDialogStore.ts";
 import { useCreateIssueFromFileDialogStore } from "../../../../src/store/CreateIssueFromFileDialogStore.ts";
 import { useTextEditDialogStore } from "../../../../src/store/TextEditDialogStore.ts";
+import { useTextInputDialogStore } from "../../../../src/store/TextInputDialogStore.ts";
 import { useAlertDialogStore } from "../../../../src/store/AlertDialogStore.ts";
 import { PopupNames, usePopupStore } from "../../../../src/store/PopupStore.ts";
 import { useToastStore } from "../../../../src/store/ToastStore.ts";
@@ -173,6 +174,19 @@ function resetDialogStores(): void {
     filePath: null,
     initialLineIndex: 0,
     pendingResolve: null,
+  });
+  useTextInputDialogStore.setState({
+    isDialogOpen: false,
+    title: "",
+    prompt: "",
+    placeholder: "",
+    confirmLabel: undefined,
+    value: "",
+    error: null,
+    inputKey: 0,
+    validate: null,
+    pendingResolve: null,
+    activeOpenPromise: null,
   });
   useAlertDialogStore.setState({
     isDialogOpen: false,
@@ -557,15 +571,27 @@ const snapshotCases: SnapshotCase[] = [
   {
     id: "TextInputDialog",
     terminalSize: { columns: 20, rows: 10 },
+    setup: () => {
+      useTextInputDialogStore.setState({
+        isDialogOpen: true,
+        title: "Change Issue ID",
+        prompt: "New ID: ",
+        placeholder: "e.g. MI042",
+        value: "",
+        error: null,
+        inputKey: 1,
+      });
+      usePopupStore.setState({
+        popupStack: [PopupNames.TextInputDialog],
+        hasPopup: true,
+        latestPopup: PopupNames.TextInputDialog,
+      });
+    },
     render: () => (
       <Box width={20} height={10}>
-        <TextInputDialog
-          isOpen={true}
-          prompt="Title:"
-          placeholder="Issue title"
-          onCancel={() => {}}
-          onSubmit={() => {}}
-        />
+        <IntlProvider locale="en" messages={{}}>
+          <TextInputDialog />
+        </IntlProvider>
       </Box>
     ),
   },

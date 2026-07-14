@@ -12,6 +12,7 @@ import { PickItemDialog } from "./views/components/PickItemDialog.tsx";
 import { Toast } from "./views/components/Toast.tsx";
 import { PaletteCommandDialog } from "./views/components/PaletteCommandDialog.tsx";
 import { IssueSearchingDialog } from "./views/components/IssueSearchingDialog.tsx";
+import { TextInputDialog } from "./views/components/TextInputDialog.tsx";
 import { useLayoutEffect } from "react";
 import { AnsiEscapeCode } from "./types/ansi.ts";
 import { useAppStore } from "./store/AppStore.ts";
@@ -72,6 +73,7 @@ export function App() {
       <TextEditDialog />
       <PaletteCommandDialog />
       <IssueSearchingDialog />
+      <TextInputDialog />
       {/* Alert/confirmation must render after feature dialogs so Ink paints them on top. */}
       <AlertDialog />
       <ConfirmationDialog />

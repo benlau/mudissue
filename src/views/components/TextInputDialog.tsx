@@ -1,115 +1,119 @@
-import { useState, useEffect, useRef } from "react";
+import stringWidth from "string-width";
 import { useInput, Box, Text } from "ink";
-import TextInput from "ink-text-input";
-import { useDialogLayout } from "../hooks/useDialogLayout.ts";
-import { PopupNames, usePopupStore } from "../../store/PopupStore.ts";
-import { DefaultTheme, DialogConfirmColor } from "../../types/Theme.ts";
+import { defineMessages, useIntl } from "react-intl";
+import { InteractiveTextInput } from "./InteractiveTextInput.tsx";
 import {
   EMPTY_AREA_EXTRA,
   EMPTY_AREA_SIDE_MARGIN,
   EmptyArea,
 } from "./EmptyArea.tsx";
+import {
+  mediumDialogLayout,
+  useDialogLayout,
+} from "../hooks/useDialogLayout.ts";
+import { useTextInputDialogStore } from "../../store/TextInputDialogStore.ts";
+import { PopupNames, usePopupStore } from "../../store/PopupStore.ts";
+import { DefaultTheme, DialogConfirmColor } from "../../types/Theme.ts";
 
-const DIALOG_MIN_WIDTH = 44;
-const DIALOG_HEIGHT = 5;
+const DIALOG_HEIGHT = 8;
 
-export type TextInputDialogProps = {
-  isOpen: boolean;
-  prompt?: string;
-  placeholder?: string;
-  onCancel: () => void;
-  onSubmit: (value: string) => void;
-};
+const messages = defineMessages({
+  cancelHint: {
+    id: "views.textInputDialog.cancelHint",
+    defaultMessage: "Cancel(Esc)",
+  },
+  confirmHint: {
+    id: "views.textInputDialog.confirmHint",
+    defaultMessage: "Confirm(Enter)",
+  },
+});
 
-export function TextInputDialog({
-  isOpen,
-  prompt = "Title:",
-  placeholder = "",
-  onCancel,
-  onSubmit,
-}: TextInputDialogProps) {
-  const [value, setValue] = useState("");
-  const { width, height, left, top } = useDialogLayout({
-    minWidth: DIALOG_MIN_WIDTH + EMPTY_AREA_EXTRA,
-    minHeight: DIALOG_HEIGHT + EMPTY_AREA_EXTRA,
-  });
-  const borderedWidth = width - EMPTY_AREA_EXTRA;
-  const borderedHeight = height - EMPTY_AREA_EXTRA;
+export function TextInputDialog() {
+  const intl = useIntl();
+  const isOpen = useTextInputDialogStore((s) => s.isDialogOpen);
+  const title = useTextInputDialogStore((s) => s.title);
+  const prompt = useTextInputDialogStore((s) => s.prompt);
+  const placeholder = useTextInputDialogStore((s) => s.placeholder);
+  const confirmLabel = useTextInputDialogStore((s) => s.confirmLabel);
+  const value = useTextInputDialogStore((s) => s.value);
+  const error = useTextInputDialogStore((s) => s.error);
+  const inputKey = useTextInputDialogStore((s) => s.inputKey);
+  const setValue = useTextInputDialogStore((s) => s.setValue);
+  const close = useTextInputDialogStore((s) => s.close);
+  const confirm = useTextInputDialogStore((s) => s.confirm);
   const latestPopup = usePopupStore((s) => s.latestPopup);
-  const pushPopup = usePopupStore((s) => s.pushPopup);
-  const popPopup = usePopupStore((s) => s.popPopup);
-  const didPushPopupRef = useRef(false);
   const isLatestPopup = latestPopup === PopupNames.TextInputDialog;
 
-  useEffect(() => {
-    if (isOpen && !didPushPopupRef.current) {
-      pushPopup(PopupNames.TextInputDialog);
-      didPushPopupRef.current = true;
-    }
-    if (!isOpen && didPushPopupRef.current) {
-      popPopup();
-      didPushPopupRef.current = false;
-    }
-    return () => {
-      if (didPushPopupRef.current) {
-        popPopup();
-        didPushPopupRef.current = false;
+  const { width, height, left, top } = useDialogLayout({
+    ...mediumDialogLayout,
+    minHeight: DIALOG_HEIGHT,
+    maxHeight: DIALOG_HEIGHT,
+  });
+  const inputMaxDisplayWidth = Math.max(4, width - 4 - stringWidth(prompt));
+  const confirmHint =
+    confirmLabel != null
+      ? `${confirmLabel}(Enter)`
+      : intl.formatMessage(messages.confirmHint);
+
+  useInput(
+    (_input, key) => {
+      if (!isOpen) return;
+      if (key.escape) {
+        close();
       }
-    };
-  }, [isOpen, popPopup, pushPopup]);
-
-  useEffect(() => {
-    if (isOpen) setValue("");
-  }, [isOpen]);
-
-  useInput((_input, key) => {
-    if (!isOpen) return;
-    if (key.escape) {
-      onCancel();
-    }
-  }, { isActive: isOpen && isLatestPopup });
+    },
+    { isActive: isOpen && isLatestPopup },
+  );
 
   if (!isOpen) return null;
 
   return (
     <EmptyArea
       position="absolute"
-      marginLeft={left}
-      marginTop={top}
-      width={width}
-      height={height}
+      marginLeft={Math.max(0, left - EMPTY_AREA_SIDE_MARGIN)}
+      marginTop={Math.max(0, top - EMPTY_AREA_SIDE_MARGIN)}
+      width={width + EMPTY_AREA_EXTRA}
+      height={height + EMPTY_AREA_EXTRA}
+      flexDirection="column"
     >
       <Box
         flexDirection="column"
         marginLeft={EMPTY_AREA_SIDE_MARGIN}
         marginTop={EMPTY_AREA_SIDE_MARGIN}
-        width={borderedWidth}
-        height={borderedHeight}
+        width={width}
+        height={height}
         borderStyle="single"
         borderColor={DefaultTheme.accents.green}
         borderTop
         borderBottom
         borderLeft
         borderRight
-        paddingX={1}
-        paddingY={1}
+        paddingX={2}
+        paddingTop={0}
+        paddingBottom={0}
       >
-        <Box>
-          <Text>{prompt} </Text>
-          <TextInput
-            value={value}
-            onChange={setValue}
-            onSubmit={(v) => {
-              onSubmit(v);
-              setValue("");
-            }}
-            placeholder={placeholder}
-            focus={isLatestPopup}
-          />
+        <Box position="absolute" marginTop={-1} marginLeft={1}>
+          <Text color={DefaultTheme.accents.orange}>{title}</Text>
         </Box>
         <Box marginTop={1}>
-          <Text color={DialogConfirmColor}>Enter - confirm</Text>
-          <Text dimColor>, Esc - cancel</Text>
+          <Text>{prompt}</Text>
+          <InteractiveTextInput
+            key={inputKey}
+            isActive={isLatestPopup}
+            history={[]}
+            initialValue={value}
+            onChange={setValue}
+            onSubmit={confirm}
+            placeholder={placeholder}
+            maxDisplayWidth={inputMaxDisplayWidth}
+          />
+        </Box>
+        <Box marginTop={1} height={2}>
+          <Text color="red">{error ? `Error: ${error}` : null}</Text>
+        </Box>
+        <Box marginTop={1} flexDirection="row" justifyContent="flex-end">
+          <Text>{intl.formatMessage(messages.cancelHint)} | </Text>
+          <Text color={DialogConfirmColor}>{confirmHint}</Text>
         </Box>
       </Box>
     </EmptyArea>
