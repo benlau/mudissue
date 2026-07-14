@@ -2,7 +2,7 @@ import type { Argv } from "yargs";
 import { render } from "ink";
 import { defineMessages, IntlProvider } from "react-intl";
 import { intl } from "../intl.ts";
-import { FindIssueFromCwdHelper } from "../helpers/FindIssueFromCwdHelper.ts";
+import { CurrentIssueResolverHelper } from "../helpers/CurrentIssueResolverHelper.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
@@ -56,7 +56,7 @@ export class ViewCommand extends Command {
       );
     }
 
-    const issue = await FindIssueFromCwdHelper.findIssueFromCwd();
+    const issue = await CurrentIssueResolverHelper.findCurrentIssue();
     if (issue) {
       useAppStore.getState().openIssue(issue);
     }

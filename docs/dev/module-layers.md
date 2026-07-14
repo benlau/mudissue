@@ -81,7 +81,7 @@ Zustand stores hold application state (`useAppStore`, `IssueSearchStoreFactory`,
 - **commands** — one class per CLI command (`Command` base); optional `commands/helpers/` and `commands/hooks/` for shared CLI code
 - **views** — Ink components and `views/hooks/` (e.g. `useTerminal`, `useRecentFilters`)
 - **contexts** — React context for the TUI (e.g. `AppContext` with `useEditFile`)
-- **helpers** — shared orchestration that needs store access (e.g. `FindIssueFromCwdHelper.findIssueFromCwd` in `src/helpers/`)
+- **helpers** — shared orchestration that needs store access (e.g. `CurrentIssueResolverHelper.findCurrentIssue` in `src/helpers/`)
 - **rules** — post-hook reactions to issue metadata changes (e.g. blocked/duplicated status). Registered from the composition root (`src/index.ts`); lower layers must not import `src/rules/`.
 
 Lower layers must not depend on L4. Modules within L4 may import each other (e.g. a command calling a top-level helper).
@@ -137,8 +137,8 @@ See also [AGENTS.md](../../AGENTS.md) for project-wide architecture notes.
 **Allowed**
 
 - `EditorLauncher` (L2) → `ShellService`, `types`
-- `FindIssueFromCwdHelper.findIssueFromCwd` (L4) → `useCurrentTrackerRepoStore`, `GitService`
-- `ViewCommand` (L4) → `FindIssueFromCwdHelper.findIssueFromCwd`, `useAppStore`
+- `CurrentIssueResolverHelper.findCurrentIssue` (L4) → `useCurrentTrackerRepoStore`, `GitService`
+- `ViewCommand` (L4) → `CurrentIssueResolverHelper.findCurrentIssue`, `useAppStore`
 - `IssueWorktreeCreateGraphCommand` (L4) → `generateMermaidGitGraph`, `useCurrentTrackerRepoStore`
 - `IssueFolderStorage` (L2) → `FileService`, `foundation/formatter/DateFormatter`
 

@@ -1,11 +1,22 @@
 import * as path from "path";
+import { defineMessages } from "react-intl";
 import { GitService } from "../services/GitService.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
+import type { ErrorResponse } from "../types/Response.ts";
+import { intl } from "../intl.ts";
 import { WorktreeHelper } from "./WorktreeHelper.ts";
 
-export type FindIssueFromCwdInput = {
+const messages = defineMessages({
+  requiresWorktree: {
+    id: "helpers.currentIssueResolver.requiresWorktree",
+    defaultMessage:
+      "The `current` keyword can only be used inside a mudissue issue worktree",
+  },
+});
+
+export type FindCurrentIssueInput = {
   cwd?: string;
 };
 
@@ -18,9 +29,13 @@ function isCwdUnderWorktree(cwd: string, worktreeRoot: string): boolean {
   );
 }
 
-export class FindIssueFromCwdHelper {
-  static async findIssueFromCwd(
-    input?: FindIssueFromCwdInput,
+export class CurrentIssueResolverHelper {
+  static isCurrentIssueSelector(selector: string): boolean {
+    return selector.trim().toLowerCase() === "current";
+  }
+
+  static async findCurrentIssue(
+    input?: FindCurrentIssueInput,
   ): Promise<IssueFolder | null> {
     const shellService = ShellService.getInstance();
     const gitService = GitService.getInstance();
@@ -57,5 +72,22 @@ export class FindIssueFromCwdHelper {
     }
 
     return null;
+  }
+
+  static async resolveCurrentIssue(
+    input?: FindCurrentIssueInput,
+  ): Promise<IssueFolder> {
+    const issue = await CurrentIssueResolverHelper.findCurrentIssue(input);
+    if (issue) {
+      return issue;
+    }
+    const response: ErrorResponse = {
+      status: "error",
+      error: {
+        code: "CURRENT_ISSUE_REQUIRES_WORKTREE",
+        message: intl.formatMessage(messages.requiresWorktree),
+      },
+    };
+    throw response;
   }
 }

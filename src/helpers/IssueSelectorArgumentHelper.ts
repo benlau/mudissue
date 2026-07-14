@@ -1,3 +1,4 @@
+import { CurrentIssueResolverHelper } from "./CurrentIssueResolverHelper.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
 import type { ErrorResponse } from "../types/Response.ts";
@@ -26,16 +27,22 @@ export class IssueSelectorArgumentHelper {
         .validateProjectNotNone(project)
         .first();
     }
-    const folders = await useCurrentTrackerRepoStore
-      .getState()
-      .findIssue(issueSelector, {
-        project,
-      });
-    const issue = new IssueFolderValidator()
-      .set(folders)
-      .validateIssueNotNone()
-      .validateIssueNotMultiple()
-      .first();
+
+    let issue: IssueFolder;
+    if (CurrentIssueResolverHelper.isCurrentIssueSelector(issueSelector)) {
+      issue = await CurrentIssueResolverHelper.resolveCurrentIssue();
+    } else {
+      const folders = await useCurrentTrackerRepoStore
+        .getState()
+        .findIssue(issueSelector, {
+          project,
+        });
+      issue = new IssueFolderValidator()
+        .set(folders)
+        .validateIssueNotNone()
+        .validateIssueNotMultiple()
+        .first();
+    }
 
     if (!repo) {
       repo = await useCurrentTrackerRepoStore

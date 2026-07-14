@@ -68,7 +68,8 @@ export type ErrorCode =
   | "WORKTREE_GRAPH_NO_MERGE_BASE"
   | "WORKTREE_GRAPH_SUBGRAPH_NOT_CONNECTED"
   | "SCRIPT_SELECT_ISSUE_CANCELLED"
-  | "COMMAND_INVALID_ARG";
+  | "COMMAND_INVALID_ARG"
+  | "CURRENT_ISSUE_REQUIRES_WORKTREE";
 
 export type CommandInvalidArg = {
   argument: string;
