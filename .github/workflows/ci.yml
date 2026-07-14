@@ -29,7 +29,7 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test -- --runInBand --logHeapUsage --no-cache
+        run: npm test -- --logHeapUsage --no-cache --maxWorkers=1 --workerIdleMemoryLimit='500MB'
 
       - name: Build
         run: npm run build
