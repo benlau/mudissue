@@ -34,9 +34,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: dist
-        run: npm run dist
-
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
