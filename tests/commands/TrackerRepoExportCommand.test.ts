@@ -13,13 +13,13 @@ import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 function issueFolder(
   issueId: string,
-  folderName: string,
+  label: string,
   overrides: Partial<IssueFolder> = {},
 ): IssueFolder {
   return {
     issueId,
-    folderName,
-    path: `/workspace/issues/${folderName}`,
+    label,
+    path: `/workspace/issues/${issueId}`,
     ...overrides,
   };
 }
@@ -102,7 +102,7 @@ describe("TrackerRepoExportCommand", () => {
         const folder = (
           this as unknown as { issueFolder: IssueFolder }
         ).issueFolder;
-        return `/workspace/issues/${folder.folderName}/${folder.issueId}.md`;
+        return `/workspace/issues/${folder.issueId}/${folder.issueId}.md`;
       });
     searchSpy = jest
       .spyOn(IssueSearcher.prototype, "search")

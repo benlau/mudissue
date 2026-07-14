@@ -199,7 +199,7 @@ export class IssueCreateCommand extends Command {
         .validateIssueNotMultiple()
         .first();
     }
-    const parentIssueFolderName = parentFolder?.folderName;
+    const parentIssueFolderName = parentFolder?.issueId;
 
     const globalConfig = await useGlobalConfigStore
       .getState()
@@ -245,11 +245,11 @@ export class IssueCreateCommand extends Command {
         }
         throw err;
       }
-      const folderName = IssueResource.folderNameForTitle(issueId, fileTitle);
-      const issueDirPath = path.join(storage.getIssuePath(), folderName);
+      const folderBasename = IssueResource.issueIdForTitle(issueId, fileTitle);
+      const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
       const issueFolder: IssueFolder = {
-        issueId,
-        folderName,
+        issueId: folderBasename,
+        label: issueId,
         path: issueDirPath,
       };
       const issueFilePath = await storage.resolveIssueFilePath(issueFolder);
@@ -283,11 +283,11 @@ export class IssueCreateCommand extends Command {
         }
         throw err;
       }
-      const folderName = IssueResource.folderNameForTitle(issueId, issueTitle);
-      const issueDirPath = path.join(storage.getIssuePath(), folderName);
+      const folderBasename = IssueResource.issueIdForTitle(issueId, issueTitle);
+      const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
       const issueFolder: IssueFolder = {
-        issueId,
-        folderName,
+        issueId: folderBasename,
+        label: issueId,
         path: issueDirPath,
       };
       const issueFilePath = await storage.resolveIssueFilePath(issueFolder);
@@ -307,7 +307,7 @@ export class IssueCreateCommand extends Command {
     if (parentFolder) {
       const parentFolderStorage = new IssueFolderStorage(parentFolder);
       await parentFolderStorage.appendSubissue(
-        result.folderName,
+        result.issueId,
         storage.getIssueFilePattern(),
       );
     }
@@ -319,7 +319,7 @@ export class IssueCreateCommand extends Command {
       result: {
         createdIssue: {
           issueId: result.issueId,
-          issueFolderName: result.folderName,
+          issueFolderName: result.issueId,
           issueFilePath,
         },
       },

@@ -22,7 +22,7 @@ const msg = defineMessages({
   issueRenameDescribe: {
     id: "cli.issue.rename.describe",
     defaultMessage:
-      "Rename an issue folder from a new title (issue id unchanged; folder suffix from title, same as create)",
+      "Rename an issue folder from a new title (label unchanged; folder suffix from title, same as create)",
   },
   optionProject: {
     id: "cli.common.option.project",
@@ -106,8 +106,8 @@ export class IssueRenameCommand extends Command {
         project,
       );
 
-    const newFolderName = IssueResource.folderNameForTitle(
-      issue.issueId,
+    const newFolderName = IssueResource.issueIdForTitle(
+      issue.label,
       trimmedTitle,
     );
 
@@ -121,13 +121,13 @@ export class IssueRenameCommand extends Command {
 
     const existingMatches = await useCurrentTrackerRepoStore
       .getState()
-      .findIssue(issue.issueId, { project });
+      .findIssue(issue.label, { project });
     const conflicting = existingMatches.find((m) => m.path !== issue.path);
     if (conflicting) {
       this.throwException(
         "RENAME_ISSUE_TARGET_EXISTS",
-        `Another issue folder matches issue id "${issue.issueId}".`,
-        { path: issue.issueId },
+        `Another issue folder matches label "${issue.label}".`,
+        { path: issue.label },
       );
     }
 

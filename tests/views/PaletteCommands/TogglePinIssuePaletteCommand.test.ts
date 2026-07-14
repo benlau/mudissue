@@ -15,8 +15,7 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 const mockRepo: TrackerRepo = {
@@ -68,7 +67,7 @@ describe("TogglePinIssuePaletteCommand", () => {
   it("is not disabled when no issue is selected", () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -80,7 +79,7 @@ describe("TogglePinIssuePaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -91,7 +90,7 @@ describe("TogglePinIssuePaletteCommand", () => {
 
     await new TogglePinIssuePaletteCommand().callback();
 
-    expect(toggleMock).toHaveBeenCalledWith("/repo", issue.folderName);
+    expect(toggleMock).toHaveBeenCalledWith("/repo", issue.issueId);
     expect(refreshIssueListsMock).toHaveBeenCalled();
     expect(toastInfoMock).toHaveBeenCalled();
   });

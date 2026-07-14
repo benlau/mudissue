@@ -39,11 +39,8 @@ describe("IssueTagCommand", () => {
 
   it("returns current tags without writing when no tags provided", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     fileService.readFile.mockResolvedValue(
@@ -64,11 +61,8 @@ describe("IssueTagCommand", () => {
 
   it("returns empty tags when issue has no tags field", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     fileService.readFile.mockResolvedValue("---\ntitle: Test\n---\n\nBody\n");
@@ -107,16 +101,10 @@ describe("IssueTagCommand", () => {
 
   it("throws ISSUE_MULTI_MATCHED when selector matches multiple", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-a",
-        path: "/repo/issues/0001-a",
-      },
-      {
-        issueId: "0001",
-        folderName: "0001-b",
-        path: "/repo/issues/0001-b",
-      },
+      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a",
+       },
+      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b",
+       },
     ]);
     const cmd = new IssueTagCommand();
 
@@ -130,11 +118,8 @@ describe("IssueTagCommand", () => {
 
   it("throws ISSUE_MD_MISSING when issue file cannot be found", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(false);
     fileService.readdir.mockResolvedValue([]);
@@ -150,11 +135,8 @@ describe("IssueTagCommand", () => {
 
   it("appends tags to frontmatter and returns final tags", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntags:\n  - existing\n---\n\nBody\n";
@@ -183,11 +165,8 @@ describe("IssueTagCommand", () => {
 
   it("creates tags array when missing", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\nBody\n";

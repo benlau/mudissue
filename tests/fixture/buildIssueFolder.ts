@@ -1,3 +1,4 @@
+import { IssueSelectorMatcher } from "../../src/foundation/matchers/IssueSelectorMatcher.ts";
 import type {
   IssueFolder,
   IssueFolderMetadata,
@@ -10,8 +11,11 @@ export function buildIssueFolder(
   issueId: string,
   overrides?: BuildIssueFolderOverrides,
 ): IssueFolder {
-  const folderName = overrides?.folderName ?? `${issueId}-sample`;
-  const path = overrides?.path ?? `/tmp/${folderName}`;
+  const label =
+    overrides?.label ??
+    IssueSelectorMatcher.extractIssueLabel(issueId) ??
+    issueId;
+  const path = overrides?.path ?? `/tmp/${issueId}`;
   const {
     metadata,
     title,
@@ -31,7 +35,7 @@ export function buildIssueFolder(
   };
   return {
     issueId,
-    folderName,
+    label,
     path,
     ...rest,
     ...(Object.keys(mergedMetadata).length > 0 ? { metadata: mergedMetadata } : {}),

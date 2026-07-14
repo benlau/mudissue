@@ -140,12 +140,12 @@ export class IssueMergeCommand extends Command {
       .ensureGlobalConfig();
     const storage = new TrackerRepoStorage(repo, globalConfig);
 
-    const issueId = await new NextIssueIdHelper(storage).allocateNextIssueId();
-    const folderName = IssueResource.folderNameForTitle(issueId, mergedTitle);
-    const issueDirPath = path.join(storage.getIssuePath(), folderName);
+    const label = await new NextIssueIdHelper(storage).allocateNextIssueId();
+    const folderBasename = IssueResource.issueIdForTitle(label, mergedTitle);
+    const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
     const issueFolder: IssueFolder = {
-      issueId,
-      folderName,
+      issueId: folderBasename,
+      label,
       path: issueDirPath,
     };
     const issueFilePath = await storage.resolveIssueFilePath(issueFolder);
@@ -165,7 +165,7 @@ export class IssueMergeCommand extends Command {
     const createdIssue = {
       createdIssue: {
         issueId: createdFolder.issueId,
-        issueFolderName: createdFolder.folderName,
+        issueFolderName: createdFolder.issueId,
         issueFilePath,
       },
     };
@@ -216,14 +216,14 @@ export class IssueMergeCommand extends Command {
           selector,
           project,
         );
-      if (seenFolderNames.has(issue.folderName)) {
+      if (seenFolderNames.has(issue.issueId)) {
         this.throwException(
           "ISSUE_MERGE_DUPLICATE",
-          `Duplicate issue in merge list: ${issue.folderName}`,
-          { folderName: issue.folderName },
+          `Duplicate issue in merge list: ${issue.issueId}`,
+          { folderName: issue.issueId },
         );
       }
-      seenFolderNames.add(issue.folderName);
+      seenFolderNames.add(issue.issueId);
       resolved.push(issue);
     }
 
@@ -238,7 +238,7 @@ export class IssueMergeCommand extends Command {
     const archiveDir = await getArchivePath(repo);
     await this.fileService.mkdir(archiveDir, { recursive: true });
 
-    const dest = await getArchivePath(repo, issue.folderName);
+    const dest = await getArchivePath(repo, issue.issueId);
     if (await this.fileService.exists(dest)) {
       this.throwException(
         "ARCHIVE_TARGET_EXISTS",
@@ -266,7 +266,7 @@ export class IssueMergeCommand extends Command {
     return {
       archivedIssue: {
         issueId: issue.issueId,
-        issueFolderName: issue.folderName,
+        issueFolderName: issue.issueId,
         issueFilePath: newIssueFilePath,
       },
       oldIssueFolderPath,

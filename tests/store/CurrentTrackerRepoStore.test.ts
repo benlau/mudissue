@@ -197,16 +197,10 @@ describe("CurrentTrackerRepoStore", () => {
       config: { issue_path: "issues-b" },
     };
 
-    const issueInA: IssueFolder = {
-      issueId: "MI0257",
-      folderName: "MI0257-in-proj-a",
-      path: "/workspace/issues-a/MI0257-in-proj-a",
-    };
-    const issueInB: IssueFolder = {
-      issueId: "MI0257",
-      folderName: "MI0257-in-proj-b",
-      path: "/workspace/sub/issues-b/MI0257-in-proj-b",
-    };
+    const issueInA: IssueFolder = { issueId: "MI0257-in-proj-a", label: "MI0257", path: "/workspace/issues-a/MI0257-in-proj-a",
+     };
+    const issueInB: IssueFolder = { issueId: "MI0257-in-proj-b", label: "MI0257", path: "/workspace/sub/issues-b/MI0257-in-proj-b",
+     };
 
     beforeEach(() => {
       useGlobalConfigStore.setState({ globalConfig: {} });
@@ -227,7 +221,7 @@ describe("CurrentTrackerRepoStore", () => {
         .findIssue("257");
 
       expect(listIssuesSpy).toHaveBeenCalledTimes(2);
-      expect(matches.map((i) => i.folderName).sort()).toEqual([
+      expect(matches.map((i) => i.issueId).sort()).toEqual([
         "MI0257-in-proj-a",
         "MI0257-in-proj-b",
       ]);
@@ -263,11 +257,8 @@ describe("CurrentTrackerRepoStore", () => {
       config: { issue_path: "issues-b" },
     };
 
-    const buildIssue = (absPath: string): IssueFolder => ({
-      issueId: "0001",
-      folderName: "0001-test",
-      path: absPath,
-    });
+    const buildIssue = (absPath: string): IssueFolder => ({ issueId: "0001-test", label: "0001", path: absPath,
+     });
 
     it("returns the repo whose issue root contains the issue folder path", async () => {
       useGlobalConfigStore.setState({ globalConfig: {} });
@@ -388,11 +379,8 @@ describe("CurrentTrackerRepoStore", () => {
       trackerPath: "/repo",
       config: { issue_path: "issues" },
     };
-    const issue: IssueFolder = {
-      issueId: "MI0089",
-      folderName: "MI0089-mi-issue-branch-create",
-      path: "/repo/issues/MI0089-mi-issue-branch-create",
-    };
+    const issue: IssueFolder = { issueId: "MI0089-mi-issue-branch-create", label: "MI0089", path: "/repo/issues/MI0089-mi-issue-branch-create",
+     };
 
     it("uses the issue folder name by default", async () => {
       useGlobalConfigStore.setState({ globalConfig: {} });
@@ -440,6 +428,21 @@ describe("CurrentTrackerRepoStore", () => {
       expect(branch).toBe("pr/MI0089-mi-issue-branch-create");
     });
 
+    it("exposes issue_label as PREFIX+NUM in branch templates", async () => {
+      useGlobalConfigStore.setState({
+        globalConfig: {
+          default_issue_branch_name_template:
+            "feature/<%= issue_label %>-<%= issue_name %>",
+        },
+      });
+
+      const branch = await useCurrentTrackerRepoStore
+        .getState()
+        .getIssueBranchName(repo, issue);
+
+      expect(branch).toBe("feature/MI0089-mi-issue-branch-c");
+    });
+
     it("returns a trimmed branch name", async () => {
       const branch = await useCurrentTrackerRepoStore.getState().getIssueBranchName(
         {
@@ -472,18 +475,14 @@ describe("CurrentTrackerRepoStore", () => {
     });
 
     it("truncates the branch name to ISSUE_BRANCH_NAME_MAX_LENGTH characters", async () => {
-      const longIssue: IssueFolder = {
-        issueId: "MI0001",
-        folderName:
-          "MI0001-very-long-issue-folder-name-that-exceeds-the-limit",
-        path: "/repo/issues/MI0001-very-long-issue-folder-name-that-exceeds-the-limit",
-      };
+      const longIssue: IssueFolder = { issueId: "MI0001-very-long-issue-folder-name-that-exceeds-the-limit", label: "MI0001", path: "/repo/issues/MI0001-very-long-issue-folder-name-that-exceeds-the-limit",
+       };
 
       const branch = await useCurrentTrackerRepoStore
         .getState()
         .getIssueBranchName(repo, longIssue);
 
-      expect(branch).toBe(longIssue.folderName.slice(0, ISSUE_BRANCH_NAME_MAX_LENGTH));
+      expect(branch).toBe(longIssue.issueId.slice(0, ISSUE_BRANCH_NAME_MAX_LENGTH));
     });
 
     it("falls back to the issue id when rendered branch name is empty after normalization", async () => {
@@ -498,7 +497,7 @@ describe("CurrentTrackerRepoStore", () => {
         issue,
       );
 
-      expect(branch).toBe("MI0089");
+      expect(branch).toBe("MI0089-mi-issue-branch-create");
     });
   });
 

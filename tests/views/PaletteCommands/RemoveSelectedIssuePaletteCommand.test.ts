@@ -19,8 +19,7 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 const mockRepo: TrackerRepo = {
@@ -79,7 +78,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
   it("is not disabled when no issue is selected", () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -92,7 +91,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issueB = buildIssue("0002");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueA.folderName,
+      selectedIssueId: issueA.issueId,
       navigationStack: viewerNavigationStack(issueA),
     });
 
@@ -120,7 +119,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     expect(toastInfoMock).toHaveBeenCalled();
     expect(refreshMock).toHaveBeenCalled();
     expect(useAppStore.getState().getCurrentPage().name).toBe("ISSUE_TABLE");
-    expect(useAppStore.getState().selectedFolderName).toBe(issueB.folderName);
+    expect(useAppStore.getState().selectedIssueId).toBe(issueB.issueId);
   });
 
   it("removes the selected table row and selects a neighbor in the refreshed list", async () => {
@@ -128,7 +127,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issueB = buildIssue("0002");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueB.folderName,
+      selectedIssueId: issueB.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -148,7 +147,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     await new RemoveSelectedIssuePaletteCommand().callback();
 
     expect(useAppStore.getState().getCurrentPage().name).toBe("ISSUE_TABLE");
-    expect(useAppStore.getState().selectedFolderName).toBe(issueA.folderName);
+    expect(useAppStore.getState().selectedIssueId).toBe(issueA.issueId);
   });
 
   it("removes every issue in a table range selection", async () => {
@@ -157,8 +156,8 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issueC = buildIssue("0003");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB, issueC],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -180,7 +179,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     expect(removeSpy).toHaveBeenCalledTimes(2);
     expect(toastInfoMock).toHaveBeenCalled();
     expect(
-      useAppStore.getState().tableRangeSelectionAnchorFolderName,
+      useAppStore.getState().tableRangeSelectionAnchorIssueId,
     ).toBeNull();
   });
 
@@ -188,7 +187,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -207,7 +206,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 

@@ -47,11 +47,7 @@ export class IssueMergeSectionGenerator {
     const storage = new IssueMarkdownFileStorage(issueFilePath);
     await storage.load();
     const parsed = storage.getParsed();
-    return deriveIssueTitle(
-      issue.folderName,
-      parsed.frontmatter,
-      parsed.content,
-    );
+    return deriveIssueTitle(issue.issueId, parsed.frontmatter, parsed.content);
   }
 
   async renderSection(issue: IssueFolder): Promise<string> {
@@ -66,7 +62,7 @@ export class IssueMergeSectionGenerator {
     const parsed = storage.getParsed();
 
     const rendered = this.templateGenerator.getTemplate("issue-merge-section", {
-      issue_folder_name: issue.folderName,
+      issue_folder_name: issue.issueId,
       full_content: parsed.raw.trimEnd(),
     });
     if (rendered === undefined) {

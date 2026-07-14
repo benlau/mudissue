@@ -15,11 +15,10 @@ import { SwitchRecentProjectPaletteCommand } from "../../../src/views/PaletteCom
 
 const issuesAfterSwitch: IssueFolder[] = [
   {
-    issueId: "ZZ0001",
-    folderName: "ZZ0001-x",
+    issueId: "ZZ0001-x",
+    label: "ZZ0001",
     path: "/tmp/repo-b/ZZ0001-x",
-    title: "Alpha",
-    status: "open",
+    metadata: { title: "Alpha", status: "open" },
   },
 ];
 
@@ -85,7 +84,7 @@ describe("SwitchRecentProjectPaletteCommand", () => {
     refreshIssueListsMock = jest.fn().mockImplementation(async () => {
       useAppStore.setState({
         mainIssueLists: issuesAfterSwitch,
-        pinnedFolderNames: ["ZZ0001-x"],
+        pinnedIssueIds: ["ZZ0001-x"],
       });
       return issuesAfterSwitch;
     });
@@ -110,11 +109,11 @@ describe("SwitchRecentProjectPaletteCommand", () => {
   it("reloads the target project, refreshes issue lists and pins, and selects the first row", async () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: "MI0002-b",
+      selectedIssueId: "MI0002-b",
       filter: "status:open",
-      searchRestoreFolderName: "MI0001-a",
-      tableRangeSelectionAnchorFolderName: "MI0001-a",
-      pinnedFolderNames: ["MI0001-a"],
+      searchRestoreIssueId: "MI0001-a",
+      tableRangeSelectionAnchorIssueId: "MI0001-a",
+      pinnedIssueIds: ["MI0001-a"],
     });
 
     const callbackPromise = new SwitchRecentProjectPaletteCommand().callback();
@@ -126,10 +125,10 @@ describe("SwitchRecentProjectPaletteCommand", () => {
 
     const state = useAppStore.getState();
     expect(state.filter).toBeNull();
-    expect(state.searchRestoreFolderName).toBeNull();
-    expect(state.tableRangeSelectionAnchorFolderName).toBeNull();
-    expect(state.selectedFolderName).toBe("ZZ0001-x");
-    expect(state.pinnedFolderNames).toEqual(["ZZ0001-x"]);
+    expect(state.searchRestoreIssueId).toBeNull();
+    expect(state.tableRangeSelectionAnchorIssueId).toBeNull();
+    expect(state.selectedIssueId).toBe("ZZ0001-x");
+    expect(state.pinnedIssueIds).toEqual(["ZZ0001-x"]);
     expect(state.isLoadingIssueList).toBe(false);
   });
 

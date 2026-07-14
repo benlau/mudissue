@@ -6,11 +6,11 @@ import type { IssueFolder } from "../../../src/types/Issue.ts";
 
 const issueRoot = "/repo/issues";
 
-function issueFolder(id: string, folderName = id): IssueFolder {
+function issueFolder(label: string, issueId: string = label): IssueFolder {
   return {
-    issueId: id,
-    folderName,
-    path: `${issueRoot}/${folderName}`,
+    issueId,
+    label,
+    path: `${issueRoot}/${issueId}`,
   };
 }
 
@@ -62,7 +62,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
     expect(results[0].metadata?.status).toBe("open");
   });
 
@@ -88,7 +88,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
     expect(results[0].metadata?.status).toBe("Planned");
   });
 
@@ -114,7 +114,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("excludes status matches case-insensitively when negated", async () => {
@@ -139,7 +139,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0002"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0002"]);
   });
 
   test("filters by tag: query against frontmatter tags array", async () => {
@@ -166,7 +166,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("matches tag field case-insensitively", async () => {
@@ -193,7 +193,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("supports negation and phrase matching", async () => {
@@ -219,7 +219,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("matches numeric text terms against issue numbers without requiring text content match", async () => {
@@ -239,7 +239,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0002"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0002"]);
   });
 
   test("matches numeric text terms against issue numbers with leading zeros ignored", async () => {
@@ -260,7 +260,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual([folderName]);
+    expect(results.map((x) => x.issueId)).toEqual([folderName]);
   });
 
   test("matches under-padded prefixed issue ID against zero-padded folder ID", async () => {
@@ -281,7 +281,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual([folderName]);
+    expect(results.map((x) => x.issueId)).toEqual([folderName]);
   });
 
   test("matches exact padded prefixed issue ID against folder ID", async () => {
@@ -302,7 +302,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual([folderName]);
+    expect(results.map((x) => x.issueId)).toEqual([folderName]);
   });
 
   test("does not match prefixed issue ID with a different prefix", async () => {
@@ -364,7 +364,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("supports date comparisons against createdAt", async () => {
@@ -392,7 +392,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("returns results sorted by id descending", async () => {
@@ -412,7 +412,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((r) => r.folderName)).toEqual(["0003", "0002", "0001"]);
+    expect(results.map((r) => r.issueId)).toEqual(["0003", "0002", "0001"]);
   });
 
   test("skips folders without issue file", async () => {
@@ -429,7 +429,7 @@ describe("IssueSearcher", () => {
 
     const results = await searcher.search(issues, []);
 
-    expect(results.map((r) => r.folderName)).toEqual(["0003", "0001"]);
+    expect(results.map((r) => r.issueId)).toEqual(["0003", "0001"]);
     expect(mockFileService.readFile).toHaveBeenCalledTimes(4);
   });
 
@@ -507,7 +507,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("status:resolved matches issues whose status is in the resolved list", async () => {
@@ -547,7 +547,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0003", "0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0003", "0001"]);
   });
 
   test("status:resolved does not match non-resolved statuses", async () => {
@@ -572,7 +572,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual([]);
+    expect(results.map((x) => x.issueId)).toEqual([]);
   });
 
   test("-status:resolved excludes issues in the resolved list", async () => {
@@ -597,7 +597,7 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0002"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0002"]);
   });
 
   test("status:resolved respects a custom resolvedStatusList", async () => {
@@ -624,7 +624,7 @@ describe("IssueSearcher", () => {
       resolvedStatusList: ["done", "wontfix"],
     });
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("status:resolved matches alias and list values case-insensitively", async () => {
@@ -651,7 +651,7 @@ describe("IssueSearcher", () => {
       resolvedStatusList: ["closed", "canceled"],
     });
 
-    expect(results.map((x) => x.folderName)).toEqual(["0001"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0001"]);
   });
 
   test("status:resolved does not match missing or empty status", async () => {
@@ -691,6 +691,6 @@ describe("IssueSearcher", () => {
     ];
     const results = await searcher.search(issues, terms);
 
-    expect(results.map((x) => x.folderName)).toEqual(["0003"]);
+    expect(results.map((x) => x.issueId)).toEqual(["0003"]);
   });
 });

@@ -61,9 +61,7 @@ function minListIndexForIssues(
   targets: IssueFolder[],
 ): number {
   const indices = targets
-    .map((target) =>
-      list.findIndex((item) => item.folderName === target.folderName),
-    )
+    .map((target) => list.findIndex((item) => item.issueId === target.issueId))
     .filter((index) => index >= 0);
   return indices.length === 0 ? -1 : Math.min(...indices);
 }
@@ -101,7 +99,7 @@ export class ArchiveSelectedIssuePaletteCommand implements PaletteCommand {
           ? messages.confirmMessage
           : messages.confirmMessagePlural,
         issues.length === 1
-          ? { folderName: firstIssue.folderName, projectName: repo.name }
+          ? { folderName: firstIssue.issueId, projectName: repo.name }
           : { count: issues.length, projectName: repo.name },
       ),
       confirmLabel: intl.formatMessage(messages.confirmLabel),
@@ -127,7 +125,7 @@ export class ArchiveSelectedIssuePaletteCommand implements PaletteCommand {
 
       try {
         const result = await new IssueArchiveCommand().command(
-          issue.folderName,
+          issue.issueId,
           issueRepo.name,
         );
         if (result != null && isErrorResponse(result)) {
@@ -160,8 +158,8 @@ export class ArchiveSelectedIssuePaletteCommand implements PaletteCommand {
         : clamp(oldIndex, 0, refreshedList.length - 1);
     useAppStore
       .getState()
-      .setSelectedFolderName(
-        nextIndex >= 0 ? (refreshedList[nextIndex]?.folderName ?? null) : null,
+      .setSelectedIssueId(
+        nextIndex >= 0 ? (refreshedList[nextIndex]?.issueId ?? null) : null,
       );
 
     await useToastStore
@@ -172,7 +170,7 @@ export class ArchiveSelectedIssuePaletteCommand implements PaletteCommand {
             ? messages.successToast
             : messages.successToastPlural,
           issues.length === 1
-            ? { issue: firstIssue.folderName }
+            ? { issue: firstIssue.issueId }
             : { count: issues.length },
         ),
       );

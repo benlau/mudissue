@@ -4,10 +4,10 @@ import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorag
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
 
-const buildIssueFolder = (folderName: string, issueId: string): IssueFolder => ({
+const buildIssueFolder = (issueId: string, label: string): IssueFolder => ({
   issueId,
-  folderName,
-  path: `/repo/issues/${folderName}`,
+  label,
+  path: `/repo/issues/${issueId}`,
 });
 
 const SECTION_SEPARATOR = `\n\n${"-".repeat(40)}\n\n`;

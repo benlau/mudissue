@@ -49,12 +49,12 @@ describe("IssueSearchCommand", () => {
   });
 
   const buildIssueFolder = (
-    folderName: string,
+    issueId: string,
     metadata?: IssueFolder["metadata"],
   ): IssueFolder => ({
-    issueId: folderName,
-    folderName,
-    path: `/repo/issues/${folderName}`,
+    issueId,
+    label: issueId,
+    path: `/repo/issues/${issueId}`,
     ...(metadata != null ? { metadata } : {}),
   });
 
@@ -103,7 +103,7 @@ describe("IssueSearchCommand", () => {
     expect(result.status).toBe("ok");
     expect(result.result.projects).toHaveLength(1);
     expect(result.result.projects[0].issues).toHaveLength(1);
-    expect(result.result.projects[0].issues[0].folderName).toBe("0002");
+    expect(result.result.projects[0].issues[0].issueId).toBe("0002");
     expect(searchFoldersMock).toHaveBeenCalledWith(
       issues,
       expectedTerms,
@@ -136,7 +136,7 @@ describe("IssueSearchCommand", () => {
     expect(result.status).toBe("ok");
     expect(result.result.projects).toHaveLength(1);
     expect(result.result.projects[0].issues).toHaveLength(1);
-    expect(result.result.projects[0].issues[0].folderName).toBe("0001");
+    expect(result.result.projects[0].issues[0].issueId).toBe("0001");
     expect(searchFoldersMock).toHaveBeenCalledWith(
       issues,
       expectedTerms,
@@ -246,7 +246,7 @@ describe("IssueSearchCommand", () => {
     expect(result.result.projects).toHaveLength(1);
     expect(result.result.projects[0].name).toBe("proj-a");
     expect(result.result.projects[0].issues).toHaveLength(1);
-    expect(result.result.projects[0].issues[0].folderName).toBe("0002");
+    expect(result.result.projects[0].issues[0].issueId).toBe("0002");
     expect(bundle.trackerRepoStore.getTrackerRepoByProjectName).toHaveBeenCalledWith("proj-a");
     expect(bundle.trackerRepoStore.getTrackerRepoList).not.toHaveBeenCalled();
     expect(searchFoldersMock).toHaveBeenCalledTimes(1);
@@ -292,7 +292,7 @@ describe("IssueSearchCommand", () => {
     });
 
     expect(result.status).toBe("ok");
-    expect(result.result.projects[0].issues.map((i) => i.folderName)).toEqual([
+    expect(result.result.projects[0].issues.map((i) => i.issueId)).toEqual([
       "0001",
       "0002",
     ]);
@@ -322,7 +322,7 @@ describe("IssueSearchCommand", () => {
     });
 
     expect(result.status).toBe("ok");
-    expect(result.result.projects[0].issues.map((i) => i.folderName)).toEqual([
+    expect(result.result.projects[0].issues.map((i) => i.issueId)).toEqual([
       "0001",
       "0002",
     ]);
@@ -363,7 +363,7 @@ describe("IssueSearchCommand", () => {
     expect(result.status).toBe("ok");
     expect(result.result.projects).toHaveLength(1);
     expect(result.result.projects[0].issues).toHaveLength(2);
-    expect(result.result.projects[0].issues.map((i) => i.folderName)).toEqual([
+    expect(result.result.projects[0].issues.map((i) => i.issueId)).toEqual([
       "0001",
       "0002",
     ]);

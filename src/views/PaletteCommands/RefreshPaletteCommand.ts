@@ -24,7 +24,7 @@ export class RefreshPaletteCommand implements PaletteCommand {
   readonly description = intl.formatMessage(messages.description);
 
   async callback(): Promise<void> {
-    const { selectedFolderName } = useAppStore.getState();
+    const { selectedIssueId } = useAppStore.getState();
     useAppStore.setState({ isLoadingIssueList: true });
     const start = Date.now();
     try {
@@ -36,14 +36,12 @@ export class RefreshPaletteCommand implements PaletteCommand {
         .loadCurrentTrackerRepoByPath(currentRepo.projectPath);
       const refreshedList = await useAppStore.getState().refreshIssueLists();
       const stillSelected =
-        selectedFolderName != null &&
-        refreshedList.some((issue) => issue.folderName === selectedFolderName);
+        selectedIssueId != null &&
+        refreshedList.some((issue) => issue.issueId === selectedIssueId);
       useAppStore
         .getState()
-        .setSelectedFolderName(
-          stillSelected
-            ? selectedFolderName
-            : (refreshedList[0]?.folderName ?? null),
+        .setSelectedIssueId(
+          stillSelected ? selectedIssueId : (refreshedList[0]?.issueId ?? null),
         );
       const elapsed = Date.now() - start;
       if (elapsed < MIN_LOADING_MS) {

@@ -18,17 +18,11 @@ const mockRepo: TrackerRepo = {
   config: { issue_path: "issues", issue_file_pattern: "long" },
 };
 
-const srcIssue: IssueFolder = {
-  issueId: "0001",
-  folderName: "0001-blocker",
-  path: "/repo/issues/0001-blocker",
-};
+const srcIssue: IssueFolder = { issueId: "0001-blocker", label: "0001", path: "/repo/issues/0001-blocker",
+ };
 
-const dstIssue: IssueFolder = {
-  issueId: "0002",
-  folderName: "0002-blocked",
-  path: "/repo/issues/0002-blocked",
-};
+const dstIssue: IssueFolder = { issueId: "0002-blocked", label: "0002", path: "/repo/issues/0002-blocked",
+ };
 
 function issueContent(body = "Body\n"): string {
   return `---\ntitle: Test\n---\n\n${body}`;
@@ -48,10 +42,10 @@ describe("IssueLinkHelper", () => {
     trackerRepoStore = bundle.trackerRepoStore;
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
     trackerRepoStore.findIssue.mockImplementation((selector: string) => {
-      if (selector === "0001" || selector === srcIssue.folderName) {
+      if (selector === "0001" || selector === srcIssue.issueId) {
         return Promise.resolve([srcIssue]);
       }
-      if (selector === "0002" || selector === dstIssue.folderName) {
+      if (selector === "0002" || selector === dstIssue.issueId) {
         return Promise.resolve([dstIssue]);
       }
       return Promise.resolve([]);
@@ -103,9 +97,9 @@ describe("IssueLinkHelper", () => {
     });
 
     const result = await IssueLinkHelper.link(
-      dstIssue.folderName,
+      dstIssue.issueId,
       "blocked_by",
-      srcIssue.folderName,
+      srcIssue.issueId,
     );
 
     expect(result.srcField).toBe("blocked_by");
@@ -242,7 +236,7 @@ describe("IssueLinkHelper", () => {
       return Promise.resolve();
     });
     trackerRepoStore.findIssue.mockImplementation((selector: string) => {
-      if (selector === "0001" || selector === srcIssue.folderName) {
+      if (selector === "0001" || selector === srcIssue.issueId) {
         return Promise.resolve([srcIssue]);
       }
       return Promise.resolve([]);

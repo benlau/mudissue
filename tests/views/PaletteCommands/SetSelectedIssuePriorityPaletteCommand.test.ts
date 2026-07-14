@@ -24,8 +24,7 @@ import { SetSelectedIssuePriorityPaletteCommand } from "../../../src/views/Palet
 
 const buildIssue = (issueId: string, priority?: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
     priority,
   });
 
@@ -106,7 +105,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
   it("is not disabled when no issue is selected", () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
     });
 
     const command = new SetSelectedIssuePriorityPaletteCommand();
@@ -117,7 +116,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     const issue = buildIssue("0001", "high");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({
@@ -141,7 +140,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({
@@ -174,7 +173,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     await new SetSelectedIssuePriorityPaletteCommand().callback();
 
     expect(IssueSetPropertyCommand.prototype.command).toHaveBeenCalledWith(
-      issue.folderName,
+      issue.issueId,
       "priority",
       "urgent",
       mockRepo.name,
@@ -195,8 +194,8 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({
@@ -236,7 +235,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     const issue = buildIssue("0001", "low");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({

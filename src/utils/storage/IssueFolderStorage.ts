@@ -57,7 +57,7 @@ export class IssueFolderStorage {
 
   async findIssueFile(): Promise<string | undefined> {
     const dir = this.issueFolder.path;
-    const name = this.issueFolder.folderName;
+    const label = this.issueFolder.label;
     const issueId = this.issueFolder.issueId;
 
     const checkedPaths = new Set<string>();
@@ -73,8 +73,8 @@ export class IssueFolderStorage {
     const r1 = await checkPath(issueMd);
     if (r1) return r1;
 
-    const folderMd = path.join(dir, `${name}.md`);
-    const r2 = await checkPath(folderMd);
+    const labelMd = path.join(dir, `${label}.md`);
+    const r2 = await checkPath(labelMd);
     if (r2) return r2;
 
     if (issueId) {
@@ -84,7 +84,7 @@ export class IssueFolderStorage {
     }
 
     const entries = await this.fileService.readdir(dir);
-    const prefix = `${issueId}-`;
+    const prefix = `${label}-`;
     const match = entries.find(
       (e) =>
         !e.isDirectory() && e.name.startsWith(prefix) && e.name.endsWith(".md"),

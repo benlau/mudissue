@@ -32,7 +32,7 @@ export const MAX_RECENT_PROJECTS = 20;
 /** Maximum number of recent filters to retain. */
 export const MAX_RECENT_FILTERS = 20;
 
-/** Max length for issue folder names produced by `IssueResource.folderNameForTitle`. */
+/** Max length for issue folder names produced by `IssueResource.issueIdForTitle`. */
 export const ISSUE_FOLDER_NAME_MAX_LENGTH = 48;
 
 /** Max length for issue branch names produced by `getIssueBranchName`. */

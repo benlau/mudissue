@@ -57,12 +57,9 @@ describe("IssueCreateCommand", () => {
   });
 
   it("returns SuccessResponse with createdIssue on success", async () => {
-    const createdFolder = {
-      issueId: "0001",
-      folderName: "0001-my-issue",
-      path: "/repo/issues/0001-my-issue",
+    const createdFolder = { issueId: "0001-my-issue", label: "0001", path: "/repo/issues/0001-my-issue",
       title: "My issue",
-    };
+     };
     (mockIssueResource.create as jest.Mock).mockResolvedValue(createdFolder);
 
     jest
@@ -94,17 +91,14 @@ describe("IssueCreateCommand", () => {
     expect(result.status).toBe("ok");
     expect(result.result).toEqual({
       createdIssue: {
-        issueId: "0001",
+        issueId: "0001-my-issue",
         issueFolderName: "0001-my-issue",
         issueFilePath: "/repo/issues/0001-my-issue/issue.md",
       },
     });
     expect(mockIssueResource.create).toHaveBeenCalledWith(
-      {
-        issueId: "0001",
-        folderName: "0001-my-issue",
-        path: "/repo/issues/0001-my-issue",
-      },
+      { issueId: "0001-my-issue", label: "0001", path: "/repo/issues/0001-my-issue",
+       },
       "/repo/issues/0001-my-issue/issue.md",
       "My issue",
       undefined,
@@ -133,12 +127,9 @@ describe("IssueCreateCommand", () => {
       .spyOn(TrackerRepoStorage.prototype, "getDefaultStatus")
       .mockReturnValue("pending");
 
-    (mockIssueResource.create as jest.Mock).mockResolvedValue({
-      issueId: "0001",
-      folderName: "0001-my-issue",
-      path: "/repo/issues/0001-my-issue",
+    (mockIssueResource.create as jest.Mock).mockResolvedValue({ issueId: "0001-my-issue", label: "0001", path: "/repo/issues/0001-my-issue",
       title: "My issue",
-    });
+     });
 
     jest
       .spyOn(NextIssueIdHelper.prototype, "resolveIssueId")
@@ -190,12 +181,9 @@ describe("IssueCreateCommand", () => {
       .spyOn(TrackerRepoStorage.prototype, "getDefaultPriority")
       .mockReturnValue("medium");
 
-    (mockIssueResource.create as jest.Mock).mockResolvedValue({
-      issueId: "0001",
-      folderName: "0001-my-issue",
-      path: "/repo/issues/0001-my-issue",
+    (mockIssueResource.create as jest.Mock).mockResolvedValue({ issueId: "0001-my-issue", label: "0001", path: "/repo/issues/0001-my-issue",
       title: "My issue",
-    });
+     });
 
     jest
       .spyOn(NextIssueIdHelper.prototype, "resolveIssueId")
@@ -233,21 +221,15 @@ describe("IssueCreateCommand", () => {
   });
 
   it("calls issueResource.create with parentFolderName when parent is provided", async () => {
-    const parentFolder = {
-      issueId: "FN004",
-      folderName: "FN004-parent-feature",
-      path: "/repo/issues/FN004-parent-feature",
-    };
+    const parentFolder = { issueId: "FN004-parent-feature", label: "FN004", path: "/repo/issues/FN004-parent-feature",
+     };
     (bundle.issueFinderService.find as jest.Mock).mockResolvedValue([
       parentFolder,
     ]);
 
-    const createdFolder = {
-      issueId: "0002",
-      folderName: "0002-child-issue",
-      path: "/repo/issues/0002-child-issue",
+    const createdFolder = { issueId: "0002-child-issue", label: "0002", path: "/repo/issues/0002-child-issue",
       title: "Child issue",
-    };
+     };
     (mockIssueResource.create as jest.Mock).mockResolvedValue(createdFolder);
 
     jest
@@ -267,8 +249,8 @@ describe("IssueCreateCommand", () => {
       "/repo/issues/FN004-parent-feature/issue.md";
     const resolveIssueFilePathSpy = jest
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
-      .mockImplementation((folder: { folderName: string }) =>
-        folder.folderName === "FN004-parent-feature"
+      .mockImplementation((folder: { label: string }) =>
+        folder.issueId === "FN004-parent-feature"
           ? Promise.resolve(parentIssueFilePath)
           : Promise.resolve("/repo/issues/0002-child-issue/issue.md"),
       );
@@ -290,8 +272,8 @@ describe("IssueCreateCommand", () => {
     expect(bundle.issueFinderService.find).toHaveBeenCalledWith("FN004");
     expect(mockIssueResource.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        issueId: "0002",
-        folderName: "0002-child-issue",
+        issueId: "0002-child-issue",
+        label: "0002",
       }),
       "/repo/issues/0002-child-issue/issue.md",
       "Child issue",
@@ -327,16 +309,10 @@ describe("IssueCreateCommand", () => {
 
   it("throws when parent matches multiple issues", async () => {
     (bundle.issueFinderService.find as jest.Mock).mockResolvedValue([
-      {
-        issueId: "1",
-        folderName: "1-a",
-        path: "/repo/issues/1-a",
-      },
-      {
-        issueId: "1",
-        folderName: "1-b",
-        path: "/repo/issues/1-b",
-      },
+      { issueId: "1-a", label: "1", path: "/repo/issues/1-a",
+       },
+      { issueId: "1-b", label: "1", path: "/repo/issues/1-b",
+       },
     ]);
 
     const command = new IssueCreateCommand({
@@ -411,12 +387,9 @@ describe("IssueCreateCommand", () => {
       jest
         .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
         .mockResolvedValue("/repo/issues/0001-my-issue/issue.md");
-      (mockIssueResource.create as jest.Mock).mockResolvedValue({
-        issueId: "0001",
-        folderName: "0001-my-issue",
-        path: "/repo/issues/0001-my-issue",
+      (mockIssueResource.create as jest.Mock).mockResolvedValue({ issueId: "0001-my-issue", label: "0001", path: "/repo/issues/0001-my-issue",
         title: "My issue",
-      });
+       });
     }
 
     it("passes --content to issueResource.create", async () => {
@@ -521,12 +494,9 @@ describe("IssueCreateCommand", () => {
       } as ReturnType<FileService["stat"]>);
       bundle.fileService.isBinaryFile.mockResolvedValue(false);
       bundle.fileService.readFile.mockResolvedValue("---\ntitle: Plan\n---\n");
-      (mockIssueResource.createFromFile as jest.Mock).mockResolvedValue({
-        issueId: "0001",
-        folderName: "0001-plan",
-        path: "/repo/issues/0001-plan",
+      (mockIssueResource.createFromFile as jest.Mock).mockResolvedValue({ issueId: "0001-plan", label: "0001", path: "/repo/issues/0001-plan",
         title: "Plan",
-      });
+       });
       jest
         .spyOn(NextIssueIdHelper.prototype, "resolveIssueId")
         .mockResolvedValue("0001");
@@ -561,12 +531,9 @@ describe("IssueCreateCommand", () => {
 
   describe("create from file (--file)", () => {
     const resolvedPath = "/cwd/plan.md";
-    const successResult = {
-      issueId: "0001",
-      folderName: "0001-plan",
-      path: "/repo/issues/0001-plan",
+    const successResult = { issueId: "0001-plan", label: "0001", path: "/repo/issues/0001-plan",
       title: "Plan",
-    };
+     };
 
     it("calls createFromFile with resolved path when file is valid", async () => {
       bundle.fileService.exists.mockResolvedValue(true);
@@ -606,7 +573,7 @@ describe("IssueCreateCommand", () => {
       expect(result.status).toBe("ok");
       expect(result.result).toEqual({
         createdIssue: {
-          issueId: "0001",
+          issueId: "0001-plan",
           issueFolderName: "0001-plan",
           issueFilePath: "/repo/issues/0001-plan/issue.md",
         },
@@ -614,8 +581,8 @@ describe("IssueCreateCommand", () => {
       expect(mockIssueResource.createFromFile).toHaveBeenCalledWith(
         resolvedPath,
         expect.objectContaining({
-          issueId: "0001",
-          folderName: "0001-plan",
+          issueId: "0001-plan",
+          label: "0001",
         }),
         "/repo/issues/0001-plan/issue.md",
         "Plan",
@@ -661,7 +628,7 @@ describe("IssueCreateCommand", () => {
 
       expect(mockIssueResource.createFromFile).toHaveBeenCalledWith(
         resolvedPath,
-        expect.objectContaining({ folderName: "0001-plan" }),
+        expect.objectContaining({ issueId: "0001-plan", label: "0001" }),
         "/repo/issues/0001-plan/issue.md",
         "Plan",
       );

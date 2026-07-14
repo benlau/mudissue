@@ -10,7 +10,7 @@ import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 const defaultSortingRules = {
   orders: [DEFAULT_SORTING_ORDER],
-  pinnedFolderNames: [],
+  pinnedIssueIds: [],
   statusList: DEFAULT_STATUS_LIST,
   priorityList: DEFAULT_PRIORITY_LIST,
 };
@@ -254,16 +254,13 @@ describe("IssueFolderListAccessor", () => {
   });
 
   it("sortBy places pinned issues first in registry order", () => {
-    const a = buildIssue("MI0001", {
-      folderName: "MI0001-a",
+    const a = buildIssue("MI0001-a", {
       updatedAt: new Date("2026-03-01"),
     });
-    const b = buildIssue("MI0002", {
-      folderName: "MI0002-b",
+    const b = buildIssue("MI0002-b", {
       updatedAt: new Date("2026-02-01"),
     });
-    const c = buildIssue("MI0003", {
-      folderName: "MI0003-c",
+    const c = buildIssue("MI0003-c", {
       updatedAt: new Date("2026-01-01"),
     });
 
@@ -271,14 +268,14 @@ describe("IssueFolderListAccessor", () => {
       .sortBy({
         ...defaultSortingRules,
         orders: [{ field: "updated_at", order: "desc" }],
-        pinnedFolderNames: ["MI0003-c", "MI0001-a"],
+        pinnedIssueIds: ["MI0003-c", "MI0001-a"],
       })
       .get();
 
     expect(sorted.map((i) => i.issueId)).toEqual([
-      "MI0003",
-      "MI0001",
-      "MI0002",
+      "MI0003-c",
+      "MI0001-a",
+      "MI0002-b",
     ]);
   });
 
@@ -368,9 +365,9 @@ describe("IssueFolderListAccessor", () => {
   });
 
   it("sortBy issueSelector promotes exact issue id matches before other sort orders", () => {
-    const exactMatch = buildIssue("0067", { folderName: "0067-issue" });
-    const partialNumber = buildIssue("0167", { folderName: "0167-other" });
-    const unrelated = buildIssue("0001", { folderName: "0001-alpha" });
+    const exactMatch = buildIssue("0067-issue");
+    const partialNumber = buildIssue("0167-other");
+    const unrelated = buildIssue("0001-alpha");
 
     const sorted = accessIssueFolderList([partialNumber, unrelated, exactMatch])
       .sortBy({
@@ -380,12 +377,16 @@ describe("IssueFolderListAccessor", () => {
       })
       .get();
 
-    expect(sorted.map((i) => i.issueId)).toEqual(["0067", "0167", "0001"]);
+    expect(sorted.map((i) => i.issueId)).toEqual([
+      "0067-issue",
+      "0167-other",
+      "0001-alpha",
+    ]);
   });
 
   it("sortBy issueSelector does not reorder when filter is not an issue selector", () => {
-    const alpha = buildIssue("0001", { folderName: "0001-alpha" });
-    const beta = buildIssue("0002", { folderName: "0002-beta" });
+    const alpha = buildIssue("0001-alpha");
+    const beta = buildIssue("0002-beta");
 
     const sorted = accessIssueFolderList([beta, alpha])
       .sortBy({
@@ -395,7 +396,7 @@ describe("IssueFolderListAccessor", () => {
       })
       .get();
 
-    expect(sorted.map((i) => i.issueId)).toEqual(["0001", "0002"]);
+    expect(sorted.map((i) => i.issueId)).toEqual(["0001-alpha", "0002-beta"]);
   });
 
   it("sortBy issueSelector does not reorder when filter is empty", () => {

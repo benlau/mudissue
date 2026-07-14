@@ -56,7 +56,7 @@ export class ChangeIssueIdHelper {
       );
     }
 
-    if (!IssueSelectorMatcher.isIssueId(trimmedNewId)) {
+    if (!IssueSelectorMatcher.isIssueLabel(trimmedNewId)) {
       throwChangeIssueIdError(
         "CHANGE_ISSUE_ID_INVALID",
         `Invalid issue id: "${trimmedNewId}".`,
@@ -64,7 +64,7 @@ export class ChangeIssueIdHelper {
       );
     }
 
-    if (trimmedNewId === issue.issueId) {
+    if (trimmedNewId === issue.label) {
       throwChangeIssueIdError(
         "CHANGE_ISSUE_ID_UNCHANGED",
         `Issue id is already "${trimmedNewId}".`,
@@ -73,7 +73,7 @@ export class ChangeIssueIdHelper {
     }
 
     const newFolderName = ChangeIssueIdHelper.computeFolderNameForIdChange(
-      issue.folderName,
+      issue.issueId,
       trimmedNewId,
     );
 
@@ -125,7 +125,7 @@ export class ChangeIssueIdHelper {
 
     const registry = RegistryService.getInstance();
     const pinned = await registry.getPinnedIssueFolderNames(repo.projectPath);
-    const pinnedIndex = pinned.indexOf(issue.folderName);
+    const pinnedIndex = pinned.indexOf(issue.issueId);
     if (pinnedIndex >= 0) {
       pinned[pinnedIndex] = renameResult.newFolderName;
       await registry.setPinnedIssueFolderNames(pinned, repo.projectPath);

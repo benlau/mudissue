@@ -38,12 +38,12 @@ const mockRepo: TrackerRepo = {
 import { buildIssueFolder as buildIssueFolderFixture } from "../fixture/buildIssueFolder.ts";
 
 const buildIssueFolder = (
-  folderName: string,
-  issueId = "MI1",
+  issueId: string,
+  label = issueId,
 ): IssueFolder =>
   buildIssueFolderFixture(issueId, {
-    folderName,
-    path: path.join(mockRepo.projectPath, "issues", folderName),
+    label,
+    path: path.join(mockRepo.projectPath, "issues", issueId),
     title: "t",
     status: "open",
   });
@@ -121,7 +121,7 @@ describe("ViewCommand", () => {
       name: "ISSUE_VIEWER",
       args: { issue: folder },
     });
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0100-mudissue");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0100-mudissue");
     expect(renderMock).toHaveBeenCalledTimes(1);
     expect(waitUntilExit).toHaveBeenCalledTimes(1);
     const intlEl = renderMock.mock.calls[0]?.[0] as {
@@ -152,7 +152,7 @@ describe("ViewCommand", () => {
       name: "ISSUE_VIEWER",
       args: { issue: folder },
     });
-    expect(useAppStore.getState().selectedFolderName).toBe(folder.folderName);
+    expect(useAppStore.getState().selectedIssueId).toBe(folder.issueId);
     expect(trackerRepoStore.findIssue).toHaveBeenCalledWith(
       "MI0100-duplicated-issue",
     );

@@ -35,17 +35,17 @@ function buildIssueViewerPage(
 
 export type AppStoreState = {
   mainIssueLists: IssueFolder[] | null;
-  pinnedFolderNames: string[];
+  pinnedIssueIds: string[];
   filter: string | null;
   navigationStack: NavigationStack;
-  selectedFolderName: string | null;
-  /** When set, table range selection is active; anchor is fixed, focus follows selectedFolderName. */
-  tableRangeSelectionAnchorFolderName: string | null;
-  searchRestoreFolderName: string | null;
+  selectedIssueId: string | null;
+  /** When set, table range selection is active; anchor is fixed, focus follows selectedIssueId. */
+  tableRangeSelectionAnchorIssueId: string | null;
+  searchRestoreIssueId: string | null;
   isLoadingIssueList: boolean;
   debug: boolean;
   setDebug: (debug: boolean) => void;
-  setSelectedFolderName: (folderName: string | null) => void;
+  setSelectedIssueId: (issueId: string | null) => void;
   toggleTableRangeSelection: () => void;
   clearTableRangeSelection: () => void;
   reset: () => void;
@@ -75,12 +75,12 @@ export type AppStoreState = {
 
 const initialDataSlice = {
   mainIssueLists: null as IssueFolder[] | null,
-  pinnedFolderNames: [] as string[],
+  pinnedIssueIds: [] as string[],
   filter: null as string | null,
   navigationStack: INITIAL_NAVIGATION_STACK,
-  selectedFolderName: null as string | null,
-  tableRangeSelectionAnchorFolderName: null as string | null,
-  searchRestoreFolderName: null as string | null,
+  selectedIssueId: null as string | null,
+  tableRangeSelectionAnchorIssueId: null as string | null,
+  searchRestoreIssueId: null as string | null,
   isLoadingIssueList: false,
   debug: false,
 };
@@ -94,47 +94,47 @@ export const useAppStore = create<AppStoreState>()(
       });
     },
 
-    setSelectedFolderName: (folderName) => {
+    setSelectedIssueId: (issueId) => {
       set((draft) => {
-        draft.selectedFolderName = folderName;
+        draft.selectedIssueId = issueId;
       });
     },
 
     toggleTableRangeSelection: () => {
       const {
         mainIssueLists,
-        selectedFolderName,
-        tableRangeSelectionAnchorFolderName,
+        selectedIssueId,
+        tableRangeSelectionAnchorIssueId,
       } = get();
-      if (tableRangeSelectionAnchorFolderName != null) {
+      if (tableRangeSelectionAnchorIssueId != null) {
         set((draft) => {
-          draft.tableRangeSelectionAnchorFolderName = null;
+          draft.tableRangeSelectionAnchorIssueId = null;
         });
         return;
       }
       if (
         mainIssueLists == null ||
         mainIssueLists.length === 0 ||
-        selectedFolderName == null
+        selectedIssueId == null
       ) {
         return;
       }
       set((draft) => {
-        draft.tableRangeSelectionAnchorFolderName = selectedFolderName;
+        draft.tableRangeSelectionAnchorIssueId = selectedIssueId;
       });
     },
 
     clearTableRangeSelection: () => {
       set((draft) => {
-        draft.tableRangeSelectionAnchorFolderName = null;
+        draft.tableRangeSelectionAnchorIssueId = null;
       });
     },
 
     reset: () => {
       set((draft) => {
         draft.filter = null;
-        draft.searchRestoreFolderName = null;
-        draft.tableRangeSelectionAnchorFolderName = null;
+        draft.searchRestoreIssueId = null;
+        draft.tableRangeSelectionAnchorIssueId = null;
       });
     },
 
@@ -144,7 +144,7 @@ export const useAppStore = create<AppStoreState>()(
         .getState()
         .getTrackerRepoList();
       const rootRepo = repoList[0];
-      const pinnedFolderNames =
+      const pinnedIssueIds =
         rootRepo != null
           ? await RegistryService.getInstance().getPinnedIssueFolderNames(
               rootRepo.projectPath,
@@ -157,7 +157,7 @@ export const useAppStore = create<AppStoreState>()(
         .searchAllFolders(filter);
       set((draft) => {
         draft.mainIssueLists = list;
-        draft.pinnedFolderNames = pinnedFolderNames;
+        draft.pinnedIssueIds = pinnedIssueIds;
       });
       return list;
     },
@@ -165,7 +165,7 @@ export const useAppStore = create<AppStoreState>()(
     searchIssues: async (newFilter: string | null) => {
       const normalized =
         newFilter != null && newFilter.trim() !== "" ? newFilter.trim() : null;
-      const { filter, selectedFolderName, searchRestoreFolderName } = get();
+      const { filter, selectedIssueId, searchRestoreIssueId } = get();
       const wasSearching = filter != null && filter.trim() !== "";
       const list = await IssueSearchStoreFactory.createOrGet(
         IssueSearchStoreKey.IssueTable,
@@ -175,16 +175,15 @@ export const useAppStore = create<AppStoreState>()(
       set((draft) => {
         draft.filter = normalized;
         draft.mainIssueLists = list;
-        draft.tableRangeSelectionAnchorFolderName = null;
+        draft.tableRangeSelectionAnchorIssueId = null;
         if (normalized != null) {
-          draft.searchRestoreFolderName = wasSearching
-            ? searchRestoreFolderName
-            : selectedFolderName;
-          draft.selectedFolderName = list[0]?.folderName ?? null;
+          draft.searchRestoreIssueId = wasSearching
+            ? searchRestoreIssueId
+            : selectedIssueId;
+          draft.selectedIssueId = list[0]?.issueId ?? null;
         } else {
-          draft.selectedFolderName =
-            searchRestoreFolderName ?? selectedFolderName;
-          draft.searchRestoreFolderName = null;
+          draft.selectedIssueId = searchRestoreIssueId ?? selectedIssueId;
+          draft.searchRestoreIssueId = null;
         }
       });
     },
@@ -195,8 +194,8 @@ export const useAppStore = create<AppStoreState>()(
         draft.navigationStack = accessNavigationStack(draft.navigationStack)
           .push(viewerPage)
           .get();
-        draft.selectedFolderName = issue.folderName;
-        draft.tableRangeSelectionAnchorFolderName = null;
+        draft.selectedIssueId = issue.issueId;
+        draft.tableRangeSelectionAnchorIssueId = null;
       });
     },
 
@@ -209,7 +208,7 @@ export const useAppStore = create<AppStoreState>()(
         draft.navigationStack = accessNavigationStack(draft.navigationStack)
           .replaceTop(viewerPage)
           .get();
-        draft.selectedFolderName = issue.folderName;
+        draft.selectedIssueId = issue.issueId;
       });
     },
 
@@ -218,9 +217,9 @@ export const useAppStore = create<AppStoreState>()(
         const closingPage = accessNavigationStack(
           draft.navigationStack,
         ).getCurrentPage();
-        let closingIssueFolderName: string | null = null;
+        let closingIssueId: string | null = null;
         if (closingPage.name === "ISSUE_VIEWER") {
-          closingIssueFolderName = closingPage.args.issue.folderName;
+          closingIssueId = closingPage.args.issue.issueId;
         }
 
         draft.navigationStack = accessNavigationStack(draft.navigationStack)
@@ -231,9 +230,9 @@ export const useAppStore = create<AppStoreState>()(
           draft.navigationStack,
         ).getCurrentPage();
         if (newPage.name === "ISSUE_VIEWER") {
-          draft.selectedFolderName = newPage.args.issue.folderName;
-        } else if (closingIssueFolderName != null) {
-          draft.selectedFolderName = closingIssueFolderName;
+          draft.selectedIssueId = newPage.args.issue.issueId;
+        } else if (closingIssueId != null) {
+          draft.selectedIssueId = closingIssueId;
         }
       });
     },
@@ -260,7 +259,7 @@ export const useAppStore = create<AppStoreState>()(
       }
       const active = currentPage.args.issue;
       const currentIndex = issues.findIndex(
-        (issue) => issue.folderName === active.folderName,
+        (issue) => issue.issueId === active.issueId,
       );
       if (currentIndex < 0) return;
       if (currentIndex === 0) {
@@ -285,7 +284,7 @@ export const useAppStore = create<AppStoreState>()(
       }
       const active = currentPage.args.issue;
       const currentIndex = issues.findIndex(
-        (issue) => issue.folderName === active.folderName,
+        (issue) => issue.issueId === active.issueId,
       );
       if (currentIndex < 0) return;
       if (currentIndex === issues.length - 1) {
@@ -314,18 +313,18 @@ export const useAppStore = create<AppStoreState>()(
       }
       const {
         mainIssueLists,
-        selectedFolderName,
-        tableRangeSelectionAnchorFolderName,
+        selectedIssueId,
+        tableRangeSelectionAnchorIssueId,
       } = get();
-      if (mainIssueLists == null || selectedFolderName == null) {
+      if (mainIssueLists == null || selectedIssueId == null) {
         return [];
       }
-      if (tableRangeSelectionAnchorFolderName != null) {
+      if (tableRangeSelectionAnchorIssueId != null) {
         const anchorIdx = mainIssueLists.findIndex(
-          (item) => item.folderName === tableRangeSelectionAnchorFolderName,
+          (item) => item.issueId === tableRangeSelectionAnchorIssueId,
         );
         const focusIdx = mainIssueLists.findIndex(
-          (item) => item.folderName === selectedFolderName,
+          (item) => item.issueId === selectedIssueId,
         );
         if (anchorIdx >= 0 && focusIdx >= 0) {
           const lo = Math.min(anchorIdx, focusIdx);
@@ -334,7 +333,7 @@ export const useAppStore = create<AppStoreState>()(
         }
       }
       const selected = mainIssueLists.find(
-        (item) => item.folderName === selectedFolderName,
+        (item) => item.issueId === selectedIssueId,
       );
       return selected != null ? [selected] : [];
     },
@@ -377,8 +376,9 @@ export const useAppStore = create<AppStoreState>()(
         const sortingOrder = await registryService.getIssueListSortOrder(
           repo.projectPath,
         );
-        const pinnedFolderNames =
-          await registryService.getPinnedIssueFolderNames(repo.projectPath);
+        const pinnedIssueIds = await registryService.getPinnedIssueFolderNames(
+          repo.projectPath,
+        );
         const trackerRepoStore = useCurrentTrackerRepoStore.getState();
         const statusList = await trackerRepoStore.getStatusList(repo);
         const priorityTable = await trackerRepoStore.getPriorityTable(repo);
@@ -389,12 +389,12 @@ export const useAppStore = create<AppStoreState>()(
           draft.mainIssueLists = accessIssueFolderList(draft.mainIssueLists)
             .sortBy({
               orders: [sortingOrder],
-              pinnedFolderNames,
+              pinnedIssueIds,
               statusList,
               priorityList: priorityTable.priorities,
             })
             .get();
-          draft.pinnedFolderNames = pinnedFolderNames;
+          draft.pinnedIssueIds = pinnedIssueIds;
         });
       })();
     },

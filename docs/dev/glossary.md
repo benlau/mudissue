@@ -30,7 +30,7 @@ The relative path comes from `issue_path` in `mud.conf`, defaulting to `issues`.
 
 ## Issue folder
 
-A single issue’s directory inside the **issues folder**. Its name follows the [issue folder naming rules](../issue-folder.md) (issue prefix, number, and optional suffix).
+A single issue’s directory inside the **issues folder**. Its name follows the [issue folder naming rules](../concept/issue-folder.md) (issue prefix, number, optional suffix; the full name is the unique **issue ID**; PREFIX+NUM is the **label**).
 
 Each issue folder can hold:
 
@@ -69,9 +69,9 @@ Useful when the folder name already describes the issue and you want the file na
 
 ### `short`
 
-The issue file is named after the **issue ID** only (prefix + number; suffix is not included):
+The issue file is named after the **label** only (prefix + number; suffix is not included):
 
-- Folder: `MI001-summary`
+- Folder / issue ID: `MI001-summary`
 - File: `MI001.md`
 
 Useful when folder names are long but you prefer a shorter filename inside each folder.

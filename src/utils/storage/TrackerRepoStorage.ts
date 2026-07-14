@@ -337,9 +337,9 @@ export class TrackerRepoStorage {
     }
 
     const newFolder: IssueFolder = {
-      issueId:
-        IssueSelectorMatcher.extractIssueId(newFolderName) ?? newFolderName,
-      folderName: newFolderName,
+      issueId: newFolderName,
+      label:
+        IssueSelectorMatcher.extractIssueLabel(newFolderName) ?? newFolderName,
       path: targetPath,
     };
     const expectedIssueFilePath = await this.resolveIssueFilePath(newFolder);
@@ -365,7 +365,7 @@ export class TrackerRepoStorage {
     }
 
     return {
-      oldFolderName: folder.folderName,
+      oldFolderName: folder.issueId,
       newFolderName,
       oldPath: currentPath,
       newPath: targetPath,
@@ -381,10 +381,10 @@ export class TrackerRepoStorage {
     const folderPath = folder.path;
 
     if (effectiveType === "short") {
-      return path.join(folderPath, `${folder.issueId}.md`);
+      return path.join(folderPath, `${folder.label}.md`);
     }
     if (effectiveType === "long") {
-      return path.join(folderPath, `${folder.folderName}.md`);
+      return path.join(folderPath, `${folder.issueId}.md`);
     }
     // fixed
     return path.join(folderPath, effectiveFile);
@@ -405,9 +405,9 @@ export class TrackerRepoStorage {
         .map((entry) => {
           const folderAbsPath = path.join(issuePath, entry.name);
           return {
-            issueId:
-              IssueSelectorMatcher.extractIssueId(entry.name) ?? entry.name,
-            folderName: entry.name,
+            issueId: entry.name,
+            label:
+              IssueSelectorMatcher.extractIssueLabel(entry.name) ?? entry.name,
             path: folderAbsPath,
           };
         });

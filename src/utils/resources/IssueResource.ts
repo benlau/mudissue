@@ -27,14 +27,14 @@ export class IssueResource extends Resource {
   static readonly resourceType = "issue";
 
   /**
-   * Issue folder name for a given issue id and display title (suffix from FileNameFormatter).
+   * Issue ID (folder basename) for a given label and display title (suffix from FileNameFormatter).
    * Call only when title is non-empty after trim (same contract as create).
    */
-  static folderNameForTitle(issueId: string, title: string): string {
+  static issueIdForTitle(label: string, title: string): string {
     const slug = FileNameFormatter.format(title.trim()) || "issue";
-    const folderName = IssueResource.withSlug(issueId, slug);
+    const issueId = IssueResource.withSlug(label, slug);
     return BasicLayouter.truncatePathSegment(
-      folderName,
+      issueId,
       ISSUE_FOLDER_NAME_MAX_LENGTH,
     );
   }
@@ -152,10 +152,10 @@ export class IssueResource extends Resource {
     };
   }
 
-  static withSlug(issueId: string, slug: string): string {
-    if (issueId.endsWith(`-${slug}`)) {
-      return issueId;
+  static withSlug(label: string, slug: string): string {
+    if (label.endsWith(`-${slug}`)) {
+      return label;
     }
-    return `${issueId}-${slug}`;
+    return `${label}-${slug}`;
   }
 }

@@ -398,7 +398,7 @@ function getLineOperations(
 
           try {
             const result = await IssueLinkHelper.unlink(
-              issueFolder.folderName,
+              issueFolder.issueId,
               linkageType,
               issueSelector,
             );

@@ -20,7 +20,7 @@ Bare words match case-insensitively against issue body content and frontmatter v
 
 A bare number also matches the issue number in the folder name (leading zeros ignored). For example, `42` matches folder `MI042-fix-login`.
 
-An issue ID (prefix + number) also matches the folder ID with leading zeros ignored. For example, `MI386` matches folder `MI0386-…`.
+An issue **label** (prefix + number) also matches the folder label with leading zeros ignored. For example, `MI386` matches folder `MI0386-…`. The full **issue ID** (folder basename) matches exactly.
 
 ## Field filters
 

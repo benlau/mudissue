@@ -15,11 +15,15 @@ const mockRepo: TrackerRepo = {
   config: { issue_path: "issues" },
 };
 
-const buildIssueFolder = (folderName: string): IssueFolder => ({
-  issueId: folderName,
-  folderName,
-  path: `/repo/issues/${folderName}`,
+const buildIssueFolder = (issueId: string, label?: string): IssueFolder => ({
+  issueId,
+  label: label ?? extractIssueLabel(issueId),
+  path: `/repo/issues/${issueId}`,
 });
+const extractIssueLabel = (issueId: string): string => {
+  const m = issueId.trim().match(/^([a-zA-Z_-]*)(\d+)(?:-(.*))?$/);
+  return m ? `${m[1]}${m[2]}` : issueId;
+};
 
 describe("TmuxLauncher", () => {
   let launcher: TmuxLauncher;

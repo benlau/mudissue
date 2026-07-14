@@ -8,7 +8,7 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 function viewerPage(issueId: string) {
   const issue: IssueFolder = {
     issueId,
-    folderName: `${issueId}-sample`,
+    label: `${issueId}-sample`,
     path: `/repo/issues/${issueId}-sample`,
   };
   return {

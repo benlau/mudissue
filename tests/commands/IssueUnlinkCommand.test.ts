@@ -38,20 +38,14 @@ describe("IssueUnlinkCommand", () => {
     trackerRepoStore.findIssue.mockImplementation((selector: string) => {
       if (selector === "0001") {
         return Promise.resolve([
-          {
-            issueId: "0001",
-            folderName: "0001-blocker",
-            path: "/repo/issues/0001-blocker",
-          },
+          { issueId: "0001-blocker", label: "0001", path: "/repo/issues/0001-blocker",
+           },
         ]);
       }
       if (selector === "0002") {
         return Promise.resolve([
-          {
-            issueId: "0002",
-            folderName: "0002-blocked",
-            path: "/repo/issues/0002-blocked",
-          },
+          { issueId: "0002-blocked", label: "0002", path: "/repo/issues/0002-blocked",
+           },
         ]);
       }
       return Promise.resolve([]);
@@ -105,11 +99,8 @@ describe("IssueUnlinkCommand", () => {
     trackerRepoStore.findIssue.mockImplementation((selector: string) => {
       if (selector === "0001") {
         return Promise.resolve([
-          {
-            issueId: "0001",
-            folderName: "0001-blocker",
-            path: "/repo/issues/0001-blocker",
-          },
+          { issueId: "0001-blocker", label: "0001", path: "/repo/issues/0001-blocker",
+           },
         ]);
       }
       return Promise.resolve([]);

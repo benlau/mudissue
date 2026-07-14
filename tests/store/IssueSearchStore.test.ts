@@ -22,10 +22,7 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 
 function buildIssue(id: string, updatedAt?: Date): IssueFolder {
-  return {
-    issueId: id,
-    folderName: id,
-    path: `/repo/issues/${id}`,
+  return { issueId: id, label: id, path: `/repo/issues/${id }`,
     ...(updatedAt != null ? { metadata: { updatedAt } } : {}),
   };
 }

@@ -87,8 +87,8 @@ describe("TrackerRepoStorage", () => {
         expect.stringMatching(/\/custom\/path.*items$/),
       );
       expect(issues).toEqual([
-        { issueId: "0001", folderName: "0001", path: "/custom/path/items/0001" },
-        { issueId: "0002", folderName: "0002", path: "/custom/path/items/0002" },
+        { issueId: "0001", label: "0001", path: "/custom/path/items/0001"  },
+        { issueId: "0002", label: "0002", path: "/custom/path/items/0002"  },
       ]);
     });
   });
@@ -108,8 +108,8 @@ describe("TrackerRepoStorage", () => {
       const issues = await storage.listIssues();
 
       expect(issues).toEqual([
-        { issueId: "0001", folderName: "0001", path: "/repo/root/issues/0001" },
-        { issueId: "0002", folderName: "0002", path: "/repo/root/issues/0002" },
+        { issueId: "0001", label: "0001", path: "/repo/root/issues/0001"  },
+        { issueId: "0002", label: "0002", path: "/repo/root/issues/0002"  },
       ]);
     });
 
@@ -130,10 +130,10 @@ describe("TrackerRepoStorage", () => {
       const issues = await storage.listIssues();
 
       expect(issues).toEqual([
-        { issueId: "PROJ-0001", folderName: "PROJ-0001", path: "/repo/root/issues/PROJ-0001" },
-        { issueId: "PROJ-2", folderName: "PROJ-2-something", path: "/repo/root/issues/PROJ-2-something" },
-        { issueId: "0002", folderName: "0002", path: "/repo/root/issues/0002" },
-        { issueId: "TASK-1", folderName: "TASK-1", path: "/repo/root/issues/TASK-1" },
+        { issueId: "PROJ-0001", label: "PROJ-0001", path: "/repo/root/issues/PROJ-0001"  },
+        { issueId: "PROJ-2-something", label: "PROJ-2", path: "/repo/root/issues/PROJ-2-something"  },
+        { issueId: "0002", label: "0002", path: "/repo/root/issues/0002"  },
+        { issueId: "TASK-1", label: "TASK-1", path: "/repo/root/issues/TASK-1"  },
       ]);
     });
 
@@ -297,12 +297,12 @@ describe("TrackerRepoStorage", () => {
 
   describe("renameIssue()", () => {
     const buildIssueFolder = (
-      folderName: string,
-      issueId?: string,
+      issueId: string,
+      label?: string,
     ): IssueFolder => ({
-      issueId: issueId ?? folderName,
-      folderName,
-      path: `/repo/root/issues/${folderName}`,
+      issueId,
+      label: label ?? issueId,
+      path: `/repo/root/issues/${issueId}`,
     });
 
     it("renames issue file when issue id changes and pattern is long", async () => {
@@ -310,6 +310,7 @@ describe("TrackerRepoStorage", () => {
         config: { issue_path: "issues", issue_file_pattern: "long" },
       });
       const folder = buildIssueFolder("MI0297-summary", "MI0297");
+      mockFileService.readdir.mockResolvedValue([]);
       mockFileService.exists.mockImplementation((p: string) =>
         Promise.resolve(p === "/repo/root/issues/MI0297-summary/MI0297-summary.md"),
       );

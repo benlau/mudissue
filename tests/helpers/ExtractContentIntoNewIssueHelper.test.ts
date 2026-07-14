@@ -55,7 +55,7 @@ describe("ExtractContentIntoNewIssueHelper", () => {
   it("does nothing when no issue is selected", async () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
     });
     const createSubissueOnDisk = jest.spyOn(
       CreateIssueHelper.prototype,
@@ -69,13 +69,12 @@ describe("ExtractContentIntoNewIssueHelper", () => {
   });
 
   it("toasts when there is no active selection", async () => {
-    const parent = buildIssueFolder("0001", {
-      folderName: "MI0001-parent",
+    const parent = buildIssueFolder("MI0001-parent", {
       path: "/repo/issues/MI0001-parent",
     });
     useAppStore.setState({
       mainIssueLists: [parent],
-      selectedFolderName: parent.folderName,
+      selectedIssueId: parent.issueId,
     });
 
     const store = createMarkdownViewerHandleStore();
@@ -92,17 +91,15 @@ describe("ExtractContentIntoNewIssueHelper", () => {
   });
 
   it("replaces selected content with a wikilink to the new sub-issue", async () => {
-    const parent = buildIssueFolder("0001", {
-      folderName: "MI0001-parent",
+    const parent = buildIssueFolder("MI0001-parent", {
       path: "/repo/issues/MI0001-parent",
     });
-    const created: IssueFolder = buildIssueFolder("0002", {
-      folderName: "MI0002-extracted-title",
+    const created: IssueFolder = buildIssueFolder("MI0002-extracted-title", {
       path: "/repo/issues/MI0002-extracted-title",
     });
     useAppStore.setState({
       mainIssueLists: [parent],
-      selectedFolderName: parent.folderName,
+      selectedIssueId: parent.issueId,
     });
 
     jest
@@ -143,13 +140,12 @@ describe("ExtractContentIntoNewIssueHelper", () => {
   });
 
   it("toasts when the selection has no derivable title", async () => {
-    const parent = buildIssueFolder("0001", {
-      folderName: "MI0001-parent",
+    const parent = buildIssueFolder("MI0001-parent", {
       path: "/repo/issues/MI0001-parent",
     });
     useAppStore.setState({
       mainIssueLists: [parent],
-      selectedFolderName: parent.folderName,
+      selectedIssueId: parent.issueId,
     });
 
     const store = createMarkdownViewerHandleStore();

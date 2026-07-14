@@ -6,11 +6,8 @@ import {
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import { SystemRuleKey } from "../../src/types/rules.ts";
 
-const issue: IssueFolder = {
-  issueId: "0001",
-  folderName: "0001-test",
-  path: "/repo/issues/0001-test",
-};
+const issue: IssueFolder = { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+ };
 
 describe("IssueMetadataChangedPostHookStore", () => {
   beforeEach(() => {

@@ -4,7 +4,7 @@ import type { IssueFolder } from "../../../src/types/Issue.ts";
 
 const mockIssueFolder = (issueId: string): IssueFolder => ({
   issueId,
-  folderName: `folder-${issueId}`,
+  label: `folder-${issueId}`,
   path: `/fake/issues/${issueId}`,
 });
 

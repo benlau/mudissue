@@ -93,7 +93,7 @@ export class TmuxRunCommand extends Command {
 
     const worktreePath = await useCurrentTrackerRepoStore
       .getState()
-      .getGitWorktreePath(issue.folderName);
+      .getGitWorktreePath(issue.issueId);
     const result = await new TmuxLauncher().launch({
       issue,
       repo,

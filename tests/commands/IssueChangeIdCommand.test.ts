@@ -5,11 +5,16 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
-const buildIssueFolder = (folderName: string, issueId?: string): IssueFolder => ({
-  issueId: issueId ?? folderName,
-  folderName,
-  path: `/repo/issues/${folderName}`,
+const buildIssueFolder = (issueId: string, label?: string): IssueFolder => ({
+  issueId,
+  label: label ?? extractIssueLabel(issueId),
+  path: `/repo/issues/${issueId}`,
 });
+
+const extractIssueLabel = (issueId: string): string => {
+  const m = issueId.trim().match(/^([a-zA-Z_-]*)(\d+)(?:-(.*))?$/);
+  return m ? `${m[1]}${m[2]}` : issueId;
+};
 
 const mockRepo: TrackerRepo = {
   name: "proj-a",

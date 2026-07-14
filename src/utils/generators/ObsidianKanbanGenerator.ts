@@ -38,7 +38,7 @@ export class ObsidianKanbanGenerator {
       statusList,
       priorityList,
       resolveIssueFileStem: (folder) =>
-        stemByFolderName.get(folder.folderName) ?? folder.issueId,
+        stemByFolderName.get(folder.issueId) ?? folder.issueId,
     });
 
     const rendered = this.templateGenerator.getTemplate(
@@ -64,7 +64,7 @@ export class ObsidianKanbanGenerator {
           return;
         }
         stemByFolderName.set(
-          folder.folderName,
+          folder.issueId,
           path.basename(issueFilePath, path.extname(issueFilePath)),
         );
       }),

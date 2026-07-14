@@ -80,7 +80,7 @@ export class IssueWorktreeLocateCommand extends Command {
 
     const worktreePath = await useCurrentTrackerRepoStore
       .getState()
-      .getGitWorktreePath(issue.folderName);
+      .getGitWorktreePath(issue.issueId);
 
     LoggerService.getInstance().info(worktreePath);
     return {

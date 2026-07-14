@@ -243,7 +243,7 @@ export const useCurrentTrackerRepoStore =
       }
 
       return all.filter((folder) =>
-        IssueSelectorMatcher.match(folder.folderName, issueSelector),
+        IssueSelectorMatcher.match(folder.issueId, issueSelector),
       );
     },
 
@@ -316,10 +316,11 @@ export const useCurrentTrackerRepoStore =
       const accessor = await createTrackerRepoConfigAccessor(repo.config);
       const template = accessor.getEffectiveIssueBranchNameTemplate();
       const issueName =
-        IssueSelectorMatcher.extractIssueSuffix(issue.folderName) ?? "";
+        IssueSelectorMatcher.extractIssueSuffix(issue.issueId) ?? "";
       const rendered = ejs.render(template, {
         issue_id: issue.issueId,
-        issue_folder_name: issue.folderName,
+        issue_label: issue.label,
+        issue_folder_name: issue.issueId,
         issue_name: issueName,
       });
       const normalized = GitBranchFormatter.normalize(rendered, issue.issueId);

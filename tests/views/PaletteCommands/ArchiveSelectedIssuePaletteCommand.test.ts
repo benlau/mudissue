@@ -19,8 +19,7 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 const mockRepo: TrackerRepo = {
@@ -75,7 +74,7 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
   it("is not disabled when no issue is selected", () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -88,7 +87,7 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
     const issueB = buildIssue("0002");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueA.folderName,
+      selectedIssueId: issueA.issueId,
       navigationStack: viewerNavigationStack(issueA),
     });
 
@@ -102,7 +101,7 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
         result: {
           oldPath: issueA.path,
           newPath: "/repo/issues/.archive/0001-test",
-          folderName: issueA.folderName,
+          label: issueA.issueId,
         },
       });
     const refreshMock = jest.fn().mockImplementation(async () => {
@@ -118,12 +117,12 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
 
     await new ArchiveSelectedIssuePaletteCommand().callback();
 
-    expect(commandSpy).toHaveBeenCalledWith(issueA.folderName, mockRepo.name);
+    expect(commandSpy).toHaveBeenCalledWith(issueA.issueId, mockRepo.name);
     expect(closeMock).toHaveBeenCalled();
     expect(toastInfoMock).toHaveBeenCalled();
     expect(refreshMock).toHaveBeenCalled();
     expect(useAppStore.getState().getCurrentPage().name).toBe("ISSUE_TABLE");
-    expect(useAppStore.getState().selectedFolderName).toBe(issueB.folderName);
+    expect(useAppStore.getState().selectedIssueId).toBe(issueB.issueId);
   });
 
   it("archives every issue in a table range selection", async () => {
@@ -132,8 +131,8 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
     const issueC = buildIssue("0003");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB, issueC],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -152,10 +151,10 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
     await new ArchiveSelectedIssuePaletteCommand().callback();
 
     expect(commandSpy).toHaveBeenCalledTimes(2);
-    expect(commandSpy).toHaveBeenCalledWith(issueA.folderName, mockRepo.name);
-    expect(commandSpy).toHaveBeenCalledWith(issueB.folderName, mockRepo.name);
+    expect(commandSpy).toHaveBeenCalledWith(issueA.issueId, mockRepo.name);
+    expect(commandSpy).toHaveBeenCalledWith(issueB.issueId, mockRepo.name);
     expect(
-      useAppStore.getState().tableRangeSelectionAnchorFolderName,
+      useAppStore.getState().tableRangeSelectionAnchorIssueId,
     ).toBeNull();
     expect(toastInfoMock).toHaveBeenCalled();
   });
@@ -164,7 +163,7 @@ describe("ArchiveSelectedIssuePaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 

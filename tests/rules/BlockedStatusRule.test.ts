@@ -7,23 +7,14 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
-const blockerIssue: IssueFolder = {
-  issueId: "0001",
-  folderName: "0001-blocker",
-  path: "/repo/issues/0001-blocker",
-};
+const blockerIssue: IssueFolder = { issueId: "0001-blocker", label: "0001", path: "/repo/issues/0001-blocker",
+ };
 
-const blockedIssue: IssueFolder = {
-  issueId: "0002",
-  folderName: "0002-blocked",
-  path: "/repo/issues/0002-blocked",
-};
+const blockedIssue: IssueFolder = { issueId: "0002-blocked", label: "0002", path: "/repo/issues/0002-blocked",
+ };
 
-const otherBlockerIssue: IssueFolder = {
-  issueId: "0003",
-  folderName: "0003-other-blocker",
-  path: "/repo/issues/0003-other-blocker",
-};
+const otherBlockerIssue: IssueFolder = { issueId: "0003-other-blocker", label: "0003", path: "/repo/issues/0003-other-blocker",
+ };
 
 function issueMarkdown(frontmatter: Record<string, unknown>): string {
   return matter.stringify("Body\n", frontmatter);
@@ -79,9 +70,9 @@ describe("BlockedStatusRule", () => {
         return Promise.resolve(
           all.filter(
             (issue) =>
-              issue.folderName === selector ||
               issue.issueId === selector ||
-              issue.folderName.startsWith(selector),
+              issue.issueId === selector ||
+              issue.issueId.startsWith(selector),
           ),
         );
       }),

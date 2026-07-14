@@ -11,12 +11,12 @@ import { LoggerService } from "../../src/services/LoggerService.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 const buildIssueFolder = (
-  folderName: string,
   issueId: string,
+  label: string,
 ): IssueFolder => ({
   issueId,
-  folderName,
-  path: `/repo/issues/${folderName}`,
+  label,
+  path: `/repo/issues/${issueId}`,
 });
 
 const mockRepo: TrackerRepo = {
@@ -59,7 +59,7 @@ describe("IssueMergeCommand", () => {
     jest
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
       .mockImplementation(async (folder: IssueFolder) =>
-        `/repo/issues/${folder.folderName}/issue.md`,
+        `/repo/issues/${folder.issueId}/issue.md`,
       );
     jest
       .spyOn(TrackerRepoStorage.prototype, "getDefaultStatus")
@@ -121,12 +121,9 @@ describe("IssueMergeCommand", () => {
     jest
       .spyOn(IssueMergeSectionGenerator.prototype, "deriveTitle")
       .mockResolvedValue("Alpha issue");
-    jest.spyOn(IssueResource.prototype, "create").mockResolvedValue({
-      issueId: "0003",
-      folderName: "0003-merged-title",
-      path: "/repo/issues/0003-merged-title",
+    jest.spyOn(IssueResource.prototype, "create").mockResolvedValue({ issueId: "0003-merged-title", label: "0003", path: "/repo/issues/0003-merged-title",
       title: "Merged title",
-    });
+     });
 
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")
@@ -144,7 +141,7 @@ describe("IssueMergeCommand", () => {
       result: {
         createdIssue: {
           createdIssue: {
-            issueId: "0003",
+            issueId: "0003-merged-title",
             issueFolderName: "0003-merged-title",
             issueFilePath: "/repo/issues/0003-merged-title/issue.md",
           },
@@ -152,7 +149,7 @@ describe("IssueMergeCommand", () => {
         archivedIssues: [
           {
             archivedIssue: {
-              issueId: "0001",
+              issueId: "0001-alpha",
               issueFolderName: "0001-alpha",
               issueFilePath: "/repo/issues/.archive/0001-alpha/issue.md",
             },
@@ -161,7 +158,7 @@ describe("IssueMergeCommand", () => {
           },
           {
             archivedIssue: {
-              issueId: "0002",
+              issueId: "0002-beta",
               issueFolderName: "0002-beta",
               issueFilePath: "/repo/issues/.archive/0002-beta/issue.md",
             },
@@ -174,8 +171,8 @@ describe("IssueMergeCommand", () => {
 
     expect(IssueResource.prototype.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        issueId: "0003",
-        folderName: "0003-merged-title",
+        issueId: "0003-merged-title",
+        label: "0003",
       }),
       "/repo/issues/0003-merged-title/issue.md",
       "Merged title",
@@ -199,11 +196,8 @@ describe("IssueMergeCommand", () => {
     jest
       .spyOn(IssueMergeSectionGenerator.prototype, "renderMergedContent")
       .mockResolvedValue("Merged body");
-    jest.spyOn(IssueResource.prototype, "create").mockResolvedValue({
-      issueId: "0003",
-      folderName: "0003-merged-title",
-      path: "/repo/issues/0003-merged-title",
-    });
+    jest.spyOn(IssueResource.prototype, "create").mockResolvedValue({ issueId: "0003-merged-title", label: "0003", path: "/repo/issues/0003-merged-title",
+     });
 
     fileService.exists
       .mockResolvedValueOnce(false)

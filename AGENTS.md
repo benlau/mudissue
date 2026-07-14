@@ -62,7 +62,7 @@ For project folder, tracker folder, issues folder, issue folder, issue file, and
 
 ### Issue Folder Naming
 
-For issue folder naming rules and examples, read `docs/issue-folder.md`.
+For issue folder naming rules and examples, read `docs/concept/issue-folder.md`.
 
 ### Testing Conventions
 

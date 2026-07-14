@@ -7,11 +7,8 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
-const duplicateIssue: IssueFolder = {
-  issueId: "0002",
-  folderName: "0002-dup",
-  path: "/repo/issues/0002-dup",
-};
+const duplicateIssue: IssueFolder = { issueId: "0002-dup", label: "0002", path: "/repo/issues/0002-dup",
+ };
 
 function issueMarkdown(frontmatter: Record<string, unknown>): string {
   return matter.stringify("Body\n", frontmatter);

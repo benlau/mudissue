@@ -13,13 +13,13 @@ import {
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 const buildIssueFolder = (
-  folderName: string,
-  issueId?: string,
+  issueId: string,
+  label?: string,
 ): IssueFolder => ({
-  issueId: issueId ?? folderName,
-  folderName,
-  path: `/repo/issues/${folderName}`,
-  title: "Example title",
+  issueId,
+  label: label ?? issueId,
+  path: `/repo/issues/${issueId}`,
+  metadata: { title: "Example title" },
 });
 
 const mockRepo: TrackerRepo = {

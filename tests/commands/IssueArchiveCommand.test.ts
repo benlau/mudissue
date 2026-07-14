@@ -4,15 +4,7 @@ import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.t
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
-
-const buildIssueFolder = (
-  folderName: string,
-  issueId?: string,
-): IssueFolder => ({
-  issueId: issueId ?? folderName,
-  folderName,
-  path: `/repo/issues/${folderName}`,
-});
+import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 const mockRepo: TrackerRepo = {
   name: "proj-a",
@@ -53,8 +45,8 @@ describe("IssueArchiveCommand", () => {
 
   it("returns ISSUE_MULTI_MATCHED when more than one match", async () => {
     const folders: IssueFolder[] = [
-      buildIssueFolder("0001-a", "0001"),
-      buildIssueFolder("0001-b", "0001"),
+      buildIssueFolder("0001-a"),
+      buildIssueFolder("0001-b"),
     ];
     trackerRepoStore.findIssue.mockResolvedValue(folders);
 
@@ -67,7 +59,9 @@ describe("IssueArchiveCommand", () => {
   });
 
   it("creates .archive, then renames the issue folder into it", async () => {
-    const folder = buildIssueFolder("0042-done", "0042");
+    const folder = buildIssueFolder("0042-done", {
+      path: "/repo/issues/0042-done",
+    });
     trackerRepoStore.findIssue.mockResolvedValue([folder]);
     fileService.exists.mockResolvedValue(false);
     jest
@@ -81,7 +75,7 @@ describe("IssueArchiveCommand", () => {
       status: "ok",
       result: {
         archivedIssue: {
-          issueId: "0042",
+          issueId: "0042-done",
           issueFolderName: "0042-done",
           issueFilePath: "/repo/issues/.archive/0042-done/issue.md",
         },

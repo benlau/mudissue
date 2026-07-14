@@ -65,7 +65,7 @@ export class TogglePinIssuePaletteCommand implements PaletteCommand {
     const pinned =
       await RegistryService.getInstance().togglePinnedIssueFolderName(
         rootRepo.projectPath,
-        issue.folderName,
+        issue.issueId,
       );
 
     await useAppStore.getState().refreshIssueLists();
@@ -75,7 +75,7 @@ export class TogglePinIssuePaletteCommand implements PaletteCommand {
       .info(
         intl.formatMessage(
           pinned ? messages.pinnedToast : messages.unpinnedToast,
-          { issue: issue.folderName },
+          { issue: issue.issueId },
         ),
       );
   }

@@ -43,14 +43,14 @@ function buildIssueChoices(
   const issueByFolderName = new Map<string, IssueFolder>();
   const choices: Choice[] = [];
   for (const issue of issues) {
-    if (excludeFolderNames.has(issue.folderName)) {
+    if (excludeFolderNames.has(issue.issueId)) {
       continue;
     }
-    issueByFolderName.set(issue.folderName, issue);
+    issueByFolderName.set(issue.issueId, issue);
     choices.push({
-      key: issue.folderName,
+      key: issue.issueId,
       text: tableLayouter.makeRow([
-        issue.folderName,
+        issue.issueId,
         formatIssueTitle(issue.metadata?.title?.trim() ?? ""),
       ]),
     });

@@ -106,8 +106,8 @@ describe("CreateIssueHelper", () => {
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
       .mockResolvedValue("/repo/issues/0001-my-issue/issue.md");
 
-    const createdFolder = buildIssueFolder("0001", {
-      folderName: "0001-my-issue",
+    const createdFolder = buildIssueFolder("0001-my-issue", {
+      label: "0001",
       path: "/repo/issues/0001-my-issue",
       title: "My issue",
     });
@@ -126,7 +126,7 @@ describe("CreateIssueHelper", () => {
     await helper.createIssue("My issue");
 
     expect(createSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ issueId: "0001" }),
+      expect.objectContaining({ issueId: "0001-my-issue" }),
       "/repo/issues/0001-my-issue/issue.md",
       "My issue",
       undefined,
@@ -166,8 +166,8 @@ describe("CreateIssueHelper", () => {
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
       .mockResolvedValue("/repo/issues/0001-my-issue/issue.md");
 
-    const createdFolder = buildIssueFolder("0001", {
-      folderName: "0001-my-issue",
+    const createdFolder = buildIssueFolder("0001-my-issue", {
+      label: "0001",
       path: "/repo/issues/0001-my-issue",
       title: "My issue",
     });
@@ -186,7 +186,7 @@ describe("CreateIssueHelper", () => {
     await helper.createIssue("My issue", undefined, "Body text");
 
     expect(createSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ issueId: "0001" }),
+      expect.objectContaining({ issueId: "0001-my-issue" }),
       "/repo/issues/0001-my-issue/issue.md",
       "My issue",
       undefined,
@@ -225,8 +225,8 @@ describe("CreateIssueHelper", () => {
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
       .mockResolvedValue("/repo/issues/0002-child-issue/issue.md");
 
-    const createdFolder = buildIssueFolder("0002", {
-      folderName: "0002-child-issue",
+    const createdFolder = buildIssueFolder("0002-child-issue", {
+      label: "0002",
       path: "/repo/issues/0002-child-issue",
       title: "Child issue",
     });
@@ -253,7 +253,7 @@ describe("CreateIssueHelper", () => {
     await helper.createSubissue("Child issue", parentIssue);
 
     expect(createSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ issueId: "0002" }),
+      expect.objectContaining({ issueId: "0002-child-issue" }),
       "/repo/issues/0002-child-issue/issue.md",
       "Child issue",
       undefined,
@@ -263,10 +263,10 @@ describe("CreateIssueHelper", () => {
       undefined,
     );
     expect(appendSubissueSpy).toHaveBeenCalledWith(
-      createdFolder.folderName,
+      createdFolder.issueId,
       "long",
     );
-    expect(setParentSpy).toHaveBeenCalledWith(parentIssue.folderName, "long");
+    expect(setParentSpy).toHaveBeenCalledWith(parentIssue.issueId, "long");
     expect(createSpy.mock.invocationCallOrder[0]).toBeLessThan(
       appendSubissueSpy.mock.invocationCallOrder[0]!,
     );
@@ -303,8 +303,8 @@ describe("CreateIssueHelper", () => {
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
       .mockResolvedValue("/repo/issues/0002-my-issue/issue.md");
 
-    const createdFolder = buildIssueFolder("0002", {
-      folderName: "0002-my-issue",
+    const createdFolder = buildIssueFolder("0002-my-issue", {
+      label: "0002",
       path: "/repo/issues/0002-my-issue",
       title: "My issue",
     });
@@ -330,8 +330,8 @@ describe("CreateIssueHelper", () => {
     useAppStore.setState({
       filter: "status:open",
       mainIssueLists: filteredIssues,
-      selectedFolderName: filteredIssues[0]!.folderName,
-      searchRestoreFolderName: "MI0003-sample",
+      selectedIssueId: filteredIssues[0]!.issueId,
+      searchRestoreIssueId: "MI0003-sample",
     });
 
     await helper.createIssue("My issue");
@@ -372,8 +372,8 @@ describe("CreateIssueHelper", () => {
       .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
       .mockResolvedValue("/repo/issues/0002-child-issue/issue.md");
 
-    const createdFolder = buildIssueFolder("0002", {
-      folderName: "0002-child-issue",
+    const createdFolder = buildIssueFolder("0002-child-issue", {
+      label: "0002",
       path: "/repo/issues/0002-child-issue",
       title: "Child issue",
     });
@@ -405,17 +405,17 @@ describe("CreateIssueHelper", () => {
     useAppStore.setState({
       filter: "status:open",
       mainIssueLists: filteredIssues,
-      selectedFolderName: filteredIssues[0]!.folderName,
-      searchRestoreFolderName: "MI0003-sample",
+      selectedIssueId: filteredIssues[0]!.issueId,
+      searchRestoreIssueId: "MI0003-sample",
     });
 
     await helper.createSubissue("Child issue", parentIssue);
 
     expect(appendSubissueSpy).toHaveBeenCalledWith(
-      createdFolder.folderName,
+      createdFolder.issueId,
       "long",
     );
-    expect(setParentSpy).toHaveBeenCalledWith(parentIssue.folderName, "long");
+    expect(setParentSpy).toHaveBeenCalledWith(parentIssue.issueId, "long");
     expect(useAppStore.getState().filter).toBe("status:open");
     expect(currentViewerIssue()).toEqual(createdFolder);
     expect(useAppStore.getState().navigationStack).toEqual(

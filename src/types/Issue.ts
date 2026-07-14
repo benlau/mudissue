@@ -23,8 +23,10 @@ export type IssueFolderMetadata = {
 };
 
 export type IssueFolder = {
+  /** Unique folder basename (PREFIX+NUM+SUFFIX). */
   issueId: string;
-  folderName: string;
+  /** Non-unique label (PREFIX+NUM). */
+  label: string;
   /** Absolute path of the issue folder. */
   path: string;
   metadata?: IssueFolderMetadata;
@@ -32,7 +34,7 @@ export type IssueFolder = {
 
 export type IssueSortingRules = {
   orders: SortingOrder[];
-  pinnedFolderNames: readonly string[];
+  pinnedIssueIds: readonly string[];
   statusList: StatusList;
   priorityList: PriorityList;
   /** When set, issues whose ID matches this selector sort before others. */
@@ -161,20 +163,15 @@ export class IssueFolderListAccessor {
   sortByUpdatedAt(): IssueFolderListAccessor {
     return this.sortBy({
       orders: [DEFAULT_SORTING_ORDER],
-      pinnedFolderNames: [],
+      pinnedIssueIds: [],
       statusList: [],
       priorityList: [],
     });
   }
 
   sortBy(rules: IssueSortingRules): IssueFolderListAccessor {
-    const {
-      orders,
-      pinnedFolderNames,
-      statusList,
-      priorityList,
-      issueSelector,
-    } = rules;
+    const { orders, pinnedIssueIds, statusList, priorityList, issueSelector } =
+      rules;
     const statusRanks = buildStatusRankMap(statusList);
     const priorityRanks = buildPriorityRankMap(priorityList);
 
@@ -199,24 +196,22 @@ export class IssueFolderListAccessor {
       return a.issueId.localeCompare(b.issueId);
     });
 
-    if (pinnedFolderNames.length === 0) {
+    if (pinnedIssueIds.length === 0) {
       return this;
     }
 
-    const pinnedSet = new Set(pinnedFolderNames);
-    const byFolderName = new Map(
-      this.data.map((item) => [item.folderName, item] as const),
+    const pinnedSet = new Set(pinnedIssueIds);
+    const byIssueId = new Map(
+      this.data.map((item) => [item.issueId, item] as const),
     );
     const pinned: IssueFolder[] = [];
-    for (const folderName of pinnedFolderNames) {
-      const item = byFolderName.get(folderName);
+    for (const issueId of pinnedIssueIds) {
+      const item = byIssueId.get(issueId);
       if (item != null) {
         pinned.push(item);
       }
     }
-    const unpinned = this.data.filter(
-      (item) => !pinnedSet.has(item.folderName),
-    );
+    const unpinned = this.data.filter((item) => !pinnedSet.has(item.issueId));
     this.data = [...pinned, ...unpinned];
     return this;
   }

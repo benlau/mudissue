@@ -13,19 +13,19 @@ import { isErrorResponse } from "../../types/Response.ts";
 const messages = defineMessages({
   label: {
     id: "views.paletteCommands.changeId.label",
-    defaultMessage: "Change Issue ID",
+    defaultMessage: "Change Label",
   },
   description: {
     id: "views.paletteCommands.changeId.description",
-    defaultMessage: "Change the ID of the first selected issue",
+    defaultMessage: "Change the label of the first selected issue",
   },
   dialogTitle: {
     id: "views.paletteCommands.changeId.dialogTitle",
-    defaultMessage: "Change Issue ID",
+    defaultMessage: "Change Label",
   },
   dialogPrompt: {
     id: "views.paletteCommands.changeId.dialogPrompt",
-    defaultMessage: "New ID: ",
+    defaultMessage: "New label: ",
   },
   dialogPlaceholder: {
     id: "views.paletteCommands.changeId.dialogPlaceholder",
@@ -33,7 +33,7 @@ const messages = defineMessages({
   },
   invalidIdFormat: {
     id: "views.paletteCommands.changeId.invalidIdFormat",
-    defaultMessage: "Invalid issue id format.",
+    defaultMessage: "Invalid label format.",
   },
   repoNotFoundAlert: {
     id: "views.paletteCommands.changeId.repoNotFoundAlert",
@@ -45,7 +45,7 @@ const messages = defineMessages({
   },
   idAlreadyExistsToast: {
     id: "views.paletteCommands.changeId.idAlreadyExistsToast",
-    defaultMessage: "Issue ID {id} already exists",
+    defaultMessage: "Label {id} already exists",
   },
 });
 
@@ -74,9 +74,9 @@ export class ChangeIdPaletteCommand implements PaletteCommand {
       title: intl.formatMessage(messages.dialogTitle),
       prompt: intl.formatMessage(messages.dialogPrompt),
       placeholder: intl.formatMessage(messages.dialogPlaceholder),
-      initialValue: issue.issueId,
+      initialValue: issue.label,
       validate: (value) => {
-        if (value === "" || !IssueSelectorMatcher.isIssueId(value)) {
+        if (value === "" || !IssueSelectorMatcher.isIssueLabel(value)) {
           return intl.formatMessage(messages.invalidIdFormat);
         }
         return null;
@@ -95,11 +95,11 @@ export class ChangeIdPaletteCommand implements PaletteCommand {
 
       const refreshedList = await useAppStore.getState().refreshIssueLists();
       const updatedIssue = refreshedList.find(
-        (item) => item.folderName === result.newIssueFolderName,
+        (item) => item.issueId === result.newIssueFolderName,
       );
 
       useAppStore.getState().clearTableRangeSelection();
-      useAppStore.getState().setSelectedFolderName(result.newIssueFolderName);
+      useAppStore.getState().setSelectedIssueId(result.newIssueFolderName);
 
       const currentPage = useAppStore.getState().getCurrentPage();
       if (currentPage.name === "ISSUE_VIEWER" && updatedIssue != null) {

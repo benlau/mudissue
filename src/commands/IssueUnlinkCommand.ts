@@ -111,11 +111,11 @@ export class IssueUnlinkCommand extends Command {
 
     if (result.dstNotFound) {
       loggerService.warn(
-        `Unlinked ${result.srcIssue.folderName} (${result.srcField}) → ${input.dst} (destination issue not found)`,
+        `Unlinked ${result.srcIssue.issueId} (${result.srcField}) → ${input.dst} (destination issue not found)`,
       );
     } else {
       loggerService.info(
-        `Unlinked ${result.srcIssue.folderName} (${result.srcField}) → ${result.dstIssue!.folderName} (${result.dstField})`,
+        `Unlinked ${result.srcIssue.issueId} (${result.srcField}) → ${result.dstIssue!.issueId} (${result.dstField})`,
       );
     }
 

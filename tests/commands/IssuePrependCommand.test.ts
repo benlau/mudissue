@@ -78,16 +78,10 @@ describe("IssuePrependCommand", () => {
 
   it("throws ISSUE_MULTI_MATCHED when selector matches multiple", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-a",
-        path: "/repo/issues/0001-a",
-      },
-      {
-        issueId: "0001",
-        folderName: "0001-b",
-        path: "/repo/issues/0001-b",
-      },
+      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a",
+       },
+      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b",
+       },
     ]);
     const cmd = new IssuePrependCommand();
 
@@ -104,11 +98,8 @@ describe("IssuePrependCommand", () => {
 
   it("throws ISSUE_MD_MISSING when issue file cannot be found", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(false);
     fileService.readdir.mockResolvedValue([]);
@@ -127,11 +118,8 @@ describe("IssuePrependCommand", () => {
 
   it("prepends raw content to issue body after frontmatter", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\nExisting body\n";
@@ -154,7 +142,7 @@ describe("IssuePrependCommand", () => {
     expect(result.status).toBe("ok");
     if (result.status === "ok") {
       expect(result.result).toEqual({
-        issueId: "0001",
+        issueId: "0001-test",
         issueFolderName: "0001-test",
         issueFilePath: expect.any(String),
       });
@@ -179,11 +167,8 @@ describe("IssuePrependCommand", () => {
 
   it("uses askUserTextContent when --content is omitted", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\nExisting body\n";

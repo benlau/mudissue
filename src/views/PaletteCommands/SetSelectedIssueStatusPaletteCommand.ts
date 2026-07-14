@@ -126,7 +126,7 @@ export class SetSelectedIssueStatusPaletteCommand implements PaletteCommand {
         await postHookContext.readOldMetadata(issue, issueRepo.name);
 
         const result = await new IssueSetPropertyCommand().command(
-          issue.folderName,
+          issue.issueId,
           "status",
           selected,
           issueRepo.name,

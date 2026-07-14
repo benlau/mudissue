@@ -111,7 +111,7 @@ export class IssueLinkCommand extends Command {
 
     const dstIssue = result.dstIssue!;
     loggerService.info(
-      `Linked ${result.srcIssue.folderName} (${result.srcField}) → ${dstIssue.folderName} (${result.dstField})`,
+      `Linked ${result.srcIssue.issueId} (${result.srcField}) → ${dstIssue.issueId} (${result.dstField})`,
     );
 
     return {

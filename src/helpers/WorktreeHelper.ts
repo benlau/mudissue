@@ -122,7 +122,7 @@ export class WorktreeHelper {
       .getIssueBranchName(repo, issue);
     const worktreePath = await useCurrentTrackerRepoStore
       .getState()
-      .getGitWorktreePath(issue.folderName);
+      .getGitWorktreePath(issue.issueId);
 
     if (!(await FileService.getInstance().exists(worktreePath))) {
       throw new Error(`Issue worktree does not exist at ${worktreePath}`);
@@ -131,7 +131,7 @@ export class WorktreeHelper {
     return {
       cwd: worktreePath,
       gitBranch: branchName,
-      label: issue.folderName,
+      label: issue.issueId,
     };
   }
 
@@ -158,7 +158,7 @@ export class WorktreeHelper {
       .getIssueBranchName(repo, issue);
     const worktreePath = await useCurrentTrackerRepoStore
       .getState()
-      .getGitWorktreePath(issue.folderName);
+      .getGitWorktreePath(issue.issueId);
 
     if (await fileService.exists(worktreePath)) {
       if (logIfWorktreeExists) {

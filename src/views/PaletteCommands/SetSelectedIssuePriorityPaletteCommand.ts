@@ -122,7 +122,7 @@ export class SetSelectedIssuePriorityPaletteCommand implements PaletteCommand {
 
       try {
         const result = await new IssueSetPropertyCommand().command(
-          issue.folderName,
+          issue.issueId,
           "priority",
           selected,
           issueRepo.name,

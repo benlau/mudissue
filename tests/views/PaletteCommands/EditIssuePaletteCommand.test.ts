@@ -9,8 +9,7 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 describe("EditIssuePaletteCommand", () => {
@@ -40,7 +39,7 @@ describe("EditIssuePaletteCommand", () => {
   it("is not disabled when no issue is selected", () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -54,7 +53,7 @@ describe("EditIssuePaletteCommand", () => {
 
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -75,7 +74,7 @@ describe("EditIssuePaletteCommand", () => {
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
     useTextEditDialogStore.setState({ open: openMock });

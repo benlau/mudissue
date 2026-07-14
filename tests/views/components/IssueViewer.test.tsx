@@ -103,8 +103,7 @@ describe("IssueViewer", () => {
 
   it("does not re-resolve issue file path when metadata updates for the same issue", async () => {
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-demo",
-      path: "/repo/issues/MI0001-demo",
+            path: "/repo/issues/MI0001-demo",
       title: "Demo issue",
       status: "open",
       priority: "high",
@@ -123,7 +122,7 @@ describe("IssueViewer", () => {
     useAppStore.setState({
       mainIssueLists: [issue],
       navigationStack: viewerNavigationStack(issue),
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     let view = renderIssueViewer(issue);
@@ -175,8 +174,7 @@ describe("IssueViewer", () => {
 
   it("reloads the markdown viewer content after inline edit closes", async () => {
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-demo",
-      path: "/repo/issues/MI0001-demo",
+            path: "/repo/issues/MI0001-demo",
       title: "Demo issue",
       status: "open",
       priority: "high",
@@ -199,7 +197,7 @@ describe("IssueViewer", () => {
     useAppStore.setState({
       mainIssueLists: [issue],
       navigationStack: viewerNavigationStack(issue),
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     const requestReloadSpy = jest.spyOn(

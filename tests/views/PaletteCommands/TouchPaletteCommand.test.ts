@@ -14,8 +14,7 @@ import { TouchPaletteCommand } from "../../../src/views/PaletteCommands/TouchPal
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
     status: "open",
     priority: "normal",
     title: "Test issue",
@@ -77,7 +76,7 @@ describe("TouchPaletteCommand", () => {
 
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
     });
 
     await new TouchPaletteCommand().callback();
@@ -92,7 +91,7 @@ describe("TouchPaletteCommand", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     jest
@@ -124,8 +123,8 @@ describe("TouchPaletteCommand", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
 
     const touchSpy = jest
@@ -155,8 +154,8 @@ describe("TouchPaletteCommand", () => {
     const issueB = buildIssue("0002");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
 
     const touchSpy = jest

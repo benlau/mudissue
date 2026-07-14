@@ -49,12 +49,9 @@ export class CreateIssueHelper {
     const storage = new TrackerRepoStorage(repo, globalConfig);
     const issueFilePattern = storage.getIssueFilePattern();
     const parentFolderStorage = new IssueFolderStorage(parent);
-    await parentFolderStorage.appendSubissue(
-      created.folderName,
-      issueFilePattern,
-    );
+    await parentFolderStorage.appendSubissue(created.issueId, issueFilePattern);
     const childFolderStorage = new IssueFolderStorage(created);
-    await childFolderStorage.setParent(parent.folderName, issueFilePattern);
+    await childFolderStorage.setParent(parent.issueId, issueFilePattern);
     return created;
   }
 
@@ -89,12 +86,12 @@ export class CreateIssueHelper {
         throw new Error("Binary files are not accepted.");
       }
       const fileTitle = await IssueResource.deriveTitleFromFile(resolvedPath);
-      const issueId = await nextIssueIdHelper.allocateNextIssueId();
-      const folderName = IssueResource.folderNameForTitle(issueId, fileTitle);
-      const issueDirPath = path.join(storage.getIssuePath(), folderName);
+      const label = await nextIssueIdHelper.allocateNextIssueId();
+      const folderBasename = IssueResource.issueIdForTitle(label, fileTitle);
+      const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
       const issueFolder: IssueFolder = {
-        issueId,
-        folderName,
+        issueId: folderBasename,
+        label,
         path: issueDirPath,
       };
       const issueFilePath = await storage.resolveIssueFilePath(issueFolder);
@@ -109,12 +106,12 @@ export class CreateIssueHelper {
     if (title === undefined || title.trim() === "") {
       throw new Error("Issue title is required");
     }
-    const issueId = await nextIssueIdHelper.allocateNextIssueId();
-    const folderName = IssueResource.folderNameForTitle(issueId, title);
-    const issueDirPath = path.join(storage.getIssuePath(), folderName);
+    const label = await nextIssueIdHelper.allocateNextIssueId();
+    const folderBasename = IssueResource.issueIdForTitle(label, title);
+    const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
     const issueFolder: IssueFolder = {
-      issueId,
-      folderName,
+      issueId: folderBasename,
+      label,
       path: issueDirPath,
     };
     const issueFilePath = await storage.resolveIssueFilePath(issueFolder);

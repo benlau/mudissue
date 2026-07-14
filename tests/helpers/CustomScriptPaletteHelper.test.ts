@@ -217,7 +217,7 @@ describe("CustomScriptPaletteHelper", () => {
 
     it("runs the script after suspending the session when confirmed", async () => {
       const issue = buildIssueFolder("0001", {
-        folderName: "0001-test",
+        label: "0001-test",
         path: "/repo/issues/0001-test",
       });
       useAppStore.setState({ getSelectedIssues: () => [issue] });

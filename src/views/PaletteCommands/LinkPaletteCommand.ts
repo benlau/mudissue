@@ -106,7 +106,7 @@ export class LinkPaletteCommand implements PaletteCommand {
     const targetResponse = await useIssueSearchingDialogStore.getState().open({
       title: linkType,
       confirmLabel: intl.formatMessage(messages.confirmLabel),
-      excludeFolderNames: sources.map((issue) => issue.folderName),
+      excludeFolderNames: sources.map((issue) => issue.issueId),
     });
 
     if (
@@ -126,9 +126,9 @@ export class LinkPaletteCommand implements PaletteCommand {
         await dstPostHookContext.readOldMetadata(dstIssue, repo.name);
 
         await IssueLinkHelper.link(
-          src.folderName,
+          src.issueId,
           linkType,
-          dstIssue.folderName,
+          dstIssue.issueId,
           repo.name,
         );
 
@@ -145,7 +145,7 @@ export class LinkPaletteCommand implements PaletteCommand {
 
     await useAppStore.getState().refreshIssueLists();
 
-    const dstLabel = dstIssue.metadata?.title?.trim() || dstIssue.folderName;
+    const dstLabel = dstIssue.metadata?.title?.trim() || dstIssue.issueId;
     await useToastStore
       .getState()
       .info(

@@ -6,11 +6,16 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
-const buildIssueFolder = (folderName: string, issueId?: string): IssueFolder => ({
-  issueId: issueId ?? folderName,
-  folderName,
-  path: `/dummy/${folderName}`,
+const buildIssueFolder = (issueId: string, label?: string): IssueFolder => ({
+  issueId,
+  label: label ?? extractIssueLabel(issueId),
+  path: `/dummy/${issueId}`,
 });
+
+const extractIssueLabel = (issueId: string): string => {
+  const m = issueId.trim().match(/^([a-zA-Z_-]*)(\d+)(?:-(.*))?$/);
+  return m ? `${m[1]}${m[2]}` : issueId;
+};
 
 describe("IssueTouchCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];

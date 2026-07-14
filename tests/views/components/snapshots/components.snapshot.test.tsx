@@ -98,39 +98,24 @@ function FilterTextDialogSnapshotHarness() {
   );
 }
 
-const defaultIssue = {
-  issueId: "MI0001",
-  folderName: "MI0001-sample",
-  path: "/tmp/MI0001-sample",
+const defaultIssue = { issueId: "MI0001-sample", label: "MI0001", path: "/tmp/MI0001-sample",
   metadata: {
     title: "Sample issue",
     status: "open",
-  },
+   },
 };
 
-const breadcrumbIssueA = {
-  issueId: "MI0001",
-  folderName: "MI0001-alpha",
-  path: "/tmp/MI0001-alpha",
-};
+const breadcrumbIssueA = { issueId: "MI0001-alpha", label: "MI0001", path: "/tmp/MI0001-alpha",
+ };
 
-const breadcrumbIssueB = {
-  issueId: "MI0002",
-  folderName: "MI0002-beta",
-  path: "/tmp/MI0002-beta",
-};
+const breadcrumbIssueB = { issueId: "MI0002-beta", label: "MI0002", path: "/tmp/MI0002-beta",
+ };
 
-const breadcrumbIssueC = {
-  issueId: "MI0003",
-  folderName: "MI0003-gamma",
-  path: "/tmp/MI0003-gamma",
-};
+const breadcrumbIssueC = { issueId: "MI0003-gamma", label: "MI0003", path: "/tmp/MI0003-gamma",
+ };
 
-const breadcrumbIssueD = {
-  issueId: "MI0004",
-  folderName: "MI0004-delta",
-  path: "/tmp/MI0004-delta",
-};
+const breadcrumbIssueD = { issueId: "MI0004-delta", label: "MI0004", path: "/tmp/MI0004-delta",
+ };
 
 function resetDialogStores(): void {
   useConfirmationDialogStore.setState({
@@ -712,17 +697,11 @@ const snapshotCases: SnapshotCase[] = [
     setup: async () => {
       jest.useFakeTimers();
       const sampleIssues = [
-        {
-          issueId: "0001",
-          folderName: "0001-alpha",
-          path: "/repo/issues/0001-alpha",
-          metadata: { title: "Alpha issue" },
+        { issueId: "0001-alpha", label: "0001", path: "/repo/issues/0001-alpha",
+          metadata: { title: "Alpha issue"  },
         },
-        {
-          issueId: "0002",
-          folderName: "0002-beta",
-          path: "/repo/issues/0002-beta",
-          metadata: { title: "Beta issue" },
+        { issueId: "0002-beta", label: "0002", path: "/repo/issues/0002-beta",
+          metadata: { title: "Beta issue"  },
         },
       ];
       const mockSearchAllFolders = jest

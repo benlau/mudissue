@@ -79,15 +79,15 @@ export class IssueLinkHelper {
           .validateIssueNotMultiple()
           .first();
 
-    if (dstIssue !== null && srcIssue.folderName === dstIssue.folderName) {
+    if (dstIssue !== null && srcIssue.issueId === dstIssue.issueId) {
       const response: ErrorResponse = {
         status: "error",
         error: {
           code: "LINK_SELF_REFERENCE",
           message: "Source and destination issue must be different.",
           details: {
-            srcFolder: srcIssue.folderName,
-            dstFolder: dstIssue.folderName,
+            srcFolder: srcIssue.issueId,
+            dstFolder: dstIssue.issueId,
           },
         },
       };
@@ -131,7 +131,7 @@ export class IssueLinkHelper {
     const srcStorage = new IssueFolderStorage(srcIssue);
     const srcOldMetadata = await IssueLinkHelper.loadFrontmatter(srcIssue);
     const targetName =
-      dstIssue?.folderName ??
+      dstIssue?.issueId ??
       IssueFolderLinkFormatter.stripFolderReference(dstSelector);
     const postHookStore = useIssueMetadataChangedPostHookStore.getState();
 
@@ -159,11 +159,11 @@ export class IssueLinkHelper {
     const dstOldMetadata = await IssueLinkHelper.loadFrontmatter(dstIssue);
 
     if (mode === "link") {
-      await srcStorage.applyLinkage(srcField, dstIssue.folderName, pattern);
-      await dstStorage.applyLinkage(dstField, srcIssue.folderName, pattern);
+      await srcStorage.applyLinkage(srcField, dstIssue.issueId, pattern);
+      await dstStorage.applyLinkage(dstField, srcIssue.issueId, pattern);
     } else {
       await srcStorage.removeLinkage(srcField, targetName, pattern);
-      await dstStorage.removeLinkage(dstField, srcIssue.folderName, pattern);
+      await dstStorage.removeLinkage(dstField, srcIssue.issueId, pattern);
     }
 
     await srcStorage.touchUpdatedAt();

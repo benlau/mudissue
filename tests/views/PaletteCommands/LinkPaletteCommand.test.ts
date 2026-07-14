@@ -28,10 +28,10 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 import { LinkPaletteCommand } from "../../../src/views/PaletteCommands/LinkPaletteCommand.ts";
 import { useAlertDialogStore } from "../../../src/store/AlertDialogStore.ts";
 
-const buildIssue = (issueId: string): IssueFolder =>
-  buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+const buildIssue = (label: string): IssueFolder =>
+  buildIssueFolder(`${label}-test`, {
+    label,
+    path: `/repo/issues/${label}-test`,
   });
 
 const mockRepo: TrackerRepo = {
@@ -41,8 +41,8 @@ const mockRepo: TrackerRepo = {
   config: { issue_path: "issues" },
 };
 
-const targetIssue = buildIssueFolder("0003", {
-  folderName: "0003-target",
+const targetIssue = buildIssueFolder("0003-target", {
+  label: "0003",
   path: "/repo/issues/0003-target",
   title: "Target issue",
 });
@@ -176,7 +176,7 @@ describe("LinkPaletteCommand", () => {
   it("returns early when no issue is selected", async () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
     });
 
     await new LinkPaletteCommand().callback();
@@ -189,8 +189,8 @@ describe("LinkPaletteCommand", () => {
     const src2 = buildIssue("0002");
     useAppStore.setState({
       mainIssueLists: [src1, src2],
-      selectedFolderName: src2.folderName,
-      tableRangeSelectionAnchorFolderName: src1.folderName,
+      selectedIssueId: src2.issueId,
+      tableRangeSelectionAnchorIssueId: src1.issueId,
     });
 
     pickOpenMock.mockResolvedValue({
@@ -208,25 +208,25 @@ describe("LinkPaletteCommand", () => {
     expect(issueSearchOpenMock).toHaveBeenCalledWith({
       title: "blocking",
       confirmLabel: "Link",
-      excludeFolderNames: [src1.folderName, src2.folderName],
+      excludeFolderNames: [src1.issueId, src2.issueId],
     });
     expect(linkMock).toHaveBeenCalledTimes(2);
     expect(linkMock).toHaveBeenCalledWith(
-      src1.folderName,
+      src1.issueId,
       "blocking",
-      targetIssue.folderName,
+      targetIssue.issueId,
       mockRepo.name,
     );
     expect(linkMock).toHaveBeenCalledWith(
-      src2.folderName,
+      src2.issueId,
       "blocking",
-      targetIssue.folderName,
+      targetIssue.issueId,
       mockRepo.name,
     );
     // Once per linked source: notify src + dst
     expect(notifySpy).toHaveBeenCalledTimes(4);
     expect(notifySpy).toHaveBeenCalledWith(
-      expect.objectContaining({ folderName: "0001-test" }),
+      expect.objectContaining({ issueId: "0001-test" }),
       { title: "Test" },
       { title: "Test" },
     );
@@ -243,7 +243,7 @@ describe("LinkPaletteCommand", () => {
     const src = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [src],
-      selectedFolderName: src.folderName,
+      selectedIssueId: src.issueId,
     });
 
     pickOpenMock.mockResolvedValue({
@@ -260,7 +260,7 @@ describe("LinkPaletteCommand", () => {
     const src = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [src],
-      selectedFolderName: src.folderName,
+      selectedIssueId: src.issueId,
     });
 
     const customLinkTypes = ["custom_a/custom_b"];
@@ -285,7 +285,7 @@ describe("LinkPaletteCommand", () => {
     const src = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [src],
-      selectedFolderName: src.folderName,
+      selectedIssueId: src.issueId,
     });
 
     pickOpenMock.mockImplementationOnce(async (items) => {
@@ -303,7 +303,7 @@ describe("LinkPaletteCommand", () => {
     const src = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [src],
-      selectedFolderName: src.folderName,
+      selectedIssueId: src.issueId,
     });
 
     const alertOpenMock = jest.fn().mockResolvedValue(undefined);

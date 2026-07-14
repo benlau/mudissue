@@ -6,13 +6,13 @@ import { TemplateGenerator } from "../../src/utils/generators/TemplateGenerator.
 import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 function issueFolder(
+  label: string,
   issueId: string,
-  folderName: string,
   overrides: Parameters<typeof buildIssueFolder>[1] = {},
 ): IssueFolder {
   return buildIssueFolder(issueId, {
-    folderName,
-    path: `/workspace/issues/${folderName}`,
+    label,
+    path: `/workspace/issues/${issueId}`,
     ...overrides,
   });
 }

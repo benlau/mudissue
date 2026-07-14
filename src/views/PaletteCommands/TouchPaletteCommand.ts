@@ -66,7 +66,7 @@ export class TouchPaletteCommand implements PaletteCommand {
             ? messages.successToast
             : messages.successToastPlural,
           issues.length === 1
-            ? { issue: issues[0]!.folderName }
+            ? { issue: issues[0]!.issueId }
             : { count: issues.length },
         ),
         { position: "center" },

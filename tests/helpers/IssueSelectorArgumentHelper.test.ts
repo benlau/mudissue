@@ -22,10 +22,9 @@ const otherRepo: TrackerRepo = {
 
 import { buildIssueFolder as buildIssueFolderFixture } from "../fixture/buildIssueFolder.ts";
 
-const buildIssueFolder = (folderName: string): IssueFolder =>
-  buildIssueFolderFixture("MI100", {
-    folderName,
-    path: path.join(mockRepo.projectPath, "issues", folderName),
+const buildIssueFolder = (issueId: string): IssueFolder =>
+  buildIssueFolderFixture(issueId, {
+    path: path.join(mockRepo.projectPath, "issues", issueId),
     title: "t",
     status: "open",
   });

@@ -69,7 +69,7 @@ export class TmuxLauncher {
       ? worktreeAbs
       : issue.path;
 
-    const sessionName = this.getTmuxSessionName(issue.folderName, command);
+    const sessionName = this.getTmuxSessionName(issue.issueId, command);
 
     const args = ["new-session", "-A", "-s", sessionName];
     if (command) {

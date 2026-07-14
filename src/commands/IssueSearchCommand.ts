@@ -233,7 +233,7 @@ export class IssueSearchCommand extends Command {
         results = accessIssueFolderList(results)
           .sortBy({
             orders: sortOrders,
-            pinnedFolderNames: [],
+            pinnedIssueIds: [],
             statusList,
             priorityList,
           })
@@ -264,7 +264,7 @@ export class IssueSearchCommand extends Command {
     }
 
     for (const issue of allMatches) {
-      loggerService.info(issue.folderName);
+      loggerService.info(issue.issueId);
     }
 
     return { status: "ok", result: { projects: projectsWithMatches } };

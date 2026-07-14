@@ -29,8 +29,7 @@ import { SetSelectedIssueStatusPaletteCommand } from "../../../src/views/Palette
 
 const buildIssue = (issueId: string, status?: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
     status,
   });
 
@@ -113,7 +112,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
   it("is not disabled when no issue is selected", () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
     });
 
     const command = new SetSelectedIssueStatusPaletteCommand();
@@ -124,7 +123,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     const issue = buildIssue("0001", "closed");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({
@@ -149,7 +148,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({
@@ -204,7 +203,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     await new SetSelectedIssueStatusPaletteCommand().callback();
 
     expect(IssueSetPropertyCommand.prototype.command).toHaveBeenCalledWith(
-      issue.folderName,
+      issue.issueId,
       "status",
       "closed",
       mockRepo.name,
@@ -232,8 +231,8 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({
@@ -290,7 +289,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     const issue = buildIssue("0001", "open");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     useCurrentTrackerRepoStore.setState({

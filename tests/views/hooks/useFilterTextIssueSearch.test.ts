@@ -22,17 +22,11 @@ const ISSUE_SEARCH_COLUMNS: TableColumnDef[] = [
 ];
 
 const sampleIssues: IssueFolder[] = [
-  {
-    issueId: "0001",
-    folderName: "0001-alpha",
-    path: "/repo/issues/0001-alpha",
-    metadata: { title: "Alpha issue" },
+  { issueId: "0001-alpha", label: "0001", path: "/repo/issues/0001-alpha",
+    metadata: { title: "Alpha issue"  },
   },
-  {
-    issueId: "0002",
-    folderName: "0002-beta",
-    path: "/repo/issues/0002-beta",
-    metadata: { title: "Beta issue" },
+  { issueId: "0002-beta", label: "0002", path: "/repo/issues/0002-beta",
+    metadata: { title: "Beta issue"  },
   },
 ];
 
@@ -104,7 +98,7 @@ describe("useFilterTextIssueSearch", () => {
       "0001-alpha",
       "0002-beta",
     ]);
-    expect(result.current.getIssue("0001-alpha")?.issueId).toBe("0001");
+    expect(result.current.getIssue("0001-alpha")?.issueId).toBe("0001-alpha");
   });
 
   it("passes matchedIdFirst to searchAllFolders when enabled", async () => {

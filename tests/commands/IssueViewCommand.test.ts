@@ -8,14 +8,13 @@ import { resetAppStore, useAppStore } from "../../src/store/AppStore.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 const buildIssueFolder = (
-  folderName: string,
-  issueId?: string,
+  issueId: string,
+  label?: string,
 ): IssueFolder => ({
-  issueId: issueId ?? folderName,
-  folderName,
-  path: `/repo/issues/${folderName}`,
-  title: "t",
-  status: "open",
+  issueId,
+  label: label ?? issueId,
+  path: `/repo/issues/${issueId}`,
+  metadata: { title: "t", status: "open" },
 });
 
 const mockRepo: TrackerRepo = {
@@ -110,7 +109,7 @@ describe("IssueViewCommand", () => {
       name: "ISSUE_VIEWER",
       args: { issue: folder },
     });
-    expect(useAppStore.getState().selectedFolderName).toBe("0001-view");
+    expect(useAppStore.getState().selectedIssueId).toBe("0001-view");
     expect(renderInk).toHaveBeenCalledTimes(1);
     expect(waitUntilExit).toHaveBeenCalledTimes(1);
     const intlEl = renderInk.mock.calls[0]?.[0] as {

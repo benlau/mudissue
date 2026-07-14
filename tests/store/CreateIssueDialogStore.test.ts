@@ -62,11 +62,8 @@ describe("useCreateIssueDialogStore", () => {
   });
 
   it("stores parent issue when open is called with a parent", () => {
-    const parentIssue = {
-      issueId: "0001",
-      folderName: "0001-parent",
-      path: "/repo/issues/0001-parent",
-    };
+    const parentIssue = { issueId: "0001-parent", label: "0001", path: "/repo/issues/0001-parent",
+     };
 
     useCreateIssueDialogStore.getState().open(parentIssue);
 
@@ -77,11 +74,8 @@ describe("useCreateIssueDialogStore", () => {
   });
 
   it("clears parent issue when close is called", () => {
-    const parentIssue = {
-      issueId: "0001",
-      folderName: "0001-parent",
-      path: "/repo/issues/0001-parent",
-    };
+    const parentIssue = { issueId: "0001-parent", label: "0001", path: "/repo/issues/0001-parent",
+     };
 
     useCreateIssueDialogStore.getState().open(parentIssue);
     useCreateIssueDialogStore.getState().close();

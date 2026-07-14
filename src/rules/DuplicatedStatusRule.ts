@@ -79,7 +79,7 @@ export class DuplicatedStatusRule {
     }
 
     const result = await new IssueSetPropertyCommand().command(
-      issueFolder.folderName,
+      issueFolder.issueId,
       "status",
       rule.duplicated_status,
       repo.name,

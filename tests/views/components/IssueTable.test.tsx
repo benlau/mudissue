@@ -234,8 +234,7 @@ describe("IssueTable", () => {
     });
 
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/MI0001-a",
+            path: "/tmp/MI0001-a",
       title: "First",
     });
     const issueFilePath = `${issue.path}/issue.md`;
@@ -245,7 +244,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     let view: ReturnType<typeof render>;
@@ -284,8 +283,7 @@ describe("IssueTable", () => {
     });
 
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/MI0001-a",
+            path: "/tmp/MI0001-a",
       title: "First",
     });
     const issueFilePath = `${issue.path}/issue.md`;
@@ -310,7 +308,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     let view: ReturnType<typeof render>;
@@ -345,8 +343,7 @@ describe("IssueTable", () => {
     });
 
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/MI0001-a",
+            path: "/tmp/MI0001-a",
       title: "First",
     });
     const issueFilePath = `${issue.path}/issue.md`;
@@ -371,7 +368,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     let view: ReturnType<typeof render>;
@@ -412,8 +409,7 @@ describe("IssueTable", () => {
       .mockImplementation(() => true);
 
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/MI0001-a",
+            path: "/tmp/MI0001-a",
       title: "First",
     });
     const issueFilePath = `${issue.path}/issue.md`;
@@ -429,7 +425,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     let view: ReturnType<typeof render>;
@@ -485,28 +481,24 @@ describe("IssueTable", () => {
     );
 
     const issueBeforeA = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/repo-a/MI0001-a",
+            path: "/tmp/repo-a/MI0001-a",
       title: "First",
       status: "open",
     });
     const issueBeforeB = buildIssueFolder("MI0002", {
-      folderName: "MI0002-b",
-      path: "/tmp/repo-a/MI0002-b",
+            path: "/tmp/repo-a/MI0002-b",
       title: "Second",
       status: "open",
     });
 
     const issuesAfterSwitch: IssueFolder[] = [
-      buildIssueFolder("ZZ0001", {
-        folderName: "ZZ0001-x",
+      buildIssueFolder("ZZ0001-x", {
         path: "/tmp/repo-b/ZZ0001-x",
         title: "Alpha",
         status: "open",
       }),
       buildIssueFolder("ZZ0002", {
-        folderName: "ZZ0002-y",
-        path: "/tmp/repo-b/ZZ0002-y",
+                path: "/tmp/repo-b/ZZ0002-y",
         title: "Beta",
         status: "open",
       }),
@@ -514,7 +506,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: [issueBeforeA, issueBeforeB],
-      selectedFolderName: "MI0002-b",
+      selectedIssueId: "MI0002-b",
       filter: "status:open",
     });
 
@@ -522,8 +514,8 @@ describe("IssueTable", () => {
       useAppStore.setState({
         filter: null,
         mainIssueLists: issuesAfterSwitch,
-        searchRestoreFolderName: null,
-        tableRangeSelectionAnchorFolderName: null,
+        searchRestoreIssueId: null,
+        tableRangeSelectionAnchorIssueId: null,
       });
       return issuesAfterSwitch;
     });
@@ -562,14 +554,14 @@ describe("IssueTable", () => {
     });
 
     const state = useAppStore.getState();
-    expect(state.selectedFolderName).toBe("ZZ0001-x");
+    expect(state.selectedIssueId).toBe("ZZ0001-x");
     expect(state.filter).toBeNull();
     expect(state.isLoadingIssueList).toBe(false);
     expect(view.lastFrame()).toContain("repo-b");
     expect(view.lastFrame()).not.toContain("repo-a");
   });
 
-  it("keeps selection on the last folder when issueId is duplicated", async () => {
+  it("keeps selection on the last folder when label is duplicated", async () => {
     const bundle = createMockSystemContext();
     bundle.trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue({
       name: "repo-a",
@@ -579,14 +571,12 @@ describe("IssueTable", () => {
     });
 
     const duplicateIssues: IssueFolder[] = [
-      buildIssueFolder("AB0001", {
-        folderName: "AB0001-hello-world",
+      buildIssueFolder("AB0001-hello-world", {
         path: "/tmp/repo-a/AB0001-hello-world",
         title: "Hello",
         status: "open",
       }),
-      buildIssueFolder("AB0001", {
-        folderName: "AB0001-start",
+      buildIssueFolder("AB0001-start", {
         path: "/tmp/repo-a/AB0001-start",
         title: "Start",
         status: "open",
@@ -595,7 +585,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: duplicateIssues,
-      selectedFolderName: "AB0001-start",
+      selectedIssueId: "AB0001-start",
     });
 
     let view: ReturnType<typeof render>;
@@ -609,11 +599,11 @@ describe("IssueTable", () => {
       await Promise.resolve();
     });
 
-    expect(useAppStore.getState().selectedFolderName).toBe("AB0001-start");
+    expect(useAppStore.getState().selectedIssueId).toBe("AB0001-start");
     expect(view.lastFrame()).toContain("Start");
   });
 
-  it("selects the last row on End when multiple issues share an issueId", async () => {
+  it("selects the last row on End when multiple issues share a label", async () => {
     const bundle = createMockSystemContext();
     bundle.trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue({
       name: "repo-a",
@@ -623,14 +613,12 @@ describe("IssueTable", () => {
     });
 
     const duplicateIssues: IssueFolder[] = [
-      buildIssueFolder("AB0001", {
-        folderName: "AB0001-hello-world",
+      buildIssueFolder("AB0001-hello-world", {
         path: "/tmp/repo-a/AB0001-hello-world",
         title: "Hello",
         status: "open",
       }),
-      buildIssueFolder("AB0001", {
-        folderName: "AB0001-start",
+      buildIssueFolder("AB0001-start", {
         path: "/tmp/repo-a/AB0001-start",
         title: "Start",
         status: "open",
@@ -639,7 +627,7 @@ describe("IssueTable", () => {
 
     useAppStore.setState({
       mainIssueLists: duplicateIssues,
-      selectedFolderName: "AB0001-hello-world",
+      selectedIssueId: "AB0001-hello-world",
     });
 
     let view: ReturnType<typeof render>;
@@ -654,7 +642,7 @@ describe("IssueTable", () => {
       await Promise.resolve();
     });
 
-    expect(useAppStore.getState().selectedFolderName).toBe("AB0001-start");
+    expect(useAppStore.getState().selectedIssueId).toBe("AB0001-start");
   });
 
   it("toggles table range selection when V is pressed", async () => {
@@ -668,20 +656,18 @@ describe("IssueTable", () => {
 
     const issues: IssueFolder[] = [
       buildIssueFolder("MI0001", {
-        folderName: "MI0001-a",
-        path: "/tmp/MI0001-a",
+                path: "/tmp/MI0001-a",
         title: "First",
       }),
       buildIssueFolder("MI0002", {
-        folderName: "MI0002-b",
-        path: "/tmp/MI0002-b",
+                path: "/tmp/MI0002-b",
         title: "Second",
       }),
     ];
 
     useAppStore.setState({
       mainIssueLists: issues,
-      selectedFolderName: issues[0]!.folderName,
+      selectedIssueId: issues[0]!.issueId,
     });
 
     let view: ReturnType<typeof render>;
@@ -697,8 +683,8 @@ describe("IssueTable", () => {
     });
 
     expect(
-      useAppStore.getState().tableRangeSelectionAnchorFolderName,
-    ).toBe(issues[0]!.folderName);
+      useAppStore.getState().tableRangeSelectionAnchorIssueId,
+    ).toBe(issues[0]!.issueId);
     expect(useAppStore.getState().getSelectedIssues()).toHaveLength(1);
 
     await act(async () => {
@@ -706,7 +692,7 @@ describe("IssueTable", () => {
       await Promise.resolve();
     });
 
-    expect(useAppStore.getState().selectedFolderName).toBe(issues[1]!.folderName);
+    expect(useAppStore.getState().selectedIssueId).toBe(issues[1]!.issueId);
     expect(useAppStore.getState().getSelectedIssues()).toEqual(issues);
 
     await act(async () => {
@@ -715,22 +701,21 @@ describe("IssueTable", () => {
     });
 
     expect(
-      useAppStore.getState().tableRangeSelectionAnchorFolderName,
+      useAppStore.getState().tableRangeSelectionAnchorIssueId,
     ).toBeNull();
     expect(useAppStore.getState().getSelectedIssues()).toHaveLength(1);
   });
 
   it("opens the command palette when colon is pressed in searching mode", async () => {
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/MI0001-a",
+            path: "/tmp/MI0001-a",
       title: "First",
       status: "open",
     });
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       filter: "status:open",
     });
 
@@ -751,15 +736,14 @@ describe("IssueTable", () => {
 
   it("opens the command palette when question mark is pressed in searching mode", async () => {
     const issue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-a",
-      path: "/tmp/MI0001-a",
+            path: "/tmp/MI0001-a",
       title: "First",
       status: "open",
     });
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       filter: "status:open",
     });
 
@@ -792,20 +776,18 @@ describe("IssueTable", () => {
 
     const issues: IssueFolder[] = [
       buildIssueFolder("MI0001", {
-        folderName: "MI0001-a",
-        path: "/tmp/MI0001-a",
+                path: "/tmp/MI0001-a",
         title: "First",
       }),
       buildIssueFolder("MI0002", {
-        folderName: "MI0002-b",
-        path: "/tmp/MI0002-b",
+                path: "/tmp/MI0002-b",
         title: "Second",
       }),
     ];
 
     useAppStore.setState({
       mainIssueLists: issues,
-      selectedFolderName: issues[0]!.folderName,
+      selectedIssueId: issues[0]!.issueId,
     });
 
     let view: ReturnType<typeof render>;
@@ -839,7 +821,7 @@ describe("IssueTable", () => {
       await flushInkInput();
     });
 
-    expect(useAppStore.getState().selectedFolderName).toBe(issues[1]!.folderName);
+    expect(useAppStore.getState().selectedIssueId).toBe(issues[1]!.issueId);
     } finally {
       jest.useFakeTimers();
     }
@@ -860,21 +842,19 @@ describe("IssueTable", () => {
       .mockResolvedValue(DEFAULT_RESOLVED_STATUS_LIST);
 
     const openIssue = buildIssueFolder("MI0001", {
-      folderName: "MI0001-open",
-      path: "/tmp/repo-a/MI0001-open",
+            path: "/tmp/repo-a/MI0001-open",
       title: "Open issue",
       status: "open",
     });
     const closedIssue = buildIssueFolder("MI0002", {
-      folderName: "MI0002-closed",
-      path: "/tmp/repo-a/MI0002-closed",
+            path: "/tmp/repo-a/MI0002-closed",
       title: "Closed issue",
       status: "closed",
     });
 
     useAppStore.setState({
       mainIssueLists: [openIssue, closedIssue],
-      selectedFolderName: openIssue.folderName,
+      selectedIssueId: openIssue.issueId,
     });
 
     let view: ReturnType<typeof render>;

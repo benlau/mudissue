@@ -87,7 +87,7 @@ export class IssueArchiveCommand extends Command {
     const archiveDir = await getArchivePath(repo);
     await fileService.mkdir(archiveDir, { recursive: true });
 
-    const dest = await getArchivePath(repo, issue.folderName);
+    const dest = await getArchivePath(repo, issue.issueId);
     if (await fileService.exists(dest)) {
       this.throwException(
         "ARCHIVE_TARGET_EXISTS",
@@ -119,7 +119,7 @@ export class IssueArchiveCommand extends Command {
       result: {
         archivedIssue: {
           issueId: issue.issueId,
-          issueFolderName: issue.folderName,
+          issueFolderName: issue.issueId,
           issueFilePath: newIssueFilePath,
         },
         oldIssueFolderPath,

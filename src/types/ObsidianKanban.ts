@@ -51,7 +51,7 @@ function sortIssuesByPriority(
   return accessIssueFolderList(issues)
     .sortBy({
       orders: [{ field: "priority", order: "desc" }],
-      pinnedFolderNames: [],
+      pinnedIssueIds: [],
       statusList: tables.statusList,
       priorityList: tables.priorityList,
     })

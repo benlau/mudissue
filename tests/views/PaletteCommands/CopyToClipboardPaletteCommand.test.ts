@@ -16,8 +16,7 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 function resetPickItemDialogStore(): void {
@@ -88,7 +87,7 @@ describe("CopyToClipboardPaletteCommand", () => {
   it("does not open the pick dialog when no issue is selected", async () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
     });
 
     await new CopyToClipboardPaletteCommand().callback();
@@ -101,7 +100,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const filePath = "/repo/issues/MI0001-test/issue.md";
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")
@@ -139,7 +138,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const issue = buildIssue("MI0002");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")
@@ -160,7 +159,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const issue = buildIssue("MI0003");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")
@@ -186,7 +185,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const filePath = "/repo/issues/MI0004-test/issue.md";
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")
@@ -211,7 +210,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const issue = buildIssue("MI0005");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")
@@ -231,7 +230,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const issue = buildIssue("MI0006");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
     jest
       .spyOn(IssueFolderStorage.prototype, "findIssueFile")

@@ -51,10 +51,10 @@ export class NextIssueIdHelper {
       return this.allocateNextIssueId();
     }
 
-    const folderName = IssueResource.folderNameForTitle(id, title);
-    const issueDirPath = path.join(this.storage.getIssuePath(), folderName);
+    const folderBasename = IssueResource.issueIdForTitle(id, title);
+    const issueDirPath = path.join(this.storage.getIssuePath(), folderBasename);
     if (await this.fileService.exists(issueDirPath)) {
-      throw new Error(`Issue already exists: ${folderName}`);
+      throw new Error(`Issue already exists: ${folderBasename}`);
     }
     return id;
   }

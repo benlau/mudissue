@@ -84,7 +84,7 @@ export class OpenShellPaletteCommand implements PaletteCommand {
 
     const worktreePath = await useCurrentTrackerRepoStore
       .getState()
-      .getGitWorktreePath(viewerIssue.folderName);
+      .getGitWorktreePath(viewerIssue.issueId);
     if (await FileService.getInstance().exists(worktreePath)) {
       targets.push({
         label: intl.formatMessage(messages.worktreeFolder),

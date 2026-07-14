@@ -106,7 +106,7 @@ describe("CustomScriptLauncher", () => {
         command: "vim",
         args: ["$MUD_ISSUE_ID"],
       };
-      const issues = [buildIssueFolder("MIA0001")];
+      const issues = [buildIssueFolder("MIA0001-open-primary")];
 
       await launcher.run(script, issues, repo);
 
@@ -127,8 +127,10 @@ vim $MUD_ISSUE_ID
         {
           cwd: "/repo",
           env: expect.objectContaining({
-            MUD_ISSUE_IDS: "MIA0001",
-            MUD_ISSUE_ID: "MIA0001",
+            MUD_ISSUE_IDS: "MIA0001-open-primary",
+            MUD_ISSUE_ID: "MIA0001-open-primary",
+            MUD_ISSUE_LABELS: "MIA0001",
+            MUD_ISSUE_LABEL: "MIA0001",
             MUD_PROJECT_PATH: "/repo",
             MUD_TRACKER_PATH: "/repo/issues",
           }),

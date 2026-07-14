@@ -116,7 +116,7 @@ export class IssueWorktreeRemoveCommand extends Command {
 
     const worktreePath = await useCurrentTrackerRepoStore
       .getState()
-      .getGitWorktreePath(issue.folderName);
+      .getGitWorktreePath(issue.issueId);
     const branch = options.deleteBranch
       ? await useCurrentTrackerRepoStore
           .getState()

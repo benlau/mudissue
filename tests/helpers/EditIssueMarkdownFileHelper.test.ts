@@ -8,7 +8,7 @@ import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
+    label: `${issueId}-test`,
     path: `/repo/issues/${issueId}-test`,
     status: "open",
     priority: "normal",
@@ -63,7 +63,7 @@ describe("EditIssueMarkdownFileHelper", () => {
 
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
     });
 
     const openMock = jest.fn().mockResolvedValue({

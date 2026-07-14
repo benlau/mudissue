@@ -75,7 +75,7 @@ export class ExtractContentIntoNewIssueHelper {
         content,
       );
       const link = IssueFolderLinkFormatter.formatFolderReference(
-        created.folderName,
+        created.issueId,
         "long",
       );
       const replaced = viewerStore.getState().replaceSelection(link);

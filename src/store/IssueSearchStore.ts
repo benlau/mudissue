@@ -85,7 +85,7 @@ function createIssueSearchStore(): IssueSearchStore {
           rootRepo != null
             ? await registryService.getIssueListSortOrder(rootRepo.projectPath)
             : DEFAULT_SORTING_ORDER;
-        const pinnedFolderNames =
+        const pinnedIssueIds =
           rootRepo != null
             ? await registryService.getPinnedIssueFolderNames(
                 rootRepo.projectPath,
@@ -104,7 +104,7 @@ function createIssueSearchStore(): IssueSearchStore {
             orders: [sortingOrder],
             issueSelector:
               options?.matchedIdFirst === true ? filter : undefined,
-            pinnedFolderNames,
+            pinnedIssueIds,
             statusList,
             priorityList,
           })

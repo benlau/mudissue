@@ -1,4 +1,3 @@
-import { jest } from "@jest/globals";
 import { IssueSelectorMatcher } from "../../../src/foundation/matchers/IssueSelectorMatcher.ts";
 
 describe("IssueSelectorMatcher", () => {
@@ -21,24 +20,39 @@ describe("IssueSelectorMatcher", () => {
     });
   });
 
-  describe("isIssueId", () => {
-    it("returns true for valid issue ids (digits or prefix + digits)", () => {
-      expect(IssueSelectorMatcher.isIssueId("1")).toBe(true);
-      expect(IssueSelectorMatcher.isIssueId("002")).toBe(true);
-      expect(IssueSelectorMatcher.isIssueId("FN004")).toBe(true);
-      expect(IssueSelectorMatcher.isIssueId("PR-005")).toBe(true);
-      expect(IssueSelectorMatcher.isIssueId("PX_006")).toBe(true);
+  describe("isIssueLabel", () => {
+    it("returns true for valid labels (digits or prefix + digits)", () => {
+      expect(IssueSelectorMatcher.isIssueLabel("1")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueLabel("002")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueLabel("FN004")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueLabel("PR-005")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueLabel("PX_006")).toBe(true);
     });
 
-    it("returns false for invalid issue ids", () => {
-      expect(IssueSelectorMatcher.isIssueId("0003-any")).toBe(false);
-      expect(IssueSelectorMatcher.isIssueId("no-digits")).toBe(false);
-      expect(IssueSelectorMatcher.isIssueId("FN001extra")).toBe(false);
-      expect(IssueSelectorMatcher.isIssueId("")).toBe(false);
+    it("returns false for invalid labels", () => {
+      expect(IssueSelectorMatcher.isIssueLabel("0003-any")).toBe(false);
+      expect(IssueSelectorMatcher.isIssueLabel("no-digits")).toBe(false);
+      expect(IssueSelectorMatcher.isIssueLabel("FN001extra")).toBe(false);
+      expect(IssueSelectorMatcher.isIssueLabel("")).toBe(false);
     });
 
     it("trims input before validation", () => {
-      expect(IssueSelectorMatcher.isIssueId("  FN004  ")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueLabel("  FN004  ")).toBe(true);
+    });
+  });
+
+  describe("isIssueId", () => {
+    it("returns true for valid issue IDs including suffix", () => {
+      expect(IssueSelectorMatcher.isIssueId("1")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueId("FN004")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueId("0003-any string char")).toBe(true);
+      expect(IssueSelectorMatcher.isIssueId("PR-005-any stringchar")).toBe(true);
+    });
+
+    it("returns false for invalid issue IDs", () => {
+      expect(IssueSelectorMatcher.isIssueId("")).toBe(false);
+      expect(IssueSelectorMatcher.isIssueId("no-digits")).toBe(false);
+      expect(IssueSelectorMatcher.isIssueId("FN001extra")).toBe(false);
     });
   });
 
@@ -78,14 +92,33 @@ describe("IssueSelectorMatcher", () => {
     });
   });
 
+  describe("extractIssueLabel", () => {
+    it("returns label (prefix + num) for valid folders", () => {
+      expect(IssueSelectorMatcher.extractIssueLabel("1")).toBe("1");
+      expect(IssueSelectorMatcher.extractIssueLabel("002")).toBe("002");
+      expect(IssueSelectorMatcher.extractIssueLabel("0003-any string char")).toBe("0003");
+      expect(IssueSelectorMatcher.extractIssueLabel("FN004")).toBe("FN004");
+      expect(IssueSelectorMatcher.extractIssueLabel("PR-005-any stringchar")).toBe("PR-005");
+      expect(IssueSelectorMatcher.extractIssueLabel("PX_006-any stringchar")).toBe("PX_006");
+    });
+
+    it("returns null for invalid folder names", () => {
+      expect(IssueSelectorMatcher.extractIssueLabel("")).toBe(null);
+      expect(IssueSelectorMatcher.extractIssueLabel("no-digits")).toBe(null);
+    });
+  });
+
   describe("extractIssueId", () => {
-    it("returns issue ID (prefix + num) for valid folders", () => {
+    it("returns full folder basename as issue ID for valid folders", () => {
       expect(IssueSelectorMatcher.extractIssueId("1")).toBe("1");
       expect(IssueSelectorMatcher.extractIssueId("002")).toBe("002");
-      expect(IssueSelectorMatcher.extractIssueId("0003-any string char")).toBe("0003");
+      expect(IssueSelectorMatcher.extractIssueId("0003-any string char")).toBe(
+        "0003-any string char",
+      );
       expect(IssueSelectorMatcher.extractIssueId("FN004")).toBe("FN004");
-      expect(IssueSelectorMatcher.extractIssueId("PR-005-any stringchar")).toBe("PR-005");
-      expect(IssueSelectorMatcher.extractIssueId("PX_006-any stringchar")).toBe("PX_006");
+      expect(IssueSelectorMatcher.extractIssueId("PR-005-any stringchar")).toBe(
+        "PR-005-any stringchar",
+      );
     });
 
     it("returns null for invalid folder names", () => {
@@ -127,28 +160,28 @@ describe("IssueSelectorMatcher", () => {
     });
   });
 
-  describe("isSameIssueId", () => {
+  describe("isSameIssueLabel", () => {
     it("returns true when prefix and numeric part match", () => {
-      expect(IssueSelectorMatcher.isSameIssueId("MI309", "MI309")).toBe(true);
-      expect(IssueSelectorMatcher.isSameIssueId("MI0309", "MI309")).toBe(true);
-      expect(IssueSelectorMatcher.isSameIssueId("MI00309", "MI309")).toBe(true);
-      expect(IssueSelectorMatcher.isSameIssueId("PR-005-foo", "PR-005")).toBe(true);
-      expect(IssueSelectorMatcher.isSameIssueId("FN004", "FN4")).toBe(true);
+      expect(IssueSelectorMatcher.isSameIssueLabel("MI309", "MI309")).toBe(true);
+      expect(IssueSelectorMatcher.isSameIssueLabel("MI0309", "MI309")).toBe(true);
+      expect(IssueSelectorMatcher.isSameIssueLabel("MI00309", "MI309")).toBe(true);
+      expect(IssueSelectorMatcher.isSameIssueLabel("PR-005-foo", "PR-005")).toBe(true);
+      expect(IssueSelectorMatcher.isSameIssueLabel("FN004", "FN4")).toBe(true);
     });
 
     it("returns false when prefix differs", () => {
-      expect(IssueSelectorMatcher.isSameIssueId("MI0309", "309")).toBe(false);
-      expect(IssueSelectorMatcher.isSameIssueId("005-foo", "PR-005")).toBe(false);
+      expect(IssueSelectorMatcher.isSameIssueLabel("MI0309", "309")).toBe(false);
+      expect(IssueSelectorMatcher.isSameIssueLabel("005-foo", "PR-005")).toBe(false);
     });
 
     it("returns false when numeric part differs", () => {
-      expect(IssueSelectorMatcher.isSameIssueId("MI0309", "MI0310")).toBe(false);
-      expect(IssueSelectorMatcher.isSameIssueId("PR-005", "PR-006")).toBe(false);
+      expect(IssueSelectorMatcher.isSameIssueLabel("MI0309", "MI0310")).toBe(false);
+      expect(IssueSelectorMatcher.isSameIssueLabel("PR-005", "PR-006")).toBe(false);
     });
 
     it("returns false when either folder is invalid", () => {
-      expect(IssueSelectorMatcher.isSameIssueId("MI309", "invalid")).toBe(false);
-      expect(IssueSelectorMatcher.isSameIssueId("invalid", "MI309")).toBe(false);
+      expect(IssueSelectorMatcher.isSameIssueLabel("MI309", "invalid")).toBe(false);
+      expect(IssueSelectorMatcher.isSameIssueLabel("invalid", "MI309")).toBe(false);
     });
   });
 
@@ -163,7 +196,7 @@ describe("IssueSelectorMatcher", () => {
       expect(IssueSelectorMatcher.match("0001", "0001")).toBe(true);
     });
 
-    it("returns true when extracted issue ID matches", () => {
+    it("returns true when extracted label matches", () => {
       expect(IssueSelectorMatcher.match("0001-rename", "0001")).toBe(true);
       expect(IssueSelectorMatcher.match("PR-005-foo", "PR-005")).toBe(true);
     });
@@ -174,12 +207,12 @@ describe("IssueSelectorMatcher", () => {
       expect(IssueSelectorMatcher.match("PR-005-foo", "5")).toBe(true);
     });
 
-    it("returns true when the issue id matches", () => {
+    it("returns true when the label matches", () => {
       expect(IssueSelectorMatcher.match("PR-005-foo", "PR-005")).toBe(true);
       expect(IssueSelectorMatcher.match("005-foo", "PR-005")).toBe(false);
     });
 
-    it("returns false when only suffix matches across different issue ids", () => {
+    it("returns false when only suffix matches across different labels", () => {
       expect(IssueSelectorMatcher.match("0001-foo", "0002-foo")).toBe(false);
       expect(IssueSelectorMatcher.match("PR-005-same", "006-same")).toBe(false);
     });
@@ -211,7 +244,7 @@ describe("IssueSelectorMatcher", () => {
       );
     });
 
-    it("matches when selector suffix is a prefix of folder suffix for same issue id", () => {
+    it("matches when selector suffix is a prefix of folder suffix for same label", () => {
       expect(
         IssueSelectorMatcher.match("MI252-hello-world", "MI252-hello-w"),
       ).toBe(true);
@@ -220,7 +253,7 @@ describe("IssueSelectorMatcher", () => {
       ).toBe(true);
     });
 
-    it("does not match when selector suffix is not a prefix for same issue id", () => {
+    it("does not match when selector suffix is not a prefix for same label", () => {
       expect(IssueSelectorMatcher.match("MI252-hello-world", "MI252-other")).toBe(
         false,
       );

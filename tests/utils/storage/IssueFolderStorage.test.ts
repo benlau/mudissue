@@ -8,11 +8,8 @@ describe("IssueFolderStorage", () => {
   let mockFileService: jest.Mocked<FileService>;
   let savedFileService: FileService;
   const folderAbsPath = "/repo/issues/0001";
-  const buildIssueFolder = (): IssueFolder => ({
-    issueId: "0001",
-    folderName: "0001",
-    path: folderAbsPath,
-  });
+  const buildIssueFolder = (): IssueFolder => ({ issueId: "0001", label: "0001", path: folderAbsPath,
+   });
 
   beforeEach(() => {
     savedFileService = FileService.getInstance();
@@ -57,31 +54,25 @@ describe("IssueFolderStorage", () => {
       expect(result).toBe(`${folderAbsPath}/0001.md`);
     });
 
-    it("returns path to issueId.md when issue.md and folderName.md not found", async () => {
-      // Make issueId different from folderName
-      const folder: IssueFolder = {
-        issueId: "FX0001",
-        folderName: "FX0001-rename",
-        path: "/repo/issues/FX0001-rename",
-      };
+    it("returns path to issueId.md when issue.md and label.md not found", async () => {
+      // Make issueId (full folder basename) different from label
+      const folder: IssueFolder = { issueId: "FX0001-rename", label: "FX0001", path: "/repo/issues/FX0001-rename",
+       };
 
       mockFileService.exists
         .mockResolvedValueOnce(false) // issue.md
-        .mockResolvedValueOnce(false) // folderName.md
+        .mockResolvedValueOnce(false) // label.md
         .mockResolvedValueOnce(true); // issueId.md
 
       const storage = new IssueFolderStorage(folder);
       const result = await storage.findIssueFile();
 
-      expect(result).toBe("/repo/issues/FX0001-rename/FX0001.md");
+      expect(result).toBe("/repo/issues/FX0001-rename/FX0001-rename.md");
     });
 
     it("returns path to issueId-suffix.md when issue.md and direct .md files not found", async () => {
-      const folder: IssueFolder = {
-        issueId: "FX0001",
-        folderName: "FX0001-rename",
-        path: "/repo/issues/FX0001-rename",
-      };
+      const folder: IssueFolder = { issueId: "FX0001-rename", label: "FX0001", path: "/repo/issues/FX0001-rename",
+       };
 
       mockFileService.exists.mockResolvedValue(false);
       mockFileService.readdir.mockResolvedValue([

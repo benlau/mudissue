@@ -127,18 +127,16 @@ describe("SetSortingOrderPaletteCommand", () => {
   it("clears table range selection anchor when sort order is changed", async () => {
     const issueA: IssueFolder = {
       issueId: "0001",
-      folderName: "0001-a",
-      path: "/repo/0001-a",
+            path: "/repo/0001-a",
     };
     const issueB: IssueFolder = {
       issueId: "0002",
-      folderName: "0002-b",
-      path: "/repo/0002-b",
+            path: "/repo/0002-b",
     };
     useAppStore.setState({
       mainIssueLists: [issueA, issueB],
-      selectedFolderName: issueB.folderName,
-      tableRangeSelectionAnchorFolderName: issueA.folderName,
+      selectedIssueId: issueB.issueId,
+      tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
 
     pickOpenMock
@@ -156,7 +154,7 @@ describe("SetSortingOrderPaletteCommand", () => {
     await new SetSortingOrderPaletteCommand().callback();
 
     expect(
-      useAppStore.getState().tableRangeSelectionAnchorFolderName,
+      useAppStore.getState().tableRangeSelectionAnchorIssueId,
     ).toBeNull();
     expect(refreshIssueListsMock).toHaveBeenCalled();
   });

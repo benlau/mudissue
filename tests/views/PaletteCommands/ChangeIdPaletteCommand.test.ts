@@ -16,8 +16,7 @@ import { INITIAL_NAVIGATION_STACK } from "../../fixture/navigationStack.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 const mockRepo: TrackerRepo = {
@@ -110,7 +109,7 @@ describe("ChangeIdPaletteCommand", () => {
   it("no-ops when no issue is selected", async () => {
     useAppStore.setState({
       mainIssueLists: [],
-      selectedFolderName: null,
+      selectedIssueId: null,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
 
@@ -127,7 +126,7 @@ describe("ChangeIdPaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
     useCurrentTrackerRepoStore.setState({
@@ -155,7 +154,7 @@ describe("ChangeIdPaletteCommand", () => {
     const updated = buildIssue("MI042");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
     useCurrentTrackerRepoStore.setState({
@@ -174,7 +173,7 @@ describe("ChangeIdPaletteCommand", () => {
 
     expect(changeIssueIdMock).toHaveBeenCalledWith(mockRepo, issue, "MI042");
     expect(refreshIssueListsMock).toHaveBeenCalled();
-    expect(useAppStore.getState().selectedFolderName).toBe("MI042-test");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI042-test");
     expect(toastInfoMock).toHaveBeenCalled();
   });
 
@@ -182,7 +181,7 @@ describe("ChangeIdPaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
     useCurrentTrackerRepoStore.setState({

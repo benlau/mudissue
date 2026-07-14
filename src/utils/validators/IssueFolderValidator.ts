@@ -29,9 +29,7 @@ export class IssueFolderValidator {
 
   validateIssueNotMultiple(): this {
     if (Array.isArray(this.data) && this.data.length > 1) {
-      const folderNames = this.data
-        .map((folder) => folder.folderName)
-        .join(" , ");
+      const folderNames = this.data.map((folder) => folder.issueId).join(" , ");
 
       const response: ErrorResponse = {
         status: "error",

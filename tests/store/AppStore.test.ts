@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import * as path from "path";
 import { resetAppStore, useAppStore } from "../../src/store/AppStore.ts";
 import type { IssueSearchStoreState } from "../../src/store/IssueSearchStore.ts";
 import {
@@ -40,11 +41,16 @@ function resetToastStore(): void {
 import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 function buildIssue(
-  issueId: string,
+  label: string,
   overrides?: Parameters<typeof buildIssueFolder>[1],
 ): IssueFolder {
+  const issueId =
+    overrides?.path != null
+      ? path.basename(overrides.path)
+      : `${label}-sample`;
   return buildIssueFolder(issueId, {
-    title: `${issueId} title`,
+    label,
+    title: `${label} title`,
     status: "open",
     ...overrides,
   });
@@ -113,8 +119,8 @@ describe("AppStore", () => {
   it("reset clears data slice", () => {
     useAppStore.setState({
       filter: "x",
-      selectedFolderName: "MI0001-sample",
-      searchRestoreFolderName: "MI0002-sample",
+      selectedIssueId: "MI0001-sample",
+      searchRestoreIssueId: "MI0002-sample",
       isLoadingIssueList: true,
     });
     resetAppStore();
@@ -124,8 +130,8 @@ describe("AppStore", () => {
       INITIAL_NAVIGATION_STACK,
     );
     expect(currentViewerIssue()).toBeNull();
-    expect(useAppStore.getState().selectedFolderName).toBeNull();
-    expect(useAppStore.getState().searchRestoreFolderName).toBeNull();
+    expect(useAppStore.getState().selectedIssueId).toBeNull();
+    expect(useAppStore.getState().searchRestoreIssueId).toBeNull();
     expect(useAppStore.getState().isLoadingIssueList).toBe(false);
   });
 
@@ -149,7 +155,7 @@ describe("AppStore", () => {
       }),
     );
     useAppStore.setState({
-      selectedFolderName: "MI0003-sample",
+      selectedIssueId: "MI0003-sample",
     });
 
     await useAppStore.getState().searchIssues("status:open");
@@ -159,8 +165,8 @@ describe("AppStore", () => {
       buildIssue("MI0004"),
       buildIssue("MI0005"),
     ]);
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0004-sample");
-    expect(useAppStore.getState().searchRestoreFolderName).toBe(
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0004-sample");
+    expect(useAppStore.getState().searchRestoreIssueId).toBe(
       "MI0003-sample",
     );
   });
@@ -180,15 +186,15 @@ describe("AppStore", () => {
     );
     useAppStore.setState({
       filter: "status:open",
-      selectedFolderName: "MI0001-sample",
-      searchRestoreFolderName: "MI0003-sample",
+      selectedIssueId: "MI0001-sample",
+      searchRestoreIssueId: "MI0003-sample",
     });
 
     await useAppStore.getState().searchIssues(null);
 
     expect(useAppStore.getState().filter).toBeNull();
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0003-sample");
-    expect(useAppStore.getState().searchRestoreFolderName).toBeNull();
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0003-sample");
+    expect(useAppStore.getState().searchRestoreIssueId).toBeNull();
   });
 
   it("openIssue selects the active issue and closeIssue keeps it selected", () => {
@@ -196,18 +202,18 @@ describe("AppStore", () => {
     useAppStore.setState({ mainIssueLists: [issue] });
 
     useAppStore.getState().openIssue(issue);
-    expect(currentViewerIssue()?.issueId).toBe("MI0002");
+    expect(currentViewerIssue()?.issueId).toBe("MI0002-sample");
     expect(useAppStore.getState().navigationStack).toEqual(
       viewerPageStack(issue),
     );
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0002-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0002-sample");
 
     useAppStore.getState().closeIssue();
     expect(currentViewerIssue()).toBeNull();
     expect(useAppStore.getState().navigationStack).toEqual(
       INITIAL_NAVIGATION_STACK,
     );
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0002-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0002-sample");
   });
 
   describe("getSelectedIssues", () => {
@@ -215,7 +221,7 @@ describe("AppStore", () => {
       const issue = buildIssue("MI0002");
       useAppStore.setState({
         mainIssueLists: [buildIssue("MI0001"), issue],
-        selectedFolderName: "MI0001-sample",
+        selectedIssueId: "MI0001-sample",
         navigationStack: viewerPageStack(issue),
       });
 
@@ -226,7 +232,7 @@ describe("AppStore", () => {
       const issue = buildIssue("MI0002");
       useAppStore.setState({
         mainIssueLists: [buildIssue("MI0001"), issue],
-        selectedFolderName: issue.folderName,
+        selectedIssueId: issue.issueId,
         navigationStack: INITIAL_NAVIGATION_STACK,
       });
 
@@ -236,7 +242,7 @@ describe("AppStore", () => {
     it("returns an empty array when there is no selection", () => {
       useAppStore.setState({
         mainIssueLists: [buildIssue("MI0001")],
-        selectedFolderName: null,
+        selectedIssueId: null,
         navigationStack: INITIAL_NAVIGATION_STACK,
       });
 
@@ -252,8 +258,8 @@ describe("AppStore", () => {
       ];
       useAppStore.setState({
         mainIssueLists: issues,
-        selectedFolderName: issues[2]!.folderName,
-        tableRangeSelectionAnchorFolderName: issues[1]!.folderName,
+        selectedIssueId: issues[2]!.issueId,
+        tableRangeSelectionAnchorIssueId: issues[1]!.issueId,
         navigationStack: INITIAL_NAVIGATION_STACK,
       });
 
@@ -271,8 +277,8 @@ describe("AppStore", () => {
       ];
       useAppStore.setState({
         mainIssueLists: issues,
-        selectedFolderName: issues[0]!.folderName,
-        tableRangeSelectionAnchorFolderName: issues[2]!.folderName,
+        selectedIssueId: issues[0]!.issueId,
+        tableRangeSelectionAnchorIssueId: issues[2]!.issueId,
         navigationStack: INITIAL_NAVIGATION_STACK,
       });
 
@@ -288,8 +294,8 @@ describe("AppStore", () => {
       const viewing = issues[1]!;
       useAppStore.setState({
         mainIssueLists: issues,
-        selectedFolderName: issues[2]!.folderName,
-        tableRangeSelectionAnchorFolderName: issues[0]!.folderName,
+        selectedIssueId: issues[2]!.issueId,
+        tableRangeSelectionAnchorIssueId: issues[0]!.issueId,
         navigationStack: viewerPageStack(viewing),
       });
 
@@ -302,17 +308,17 @@ describe("AppStore", () => {
       const issues = [buildIssue("MI0001"), buildIssue("MI0002")];
       useAppStore.setState({
         mainIssueLists: issues,
-        selectedFolderName: issues[1]!.folderName,
+        selectedIssueId: issues[1]!.issueId,
       });
 
       useAppStore.getState().toggleTableRangeSelection();
-      expect(useAppStore.getState().tableRangeSelectionAnchorFolderName).toBe(
-        issues[1]!.folderName,
+      expect(useAppStore.getState().tableRangeSelectionAnchorIssueId).toBe(
+        issues[1]!.issueId,
       );
 
       useAppStore.getState().toggleTableRangeSelection();
       expect(
-        useAppStore.getState().tableRangeSelectionAnchorFolderName,
+        useAppStore.getState().tableRangeSelectionAnchorIssueId,
       ).toBeNull();
     });
 
@@ -333,23 +339,23 @@ describe("AppStore", () => {
 
       useAppStore.setState({
         mainIssueLists: allIssues,
-        selectedFolderName: allIssues[1]!.folderName,
-        tableRangeSelectionAnchorFolderName: allIssues[0]!.folderName,
+        selectedIssueId: allIssues[1]!.issueId,
+        tableRangeSelectionAnchorIssueId: allIssues[0]!.issueId,
       });
 
       await useAppStore.getState().searchIssues("foo");
       expect(
-        useAppStore.getState().tableRangeSelectionAnchorFolderName,
+        useAppStore.getState().tableRangeSelectionAnchorIssueId,
       ).toBeNull();
       expect(useAppStore.getState().getSelectedIssues()).toHaveLength(1);
 
       useAppStore.setState({
-        tableRangeSelectionAnchorFolderName: filtered[0]!.folderName,
-        selectedFolderName: filtered[0]!.folderName,
+        tableRangeSelectionAnchorIssueId: filtered[0]!.issueId,
+        selectedIssueId: filtered[0]!.issueId,
       });
       await useAppStore.getState().searchIssues(null);
       expect(
-        useAppStore.getState().tableRangeSelectionAnchorFolderName,
+        useAppStore.getState().tableRangeSelectionAnchorIssueId,
       ).toBeNull();
     });
 
@@ -357,13 +363,13 @@ describe("AppStore", () => {
       const issues = [buildIssue("MI0001"), buildIssue("MI0002")];
       useAppStore.setState({
         mainIssueLists: issues,
-        selectedFolderName: issues[0]!.folderName,
-        tableRangeSelectionAnchorFolderName: issues[0]!.folderName,
+        selectedIssueId: issues[0]!.issueId,
+        tableRangeSelectionAnchorIssueId: issues[0]!.issueId,
       });
 
       useAppStore.getState().openIssue(issues[1]!);
       expect(
-        useAppStore.getState().tableRangeSelectionAnchorFolderName,
+        useAppStore.getState().tableRangeSelectionAnchorIssueId,
       ).toBeNull();
     });
   });
@@ -377,16 +383,16 @@ describe("AppStore", () => {
     useAppStore.setState({
       mainIssueLists: issues,
       navigationStack: viewerPageStack(issues[1]!),
-      selectedFolderName: issues[1]!.folderName,
+      selectedIssueId: issues[1]!.issueId,
     });
 
     useAppStore.getState().openPreviousIssue();
-    expect(currentViewerIssue()?.issueId).toBe("MI0001");
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0001-sample");
+    expect(currentViewerIssue()?.issueId).toBe("MI0001-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0001-sample");
 
     useAppStore.getState().openPreviousIssue();
-    expect(currentViewerIssue()?.issueId).toBe("MI0001");
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0001-sample");
+    expect(currentViewerIssue()?.issueId).toBe("MI0001-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0001-sample");
     expect(useToastStore.getState()).toMatchObject({
       isToastOpen: true,
       message: expect.any(String),
@@ -405,16 +411,16 @@ describe("AppStore", () => {
     useAppStore.setState({
       mainIssueLists: issues,
       navigationStack: viewerPageStack(issues[1]!),
-      selectedFolderName: issues[1]!.folderName,
+      selectedIssueId: issues[1]!.issueId,
     });
 
     useAppStore.getState().openNextIssue();
-    expect(currentViewerIssue()?.issueId).toBe("MI0003");
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0003-sample");
+    expect(currentViewerIssue()?.issueId).toBe("MI0003-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0003-sample");
 
     useAppStore.getState().openNextIssue();
-    expect(currentViewerIssue()?.issueId).toBe("MI0003");
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0003-sample");
+    expect(currentViewerIssue()?.issueId).toBe("MI0003-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0003-sample");
     expect(useToastStore.getState()).toMatchObject({
       isToastOpen: true,
       message: expect.any(String),
@@ -434,16 +440,16 @@ describe("AppStore", () => {
       filter: "status:open",
       mainIssueLists: searchResults,
       navigationStack: viewerPageStack(searchResults[1]!),
-      selectedFolderName: searchResults[1]!.folderName,
+      selectedIssueId: searchResults[1]!.issueId,
     });
 
     useAppStore.getState().openNextIssue();
-    expect(currentViewerIssue()?.issueId).toBe("MI0005");
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0005-sample");
+    expect(currentViewerIssue()?.issueId).toBe("MI0005-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0005-sample");
 
     useAppStore.getState().openPreviousIssue();
-    expect(currentViewerIssue()?.issueId).toBe("MI0003");
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0003-sample");
+    expect(currentViewerIssue()?.issueId).toBe("MI0003-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0003-sample");
   });
 
   it("openPreviousIssue and openNextIssue are no-op when active issue is null", () => {
@@ -465,7 +471,7 @@ describe("AppStore", () => {
     useAppStore.setState({
       mainIssueLists: [],
       navigationStack: viewerPageStack(viewingIssue),
-      selectedFolderName: viewingIssue.folderName,
+      selectedIssueId: viewingIssue.issueId,
     });
 
     useAppStore.getState().openPreviousIssue();
@@ -479,15 +485,13 @@ describe("AppStore", () => {
     );
   });
 
-  it("openNextIssue advances by folder when multiple issues share an issueId", () => {
-    const first: IssueFolder = buildIssueFolder("AB0001", {
-      folderName: "AB0001-hello-world",
+  it("openNextIssue advances by folder when multiple issues share a label", () => {
+    const first: IssueFolder = buildIssueFolder("AB0001-hello-world", {
       path: "/tmp/AB0001-hello-world",
       title: "Hello",
       status: "open",
     });
-    const second: IssueFolder = buildIssueFolder("AB0001", {
-      folderName: "AB0001-start",
+    const second: IssueFolder = buildIssueFolder("AB0001-start", {
       path: "/tmp/AB0001-start",
       title: "Start",
       status: "open",
@@ -495,15 +499,15 @@ describe("AppStore", () => {
     useAppStore.setState({
       mainIssueLists: [first, second],
       navigationStack: viewerPageStack(first),
-      selectedFolderName: first.folderName,
+      selectedIssueId: first.issueId,
     });
 
     useAppStore.getState().openNextIssue();
 
-    expect(currentViewerIssue()?.folderName).toBe(
+    expect(currentViewerIssue()?.issueId).toBe(
       "AB0001-start",
     );
-    expect(useAppStore.getState().selectedFolderName).toBe("AB0001-start");
+    expect(useAppStore.getState().selectedIssueId).toBe("AB0001-start");
   });
 
   it("openPreviousIssue and openNextIssue are no-op when active issue is not in the list", () => {
@@ -511,20 +515,20 @@ describe("AppStore", () => {
     useAppStore.setState({
       mainIssueLists: [buildIssue("MI0001"), buildIssue("MI0002")],
       navigationStack: viewerPageStack(viewingIssue),
-      selectedFolderName: "MI0003-sample",
+      selectedIssueId: "MI0003-sample",
     });
 
     useAppStore.getState().openPreviousIssue();
     expect(useAppStore.getState().getCurrentPage()).toEqual(
       viewerPageStack(viewingIssue)[1]!,
     );
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0003-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0003-sample");
 
     useAppStore.getState().openNextIssue();
     expect(useAppStore.getState().getCurrentPage()).toEqual(
       viewerPageStack(viewingIssue)[1]!,
     );
-    expect(useAppStore.getState().selectedFolderName).toBe("MI0003-sample");
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0003-sample");
   });
 
   describe("applyIssueMetadataUpdate", () => {
@@ -534,11 +538,11 @@ describe("AppStore", () => {
       useAppStore.setState({
         mainIssueLists: [issue, other],
         navigationStack: viewerPageStack(issue),
-        selectedFolderName: issue.folderName,
+        selectedIssueId: issue.issueId,
       });
 
       const updatedAt = new Date("2026-05-10");
-      useAppStore.getState().applyIssueMetadataUpdate("MI0001", {
+      useAppStore.getState().applyIssueMetadataUpdate("MI0001-sample", {
         title: "Revised title",
         status: "closed",
         priority: "high",
@@ -547,7 +551,7 @@ describe("AppStore", () => {
 
       const state = useAppStore.getState();
       expect(state.mainIssueLists?.[0]).toMatchObject({
-        issueId: "MI0001",
+        issueId: "MI0001-sample",
         metadata: {
           title: "Revised title",
           status: "closed",
@@ -557,7 +561,7 @@ describe("AppStore", () => {
       });
       expect(state.mainIssueLists?.[1]).toEqual(other);
       expect(currentViewerIssue()).toMatchObject({
-        issueId: "MI0001",
+        issueId: "MI0001-sample",
         metadata: {
           title: "Revised title",
           status: "closed",
@@ -565,7 +569,7 @@ describe("AppStore", () => {
           updatedAt,
         },
       });
-      expect(state.selectedFolderName).toBe("MI0001-sample");
+      expect(state.selectedIssueId).toBe("MI0001-sample");
     });
 
     it("re-sorts mainIssueLists when updatedAt changes", async () => {
@@ -598,7 +602,7 @@ describe("AppStore", () => {
         .spyOn(RegistryService.getInstance(), "getIssueListSortOrder")
         .mockResolvedValue({ field: "updated_at", order: "desc" });
 
-      useAppStore.getState().applyIssueMetadataUpdate("MI0001", {
+      useAppStore.getState().applyIssueMetadataUpdate("MI0001-sample", {
         title: older.metadata?.title,
         status: older.metadata?.status,
         priority: older.metadata?.priority,
@@ -610,7 +614,7 @@ describe("AppStore", () => {
 
       expect(
         useAppStore.getState().mainIssueLists?.map((i) => i.issueId),
-      ).toEqual(["MI0001", "MI0002"]);
+      ).toEqual(["MI0001-sample", "MI0002-sample"]);
     });
 
     it("keeps list order when only non-sort fields change under default sort", async () => {
@@ -644,7 +648,7 @@ describe("AppStore", () => {
         .spyOn(RegistryService.getInstance(), "getIssueListSortOrder")
         .mockResolvedValue({ field: "updated_at", order: "desc" });
 
-      useAppStore.getState().applyIssueMetadataUpdate("MI0001", {
+      useAppStore.getState().applyIssueMetadataUpdate("MI0001-sample", {
         title: "New title only",
         status: first.metadata?.status,
         priority: first.metadata?.priority,
@@ -656,7 +660,7 @@ describe("AppStore", () => {
 
       expect(
         useAppStore.getState().mainIssueLists?.map((i) => i.issueId),
-      ).toEqual(["MI0002", "MI0001"]);
+      ).toEqual(["MI0002-sample", "MI0001-sample"]);
       expect(useAppStore.getState().mainIssueLists?.[1]?.metadata?.title).toBe(
         "New title only",
       );
@@ -670,7 +674,7 @@ describe("AppStore", () => {
       });
 
       const updatedAt = new Date("2026-05-10");
-      useAppStore.getState().applyIssueMetadataUpdate("MI0001", {
+      useAppStore.getState().applyIssueMetadataUpdate("MI0001-sample", {
         title: "X",
         status: "open",
         updatedAt,
@@ -678,7 +682,7 @@ describe("AppStore", () => {
 
       expect(useAppStore.getState().mainIssueLists).toBeNull();
       expect(currentViewerIssue()).toMatchObject({
-        issueId: "MI0001",
+        issueId: "MI0001-sample",
         metadata: {
           title: "X",
           status: "open",
@@ -707,13 +711,13 @@ describe("AppStore", () => {
         { name: "ISSUE_VIEWER", args: { issue: issueB } },
         { name: "ISSUE_VIEWER", args: { issue: issueC } },
       ]);
-      expect(currentViewerIssue()?.issueId).toBe("MI0003");
+      expect(currentViewerIssue()?.issueId).toBe("MI0003-sample");
 
       useAppStore.getState().popNavigation();
-      expect(currentViewerIssue()?.issueId).toBe("MI0002");
+      expect(currentViewerIssue()?.issueId).toBe("MI0002-sample");
 
       useAppStore.getState().popNavigation();
-      expect(currentViewerIssue()?.issueId).toBe("MI0001");
+      expect(currentViewerIssue()?.issueId).toBe("MI0001-sample");
 
       useAppStore.getState().popNavigation();
       expect(currentViewerIssue()).toBeNull();
@@ -731,13 +735,13 @@ describe("AppStore", () => {
       useAppStore.setState({
         mainIssueLists: issues,
         navigationStack: viewerPageStack(issues[1]!),
-        selectedFolderName: issues[1]!.folderName,
+        selectedIssueId: issues[1]!.issueId,
       });
 
       useAppStore.getState().replaceIssueViewer(issues[2]!);
 
       expect(useAppStore.getState().navigationStack).toHaveLength(2);
-      expect(currentViewerIssue()?.issueId).toBe("MI0003");
+      expect(currentViewerIssue()?.issueId).toBe("MI0003-sample");
     });
 
     it("pushIssueViewer opens an issue outside the filtered list without clearing search", () => {
@@ -746,8 +750,8 @@ describe("AppStore", () => {
       useAppStore.setState({
         filter: "status:open",
         mainIssueLists: [filtered],
-        selectedFolderName: filtered.folderName,
-        searchRestoreFolderName: "MI0003-sample",
+        selectedIssueId: filtered.issueId,
+        searchRestoreIssueId: "MI0003-sample",
       });
 
       useAppStore.getState().pushIssueViewer(outside);

@@ -20,11 +20,8 @@ describe("IssueResource", () => {
   };
   let savedFileService: FileService;
 
-  const sampleIssueFolder: IssueFolder = {
-    issueId: "0001",
-    folderName: "0001-test-issue",
-    path: "/repo/issues/0001-test-issue",
-  };
+  const sampleIssueFolder: IssueFolder = { issueId: "0001-test-issue", label: "0001", path: "/repo/issues/0001-test-issue",
+   };
 
   beforeEach(() => {
     savedFileService = FileService.getInstance();
@@ -47,35 +44,35 @@ describe("IssueResource", () => {
     });
   });
 
-  describe("folderNameForTitle()", () => {
-    it("builds folder name from issue id and title slug", () => {
-      expect(IssueResource.folderNameForTitle("PROJ-10", "Provided issue")).toBe(
+  describe("issueIdForTitle()", () => {
+    it("builds issue id from label and title slug", () => {
+      expect(IssueResource.issueIdForTitle("PROJ-10", "Provided issue")).toBe(
         "PROJ-10-provided-issue",
       );
     });
 
     it("strips square brackets from title slug for wikilink compatibility", () => {
-      expect(IssueResource.folderNameForTitle("MI0001", "Fix [auth]")).toBe(
+      expect(IssueResource.issueIdForTitle("MI0001", "Fix [auth]")).toBe(
         "MI0001-fix-auth",
       );
     });
 
     it("strips dots and parentheses from title slug", () => {
       expect(
-        IssueResource.folderNameForTitle("MI0301", '". " should be … in issue folder'),
+        IssueResource.issueIdForTitle("MI0301", '". " should be … in issue folder'),
       ).toBe("MI0301-should-be-…-in-issue-folder");
     });
 
-    it("truncates folder name to ISSUE_FOLDER_NAME_MAX_LENGTH with end truncation", () => {
+    it("truncates issue id to ISSUE_FOLDER_NAME_MAX_LENGTH with end truncation", () => {
       const title =
         "Very long issue title that would produce an oversized folder name";
-      const folderName = IssueResource.folderNameForTitle("MI0001", title);
+      const issueId = IssueResource.issueIdForTitle("MI0001", title);
       const slug = FileNameFormatter.format(title) || "issue";
       const fullName = IssueResource.withSlug("MI0001", slug);
 
-      expect(folderName).toBe(fullName.slice(0, ISSUE_FOLDER_NAME_MAX_LENGTH));
-      expect(folderName).toHaveLength(ISSUE_FOLDER_NAME_MAX_LENGTH);
-      expect(folderName).not.toMatch(/…/);
+      expect(issueId).toBe(fullName.slice(0, ISSUE_FOLDER_NAME_MAX_LENGTH));
+      expect(issueId).toHaveLength(ISSUE_FOLDER_NAME_MAX_LENGTH);
+      expect(issueId).not.toMatch(/…/);
     });
   });
 
@@ -120,8 +117,7 @@ describe("IssueResource", () => {
         "/repo/issues/0001-test-issue/issue.md",
         "---\ntitle: Test issue\n---\n",
       );
-      expect(result.issueId).toBe("0001");
-      expect(result.folderName).toBe("0001-test-issue");
+      expect(result.issueId).toBe("0001-test-issue");
       expect(result.metadata?.title).toBe("Test issue");
     });
 
@@ -281,11 +277,8 @@ describe("IssueResource", () => {
       const sourceContent = "---\ntitle: From YAML\n---\n\nBody.";
       mockFileService.readFile.mockResolvedValue(sourceContent);
 
-      const issueFolder: IssueFolder = {
-        issueId: "0001",
-        folderName: "0001-from-yaml",
-        path: "/repo/issues/0001-from-yaml",
-      };
+      const issueFolder: IssueFolder = { issueId: "0001-from-yaml", label: "0001", path: "/repo/issues/0001-from-yaml",
+       };
 
       const issueResource = new IssueResource({
         getNow,

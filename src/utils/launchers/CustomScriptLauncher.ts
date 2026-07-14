@@ -105,10 +105,13 @@ export class CustomScriptLauncher {
     repo: TrackerRepo,
   ): typeof process.env {
     const issueIds = issues.map((issue) => issue.issueId);
+    const labels = issues.map((issue) => issue.label);
     return {
       ...process.env,
       MUD_ISSUE_IDS: issueIds.join(" "),
       MUD_ISSUE_ID: issueIds[0] ?? "",
+      MUD_ISSUE_LABELS: labels.join(" "),
+      MUD_ISSUE_LABEL: labels[0] ?? "",
       MUD_PROJECT_PATH: repo.projectPath,
       MUD_TRACKER_PATH: repo.trackerPath,
     };

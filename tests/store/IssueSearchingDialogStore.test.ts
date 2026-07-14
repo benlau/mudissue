@@ -3,11 +3,8 @@ import { IssueSearchingDialogResponseType } from "../../src/store/IssueSearching
 import { PopupNames, usePopupStore } from "../../src/store/PopupStore.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 
-const sampleIssue: IssueFolder = {
-  issueId: "0002",
-  folderName: "0002-target",
-  path: "/repo/issues/0002-target",
-};
+const sampleIssue: IssueFolder = { issueId: "0002-target", label: "0002", path: "/repo/issues/0002-target",
+ };
 
 describe("useIssueSearchingDialogStore", () => {
   beforeEach(() => {

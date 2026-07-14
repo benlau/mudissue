@@ -163,7 +163,7 @@ export class IssueAppendCommand extends Command {
       status: "ok",
       result: {
         issueId: issue.issueId,
-        issueFolderName: issue.folderName,
+        issueFolderName: issue.issueId,
         issueFilePath,
       },
     };

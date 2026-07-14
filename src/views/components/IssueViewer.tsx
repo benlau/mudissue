@@ -61,7 +61,7 @@ export function IssueViewer({
   const hasPopup = usePopupStore((s) => s.hasPopup);
   const fileService = FileService.getInstance();
 
-  useTerminalName(issue.folderName);
+  useTerminalName(issue.issueId);
   const { cols, rows: terminalRows } = useTerminalSize();
   const [displayTitle, setDisplayTitle] = useState("");
   const [issueFilePath, setIssueFilePath] = useState<string | undefined>();
@@ -85,7 +85,7 @@ export function IssueViewer({
       setIssueFilePath(filePath);
       setPathResolved(true);
       if (!filePath) {
-        setDisplayTitle(issue.metadata?.title ?? issue.folderName);
+        setDisplayTitle(issue.metadata?.title ?? issue.issueId);
       }
     };
 
@@ -95,12 +95,12 @@ export function IssueViewer({
     };
     // Depend on issue identity only — metadata updates must not remount MarkdownViewer.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- issue object identity changes on metadata update
-  }, [issue.issueId, issue.folderName, issue.path, fileService]);
+  }, [issue.issueId, issue.issueId, issue.path, fileService]);
 
   const handleMarkdownChanged = useCallback(
     (payload: MarkdownViewerChangedPayload) => {
       const headerTitle =
-        payload.displayTitle ?? issue.metadata?.title ?? issue.folderName;
+        payload.displayTitle ?? issue.metadata?.title ?? issue.issueId;
       setDisplayTitle(headerTitle);
 
       const storeTitle =

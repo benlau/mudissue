@@ -211,7 +211,7 @@ export class IssueAttachCommand extends Command {
       result: {
         issueFolder: {
           absPath: issue.path,
-          folderName: issue.folderName,
+          folderName: issue.issueId,
         },
         attached,
       },

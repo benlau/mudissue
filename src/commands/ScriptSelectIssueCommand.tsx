@@ -170,7 +170,7 @@ export class ScriptSelectIssueCommand extends Command {
     if (candidates.length === 1) {
       return {
         status: "ok",
-        result: { issueFolderName: candidates[0]!.folderName },
+        result: { issueFolderName: candidates[0]!.issueId },
       };
     }
 
@@ -194,7 +194,7 @@ export class ScriptSelectIssueCommand extends Command {
 
     return {
       status: "ok",
-      result: { issueFolderName: picked.folderName },
+      result: { issueFolderName: picked.issueId },
     };
   }
 }

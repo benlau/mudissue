@@ -150,7 +150,7 @@ export class BlockedStatusRule {
       return;
     }
     const result = await new IssueSetPropertyCommand().command(
-      issueFolder.folderName,
+      issueFolder.issueId,
       "status",
       status,
       project,

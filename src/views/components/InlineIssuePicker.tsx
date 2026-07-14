@@ -29,8 +29,8 @@ export type InlineIssuePickerProps = {
 export function formatInlineIssuePickerLine(issue: IssueFolder): string {
   const title = issue.metadata?.title?.trim();
   return title
-    ? `${issue.folderName}${INLINE_ISSUE_PICKER_ISSUE_TITLE_GAP}${title}`
-    : issue.folderName;
+    ? `${issue.issueId}${INLINE_ISSUE_PICKER_ISSUE_TITLE_GAP}${title}`
+    : issue.issueId;
 }
 
 export function InlineIssuePicker({

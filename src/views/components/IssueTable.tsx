@@ -144,15 +144,15 @@ export function IssueTable({
   const intl = useIntl();
   const { quitIfConfirmed } = useQuit();
   const mainIssueLists = useAppStore((s) => s.mainIssueLists);
-  const pinnedFolderNames = useAppStore((s) => s.pinnedFolderNames);
+  const pinnedIssueIds = useAppStore((s) => s.pinnedIssueIds);
   const filter = useAppStore((s) => s.filter);
   const isLoadingIssueList = useAppStore((s) => s.isLoadingIssueList);
   const searchIssues = useAppStore((s) => s.searchIssues);
   const openIssue = useAppStore((s) => s.openIssue);
-  const selectedFolderName = useAppStore((s) => s.selectedFolderName);
-  const setSelectedFolderName = useAppStore((s) => s.setSelectedFolderName);
-  const tableRangeSelectionAnchorFolderName = useAppStore(
-    (s) => s.tableRangeSelectionAnchorFolderName,
+  const selectedIssueId = useAppStore((s) => s.selectedIssueId);
+  const setSelectedIssueId = useAppStore((s) => s.setSelectedIssueId);
+  const tableRangeSelectionAnchorIssueId = useAppStore(
+    (s) => s.tableRangeSelectionAnchorIssueId,
   );
   const toggleTableRangeSelection = useAppStore(
     (s) => s.toggleTableRangeSelection,
@@ -162,18 +162,18 @@ export function IssueTable({
   );
 
   const issues = useMemo(() => mainIssueLists ?? [], [mainIssueLists]);
-  const pinnedFolderNameSet = useMemo(
-    () => new Set(pinnedFolderNames),
-    [pinnedFolderNames],
+  const pinnedIssueIdSet = useMemo(
+    () => new Set(pinnedIssueIds),
+    [pinnedIssueIds],
   );
   const selectedIndex = useMemo(() => {
     if (issues.length === 0) return 0;
-    if (selectedFolderName == null) return 0;
+    if (selectedIssueId == null) return 0;
     const idx = issues.findIndex(
-      (issue) => issue.folderName === selectedFolderName,
+      (issue) => issue.issueId === selectedIssueId,
     );
     return idx >= 0 ? idx : 0;
-  }, [issues, selectedFolderName]);
+  }, [issues, selectedIssueId]);
   const [scrollOffset, setScrollOffset] = useState(0);
   const currentTrackerRepo = useCurrentTrackerRepoStore(
     (s) => s.currentTrackerRepo,
@@ -224,11 +224,11 @@ export function IssueTable({
   const maxIndex = Math.max(0, issues.length - 1);
   const clampedIndex = clamp(selectedIndex, 0, maxIndex);
   const rangeBounds = useMemo(() => {
-    if (tableRangeSelectionAnchorFolderName == null || issues.length === 0) {
+    if (tableRangeSelectionAnchorIssueId == null || issues.length === 0) {
       return null;
     }
     const anchorIdx = issues.findIndex(
-      (issue) => issue.folderName === tableRangeSelectionAnchorFolderName,
+      (issue) => issue.issueId === tableRangeSelectionAnchorIssueId,
     );
     if (anchorIdx < 0) {
       return null;
@@ -238,7 +238,7 @@ export function IssueTable({
     return { lo, hi };
   }, [
     issues,
-    tableRangeSelectionAnchorFolderName,
+    tableRangeSelectionAnchorIssueId,
     clampedIndex,
   ]);
   const isEmpty = issues.length === 0;
@@ -247,40 +247,40 @@ export function IssueTable({
   const setIndex = useCallback(
     (next: number) => {
       const idx = clamp(next, 0, maxIndex);
-      setSelectedFolderName(issues[idx]?.folderName ?? null);
+      setSelectedIssueId(issues[idx]?.issueId ?? null);
     },
-    [issues, maxIndex, setSelectedFolderName],
+    [issues, maxIndex, setSelectedIssueId],
   );
 
   useEffect(() => {
     if (issues.length === 0) {
-      if (selectedFolderName != null) {
-        setSelectedFolderName(null);
+      if (selectedIssueId != null) {
+        setSelectedIssueId(null);
       }
-      if (tableRangeSelectionAnchorFolderName != null) {
+      if (tableRangeSelectionAnchorIssueId != null) {
         clearTableRangeSelection();
       }
       return;
     }
     const valid =
-      selectedFolderName != null &&
-      issues.some((issue) => issue.folderName === selectedFolderName);
+      selectedIssueId != null &&
+      issues.some((issue) => issue.issueId === selectedIssueId);
     if (!valid) {
-      setSelectedFolderName(issues[0]?.folderName ?? null);
+      setSelectedIssueId(issues[0]?.issueId ?? null);
     }
     if (
-      tableRangeSelectionAnchorFolderName != null &&
+      tableRangeSelectionAnchorIssueId != null &&
       !issues.some(
-        (issue) => issue.folderName === tableRangeSelectionAnchorFolderName,
+        (issue) => issue.issueId === tableRangeSelectionAnchorIssueId,
       )
     ) {
       clearTableRangeSelection();
     }
   }, [
     issues,
-    selectedFolderName,
-    setSelectedFolderName,
-    tableRangeSelectionAnchorFolderName,
+    selectedIssueId,
+    setSelectedIssueId,
+    tableRangeSelectionAnchorIssueId,
     clearTableRangeSelection,
   ]);
 
@@ -611,17 +611,17 @@ export function IssueTable({
                 issue.metadata?.status ?? "",
               );
               return (
-                <Box key={issue.folderName}>
+                <Box key={issue.issueId}>
                   <Text
                     inverse={isHighlighted}
                     dimColor={isResolved && !isHighlighted}
                   >
                     {tableLayouter.makeRow([
-                      pinnedFolderNameSet.has(issue.folderName)
-                        ? `*${issue.issueId}`
-                        : issue.issueId,
+                      pinnedIssueIdSet.has(issue.issueId)
+                        ? `*${issue.label}`
+                        : issue.label,
                       formatIssueTableTitle(
-                        issue.metadata?.title ?? issue.folderName,
+                        issue.metadata?.title ?? issue.issueId,
                       ),
                       issue.metadata?.status ?? "",
                       issue.metadata?.priority ?? "",

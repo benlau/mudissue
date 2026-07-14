@@ -39,11 +39,8 @@ describe("IssueUntagCommand", () => {
 
   it("returns current tags without writing when no tags provided", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     fileService.readFile.mockResolvedValue(
@@ -75,11 +72,8 @@ describe("IssueUntagCommand", () => {
 
   it("removes tags and deletes tags key when empty", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntags:\n  - only\n---\n\nBody\n";
@@ -108,11 +102,8 @@ describe("IssueUntagCommand", () => {
 
   it("removes only requested tags and leaves others", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntags:\n  - keep\n  - remove\n---\n\nBody\n";

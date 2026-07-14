@@ -36,8 +36,7 @@ import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>
   buildIssueFolder(issueId, {
-    folderName: `${issueId}-test`,
-    path: `/repo/issues/${issueId}-test`,
+        path: `/repo/issues/${issueId}-test`,
   });
 
 function resetPickItemDialogStore(): void {
@@ -136,7 +135,7 @@ describe("OpenShellPaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });
     fileExistsMock.mockResolvedValue(false);
@@ -149,7 +148,7 @@ describe("OpenShellPaletteCommand", () => {
 
     await new OpenShellPaletteCommand().callback();
 
-    expect(getGitWorktreePathMock).toHaveBeenCalledWith(issue.folderName);
+    expect(getGitWorktreePathMock).toHaveBeenCalledWith(issue.issueId);
     expect(pickOpenMock).toHaveBeenCalled();
   });
 
@@ -157,7 +156,7 @@ describe("OpenShellPaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });
     fileExistsMock.mockResolvedValue(true);
@@ -178,7 +177,7 @@ describe("OpenShellPaletteCommand", () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
-      selectedFolderName: issue.folderName,
+      selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });
     fileExistsMock.mockResolvedValue(false);

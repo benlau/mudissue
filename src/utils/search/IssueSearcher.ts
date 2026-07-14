@@ -11,7 +11,7 @@ type ParsedValue =
   | { kind: "string"; value: string };
 
 type IssueSearchContext = {
-  folderName: string;
+  issueId: string;
   frontmatter: Record<string, unknown>;
   content: string;
   createdAt: Date;
@@ -47,7 +47,7 @@ export class IssueSearcher {
       const updatedAt = await folderStorage.getUpdatedAt();
 
       const issueContext = {
-        folderName: entry.folderName,
+        issueId: entry.issueId,
         frontmatter,
         content: parsed.content,
         createdAt,
@@ -117,7 +117,7 @@ export class IssueSearcher {
       const result =
         haystack.includes(needle) ||
         (term.type === "text" &&
-          this.matchesIssueSelector(issue.folderName, term.value));
+          this.matchesIssueSelector(issue.issueId, term.value));
       return term.negated ? !result : result;
     }
 

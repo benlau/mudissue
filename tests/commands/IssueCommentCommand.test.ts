@@ -66,16 +66,10 @@ describe("IssueCommentCommand", () => {
 
   it("throws ISSUE_MULTI_MATCHED when selector matches multiple", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-a",
-        path: "/repo/issues/0001-a",
-      },
-      {
-        issueId: "0001",
-        folderName: "0001-b",
-        path: "/repo/issues/0001-b",
-      },
+      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a",
+       },
+      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b",
+       },
     ]);
     const cmd = new IssueCommentCommand();
 
@@ -93,11 +87,8 @@ describe("IssueCommentCommand", () => {
 
     it("throws ISSUE_MD_MISSING when issue file cannot be found", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(false);
     fileService.readdir.mockResolvedValue([]);
@@ -117,11 +108,8 @@ describe("IssueCommentCommand", () => {
 
   it("appends formatted comment block to issue body", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\nExisting body\n";
@@ -180,11 +168,8 @@ describe("IssueCommentCommand", () => {
 
   it("uses askUserTextContent when --content is omitted", async () => {
     issueFinderService.find.mockResolvedValue([
-      {
-        issueId: "0001",
-        folderName: "0001-test",
-        path: "/repo/issues/0001-test",
-      },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
+       },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\n";

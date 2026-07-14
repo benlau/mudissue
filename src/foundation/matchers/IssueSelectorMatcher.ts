@@ -1,9 +1,11 @@
 /**
- * Matches issue folder names and extracts issue ID/number/suffix.
+ * Matches issue folder names and extracts label / issue ID / number / suffix.
  * Folder format: [issue_prefix][issue_num][-issue_suffix]
  * - issue_prefix: optional, [a-zA-Z_-]+ when present (e.g. FN, PR-, PX_)
  * - issue_num: required digits
  * - issue_suffix: optional, after a single hyphen
+ *
+ * label = PREFIX+NUM (non-unique). issue ID = PREFIX+NUM+SUFFIX (folder basename, unique).
  */
 export class IssueSelectorMatcher {
   /** Matches optional prefix [a-zA-Z_-]*, required digits, optional -suffix. */
@@ -16,11 +18,19 @@ export class IssueSelectorMatcher {
     return /^\d+$/.test(input.trim());
   }
 
-  public static isIssueId(input: string): boolean {
+  /** True if input is a label (PREFIX+NUM, no suffix). */
+  public static isIssueLabel(input: string): boolean {
     if (typeof input !== "string" || input.length === 0) {
       return false;
     }
     return /^[a-zA-Z_-]*\d+$/.test(input.trim());
+  }
+
+  /**
+   * True if input is a valid issue ID (folder basename: PREFIX+NUM[+SUFFIX]).
+   */
+  public static isIssueId(input: string): boolean {
+    return IssueSelectorMatcher.isValidateFolderName(input);
   }
 
   /**
@@ -34,14 +44,25 @@ export class IssueSelectorMatcher {
   }
 
   /**
-   * Returns the issue ID (prefix + issue_num) or null if invalid.
+   * Returns the label (PREFIX+NUM) or null if invalid.
    */
-  public static extractIssueId(folder: string): string | null {
+  public static extractIssueLabel(folder: string): string | null {
     if (typeof folder !== "string") {
       return null;
     }
     const m = folder.trim().match(IssueSelectorMatcher.FOLDER_REGEX);
     return m ? `${m[1]}${m[2]}` : null;
+  }
+
+  /**
+   * Returns the issue ID (full folder basename) or null if invalid.
+   */
+  public static extractIssueId(folder: string): string | null {
+    if (typeof folder !== "string") {
+      return null;
+    }
+    const trimmed = folder.trim();
+    return IssueSelectorMatcher.isValidateFolderName(trimmed) ? trimmed : null;
   }
 
   /**
@@ -81,10 +102,10 @@ export class IssueSelectorMatcher {
   }
 
   /**
-   * Returns true if both folder names refer to the same issue ID
+   * Returns true if both folder names refer to the same label
    * (same prefix and same numeric value, allowing zero-padding differences).
    */
-  public static isSameIssueId(
+  public static isSameIssueLabel(
     folderName1: string,
     folderName2: string,
   ): boolean {
@@ -106,8 +127,8 @@ export class IssueSelectorMatcher {
   /**
    * Returns true if folderName matches issueSelector.
    * Selectors with a `-suffix` match on exact folder name, and also on
-   * same-ID suffix prefix (e.g. truncated worktree folder names).
-   * Partial selectors (issue number or issue id without suffix) also match by number or id.
+   * same-label suffix prefix (e.g. truncated worktree folder names).
+   * Partial selectors (issue number or label without suffix) also match by number or label.
    */
   public static match(folderName: string, issueSelector: string): boolean {
     if (!IssueSelectorMatcher.isValidateFolderName(folderName)) {
@@ -119,24 +140,24 @@ export class IssueSelectorMatcher {
     const selectorSuffix =
       IssueSelectorMatcher.extractIssueSuffix(issueSelector);
     if (selectorSuffix !== null) {
-      if (!IssueSelectorMatcher.isSameIssueId(folderName, issueSelector)) {
+      if (!IssueSelectorMatcher.isSameIssueLabel(folderName, issueSelector)) {
         return false;
       }
       const folderSuffix = IssueSelectorMatcher.extractIssueSuffix(folderName);
       if (folderSuffix == null) {
         return false;
       }
-      const folderIssueId = IssueSelectorMatcher.extractIssueId(folderName);
-      const selectorIssueId =
-        IssueSelectorMatcher.extractIssueId(issueSelector);
-      if (folderIssueId === selectorIssueId) {
+      const folderLabel = IssueSelectorMatcher.extractIssueLabel(folderName);
+      const selectorLabel =
+        IssueSelectorMatcher.extractIssueLabel(issueSelector);
+      if (folderLabel === selectorLabel) {
         // Worktree folder names can be truncated, so restore should accept
-        // selectors that are a prefix of the full issue suffix for the same ID.
+        // selectors that are a prefix of the full issue suffix for the same label.
         return folderSuffix.startsWith(selectorSuffix);
       }
       return folderSuffix === selectorSuffix;
     }
-    if (IssueSelectorMatcher.isSameIssueId(folderName, issueSelector)) {
+    if (IssueSelectorMatcher.isSameIssueLabel(folderName, issueSelector)) {
       return true;
     }
 
