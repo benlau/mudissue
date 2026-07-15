@@ -1,15 +1,10 @@
 import { jest } from "@jest/globals";
 import { ConfigEditCommand } from "../../src/commands/ConfigEditCommand.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
-import {
-  GLOBAL_CONFIG_DIR,
-  GLOBAL_CONFIG_FILENAME,
-} from "../../src/constants.ts";
 import { ShellService } from "../../src/services/ShellService.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 describe("ConfigEditCommand", () => {
-  let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let trackerRepoStore: ReturnType<typeof createMockSystemContext>["trackerRepoStore"];
   let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
   let loggerService: ReturnType<typeof createMockSystemContext>["loggerService"];
@@ -33,7 +28,6 @@ describe("ConfigEditCommand", () => {
 
   beforeEach(() => {
     const bundle = createMockSystemContext();
-    fileService = bundle.fileService;
     trackerRepoStore = bundle.trackerRepoStore;
     shellService = bundle.shellService;
     loggerService = bundle.loggerService;
@@ -64,65 +58,36 @@ describe("ConfigEditCommand", () => {
     ShellService.setInstance(null);
   });
 
-  const buildCommand = () =>
-    new ConfigEditCommand();
+  const buildCommand = () => new ConfigEditCommand();
 
-  it("opens global config path when global is true", async () => {
-    const cmd = buildCommand();
-    fileService.exists.mockResolvedValue(false);
-    fileService.mkdir.mockResolvedValue(undefined);
-    fileService.writeFile.mockResolvedValue(undefined);
-
-    const result = await cmd.command(true);
-
-    expect(result?.status).toBe("ok");
-    expect(trackerRepoStore.getCurrentTrackerRepo).toHaveBeenCalled();
-    const openedPath = (
-      result as { result: { openedFile: string } }
-    ).result.openedFile;
-    expect(openedPath).toContain(GLOBAL_CONFIG_DIR);
-    expect(openedPath).toContain(GLOBAL_CONFIG_FILENAME);
-    expect(shellService.run).toHaveBeenCalledWith("my-editor", [openedPath]);
-    expect(loggerService.info).toHaveBeenCalled();
-  });
-
-  it("ensures global config dir and file exist when global is true", async () => {
-    const command = buildCommand();
-    fileService.exists.mockResolvedValue(false);
-
-    await command.command(true);
-
-    expect(fileService.mkdir).toHaveBeenCalled();
-    expect(fileService.writeFile).toHaveBeenCalled();
-  });
-
-  it("opens repo config file when global is false", async () => {
+  it("opens repo config file", async () => {
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(
       mockRepoWithConfigPath,
     );
 
     const cmd = buildCommand();
-    const result = await cmd.command(false);
+    const result = await cmd.command();
 
     expect(result?.status).toBe("ok");
     expect(shellService.run).toHaveBeenCalledWith("my-editor", [
       "/repo/mud.conf",
     ]);
-    expect((result as { result: { openedFile: string; command: string } }).result)
-      .toMatchObject({
-        openedFile: "/repo/mud.conf",
-        command: "my-editor /repo/mud.conf",
-      });
+    expect(
+      (result as { result: { openedFile: string; command: string } }).result,
+    ).toMatchObject({
+      openedFile: "/repo/mud.conf",
+      command: "my-editor /repo/mud.conf",
+    });
     expect(loggerService.info).toHaveBeenCalled();
   });
 
-  it("returns error when global is false and repo has no configFilePath", async () => {
+  it("returns error when repo has no configFilePath", async () => {
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(
       mockRepoWithoutConfigPath,
     );
 
     const command = buildCommand();
-    const result = await command.command(false);
+    const result = await command.command();
 
     expect(result?.status).toBe("error");
     expect((result as { error: { code: string } }).error.code).toBe(
@@ -142,15 +107,13 @@ describe("ConfigEditCommand", () => {
     trackerRepoStore.getTrackerRepoByProjectName.mockResolvedValue(projectRepo);
 
     const cmd = buildCommand();
-    const result = await cmd.command(false, "proj-a");
+    const result = await cmd.command("proj-a");
 
     expect(result?.status).toBe("ok");
-    expect(
-      trackerRepoStore.getTrackerRepoByProjectName,
-    ).toHaveBeenCalledWith("proj-a");
-    expect(
-      trackerRepoStore.getCurrentTrackerRepo,
-    ).not.toHaveBeenCalled();
+    expect(trackerRepoStore.getTrackerRepoByProjectName).toHaveBeenCalledWith(
+      "proj-a",
+    );
+    expect(trackerRepoStore.getCurrentTrackerRepo).not.toHaveBeenCalled();
     expect(shellService.run).toHaveBeenCalledWith("my-editor", [
       "/ws/proj-a/mud.conf",
     ]);
@@ -161,7 +124,7 @@ describe("ConfigEditCommand", () => {
     trackerRepoStore.getTrackerRepoByProjectName.mockResolvedValue(null);
 
     const command = buildCommand();
-    await expect(command.command(false, "nonexistent")).rejects.toMatchObject({
+    await expect(command.command("nonexistent")).rejects.toMatchObject({
       error: {
         code: "PROJECT_NOT_FOUND",
         message: expect.stringContaining("Project not found"),

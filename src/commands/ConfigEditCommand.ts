@@ -1,10 +1,7 @@
 import type { Argv } from "yargs";
-import * as os from "os";
-import * as path from "path";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { EditorLauncher } from "../utils/launchers/EditorLauncher.ts";
-import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
@@ -14,16 +11,11 @@ import type {
   ErrorResponse,
   SuccessResponse,
 } from "../types/Response.ts";
-import { GLOBAL_CONFIG_DIR, GLOBAL_CONFIG_FILENAME } from "../constants.ts";
 
 const msg = defineMessages({
   configEditDescribe: {
     id: "cli.config.edit.describe",
-    defaultMessage: "Edit mud.conf or global config",
-  },
-  configGlobal: {
-    id: "cli.config.option.global",
-    defaultMessage: "Edit ~/.mudissue/global.conf",
+    defaultMessage: "Edit mud.conf",
   },
   optionProject: {
     id: "cli.common.option.project",
@@ -47,16 +39,10 @@ export class ConfigEditCommand extends Command {
       "edit",
       intl.formatMessage(msg.configEditDescribe),
       (builder) =>
-        builder
-          .option("global", {
-            type: "boolean",
-            describe: intl.formatMessage(msg.configGlobal),
-            default: false,
-          })
-          .option("project", {
-            type: "string",
-            describe: intl.formatMessage(msg.optionProject),
-          }),
+        builder.option("project", {
+          type: "string",
+          describe: intl.formatMessage(msg.optionProject),
+        }),
       async (argv) => {
         const outputJson = outputJsonMode(argv as HeadlessArgv);
         cmd.preprocessArgument(cmd.name, {
@@ -64,58 +50,15 @@ export class ConfigEditCommand extends Command {
           json: outputJson,
           interactive: false,
         });
-        await cmd.runCommand(
-          { outputJson },
-          argv.global ?? false,
-          argv.project,
-        );
+        await cmd.runCommand({ outputJson }, argv.project);
       },
     );
   }
 
-  private getGlobalConfigPath(): string {
-    return path.join(os.homedir(), GLOBAL_CONFIG_DIR, GLOBAL_CONFIG_FILENAME);
-  }
-
   async command(
-    global: boolean,
     project?: string,
   ): Promise<ConfigEditCommandSuccessResponse | ErrorResponse> {
-    const fileService = FileService.getInstance();
     const loggerService = LoggerService.getInstance();
-
-    if (global) {
-      const configPath = this.getGlobalConfigPath();
-      const dir = path.dirname(configPath);
-      const exists = await fileService.exists(dir);
-      if (!exists) {
-        await fileService.mkdir(dir, { recursive: true });
-      }
-      if (!(await fileService.exists(configPath))) {
-        await fileService.writeFile(configPath, "");
-      }
-      const repoForEditor = await useCurrentTrackerRepoStore
-        .getState()
-        .getCurrentTrackerRepo();
-      const editor = await useCurrentTrackerRepoStore
-        .getState()
-        .getEditor(repoForEditor.config);
-      if (editor === null) {
-        return {
-          status: "error",
-          error: {
-            code: "EDITOR_NOT_FOUND",
-            message: "No editor found.",
-          },
-        };
-      }
-      const command = await new EditorLauncher().launch(editor, {
-        filePath: configPath,
-        isBlocked: false,
-      });
-      loggerService.info(command);
-      return { status: "ok", result: { openedFile: configPath, command } };
-    }
 
     let repo;
     if (project) {

@@ -1,10 +1,6 @@
 import { jest } from "@jest/globals";
 import { ConfigLocateCommand } from "../../src/commands/ConfigLocateCommand.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
-import {
-  GLOBAL_CONFIG_DIR,
-  GLOBAL_CONFIG_FILENAME,
-} from "../../src/constants.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 describe("ConfigLocateCommand", () => {
@@ -36,26 +32,13 @@ describe("ConfigLocateCommand", () => {
 
   const buildCommand = () => new ConfigLocateCommand();
 
-  it("returns global config path when global is true and logs it", async () => {
-    const command = buildCommand();
-
-    const result = await command.command(true);
-
-    expect(result?.status).toBe("ok");
-    const path = (result as { result: { path: string } }).result.path;
-    expect(path).toContain(GLOBAL_CONFIG_DIR);
-    expect(path).toContain(GLOBAL_CONFIG_FILENAME);
-    expect(loggerService.info).toHaveBeenCalledWith(path);
-    expect(trackerRepoStore.getCurrentTrackerRepo).not.toHaveBeenCalled();
-  });
-
-  it("returns repo config path when global is false", async () => {
+  it("returns repo config path", async () => {
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(
       mockRepoWithConfigPath,
     );
 
     const command = buildCommand();
-    const result = await command.command(false);
+    const result = await command.command();
 
     expect(result?.status).toBe("ok");
     expect((result as { result: { path: string } }).result.path).toBe(
@@ -64,13 +47,13 @@ describe("ConfigLocateCommand", () => {
     expect(loggerService.info).toHaveBeenCalledWith("/repo/mud.conf");
   });
 
-  it("returns error when global is false and repo has no configFilePath", async () => {
+  it("returns error when repo has no configFilePath", async () => {
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(
       mockRepoWithoutConfigPath,
     );
 
     const command = buildCommand();
-    const result = await command.command(false);
+    const result = await command.command();
 
     expect(result?.status).toBe("error");
     expect((result as { error: { code: string } }).error.code).toBe(
@@ -87,12 +70,10 @@ describe("ConfigLocateCommand", () => {
       config: { issue_path: "issues" },
       configFilePath: "/ws/proj-a/mud.conf",
     };
-    trackerRepoStore.getTrackerRepoByProjectName.mockResolvedValue(
-      projectRepo,
-    );
+    trackerRepoStore.getTrackerRepoByProjectName.mockResolvedValue(projectRepo);
 
     const command = buildCommand();
-    const result = await command.command(false, "proj-a");
+    const result = await command.command("proj-a");
 
     expect(result?.status).toBe("ok");
     expect((result as { result: { path: string } }).result.path).toBe(
@@ -106,12 +87,10 @@ describe("ConfigLocateCommand", () => {
   });
 
   it("throws PROJECT_NOT_FOUND when project is set but not found", async () => {
-    trackerRepoStore.getTrackerRepoByProjectName.mockResolvedValue(
-      null,
-    );
+    trackerRepoStore.getTrackerRepoByProjectName.mockResolvedValue(null);
 
     const command = buildCommand();
-    await expect(command.command(false, "nonexistent")).rejects.toMatchObject({
+    await expect(command.command("nonexistent")).rejects.toMatchObject({
       error: {
         code: "PROJECT_NOT_FOUND",
         message: expect.stringContaining("Project not found"),

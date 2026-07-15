@@ -4,7 +4,6 @@ import { intl } from "../intl.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { GlobalConfigStorage } from "../utils/storage/GlobalConfigStorage.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ConfigLocateCommandSuccessResult,
@@ -16,11 +15,7 @@ import type { MudConfigNotFound } from "../types/errors.ts";
 const msg = defineMessages({
   configLocateDescribe: {
     id: "cli.config.locate.describe",
-    defaultMessage: "Print the path of mud.conf or global config",
-  },
-  configGlobalLocate: {
-    id: "cli.config.option.globalLocate",
-    defaultMessage: "Path to ~/.mudissue/global.conf",
+    defaultMessage: "Print the path of mud.conf",
   },
   optionProject: {
     id: "cli.common.option.project",
@@ -34,8 +29,6 @@ export type ConfigLocateCommandSuccessResponse =
 export class ConfigLocateCommand extends Command {
   name = "config locate";
 
-  private readonly globalConfigStorage = new GlobalConfigStorage();
-
   constructor() {
     super();
   }
@@ -46,16 +39,10 @@ export class ConfigLocateCommand extends Command {
       "locate",
       intl.formatMessage(msg.configLocateDescribe),
       (builder) =>
-        builder
-          .option("global", {
-            type: "boolean",
-            describe: intl.formatMessage(msg.configGlobalLocate),
-            default: false,
-          })
-          .option("project", {
-            type: "string",
-            describe: intl.formatMessage(msg.optionProject),
-          }),
+        builder.option("project", {
+          type: "string",
+          describe: intl.formatMessage(msg.optionProject),
+        }),
       async (argv) => {
         const outputJson = outputJsonMode(argv as HeadlessArgv);
         cmd.preprocessArgument(cmd.name, {
@@ -63,26 +50,15 @@ export class ConfigLocateCommand extends Command {
           json: outputJson,
           interactive: false,
         });
-        await cmd.runCommand(
-          { outputJson },
-          argv.global ?? false,
-          argv.project,
-        );
+        await cmd.runCommand({ outputJson }, argv.project);
       },
     );
   }
 
   async command(
-    global: boolean,
     project?: string,
   ): Promise<ConfigLocateCommandSuccessResponse | ErrorResponse> {
     const loggerService = LoggerService.getInstance();
-
-    if (global) {
-      const path = this.globalConfigStorage.getPath();
-      loggerService.info(path);
-      return { status: "ok", result: { path } };
-    }
 
     let repo;
     if (project) {
