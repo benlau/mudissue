@@ -3,7 +3,7 @@ import { FileService } from "../../services/FileService.ts";
 import type { IssueFolder } from "../../types/Issue.ts";
 import type { IssueFileType } from "../../types/GlobalConfig.ts";
 import { DateFormatter } from "../../foundation/formatter/DateFormatter.ts";
-import { AttachmentLinkFormatter } from "../../foundation/formatter/AttachmentLinkFormatter.ts";
+import { WikiLinkFormatter } from "../../foundation/formatter/WikiLinkFormatter.ts";
 import { IssueFolderLinkFormatter } from "../../foundation/formatter/IssueFolderLinkFormatter.ts";
 import { IssueCommentFormatter } from "../../foundation/formatter/IssueCommentFormatter.ts";
 import { IssueMarkdownFileStorage } from "./IssueMarkdownFileStorage.ts";
@@ -386,7 +386,7 @@ export class IssueFolderStorage {
     attachmentsDir: string,
     ref: string,
   ): Promise<string | undefined> {
-    const stripped = AttachmentLinkFormatter.stripAttachmentReference(ref);
+    const stripped = WikiLinkFormatter.stripWikiLink(ref);
     const ext = path.extname(stripped);
     if (ext) {
       const candidate = path.join(attachmentsDir, stripped);
@@ -460,11 +460,11 @@ export class IssueFolderStorage {
       ? [...parsed.data.attachments].filter((x) => typeof x === "string")
       : [];
     const existingKeys = new Set(
-      attachments.map((a) => AttachmentLinkFormatter.attachmentCompareKey(a)),
+      attachments.map((a) => WikiLinkFormatter.stripWikiLink(a)),
     );
     for (const name of newAttachmentNames) {
-      const ref = AttachmentLinkFormatter.formatAttachmentReference(name);
-      const key = AttachmentLinkFormatter.attachmentCompareKey(ref);
+      const ref = WikiLinkFormatter.formatFileLink(name);
+      const key = WikiLinkFormatter.stripWikiLink(ref);
       if (!existingKeys.has(key)) {
         attachments.push(ref);
         existingKeys.add(key);
