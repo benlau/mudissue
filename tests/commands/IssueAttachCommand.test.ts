@@ -1,13 +1,30 @@
 import { jest } from "@jest/globals";
+import * as path from "path";
 import matter from "gray-matter";
 import { IssueAttachCommand } from "../../src/commands/IssueAttachCommand.ts";
 import { LoggerService } from "../../src/services/LoggerService.ts";
 import type { FileService } from "../../src/services/FileService.ts";
+import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
+
+const mockRepo: TrackerRepo = {
+  name: "repo",
+  projectPath: "/repo",
+  trackerPath: "/repo",
+  config: { issue_path: "issues" },
+};
+
+const mudissueWorktreePath = path.join(
+  mockRepo.projectPath,
+  ".claude",
+  "worktrees",
+  "MI0100-mudissue",
+);
 
 describe("IssueAttachCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
+  let gitService: ReturnType<typeof createMockSystemContext>["gitService"];
   let trackerRepoStore: ReturnType<typeof createMockSystemContext>["trackerRepoStore"];
   let issueFinderService: ReturnType<typeof createMockSystemContext>["issueFinderService"];
   let loggerService: ReturnType<typeof createMockSystemContext>["loggerService"];
@@ -16,6 +33,7 @@ describe("IssueAttachCommand", () => {
     const bundle = createMockSystemContext();
     fileService = bundle.fileService;
     shellService = bundle.shellService;
+    gitService = bundle.gitService;
     trackerRepoStore = bundle.trackerRepoStore;
     issueFinderService = bundle.issueFinderService;
     loggerService = bundle.loggerService;
@@ -24,13 +42,13 @@ describe("IssueAttachCommand", () => {
 
     shellService.cwd.mockReturnValue("/cwd");
     shellService.isAbsolute.mockReturnValue(false);
-    trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue({
-      name: "repo",
-      projectPath: "/repo",
-      trackerPath: "/repo",
-      config: { issue_path: "issues" },
-    });
+    trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
+    trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
     issueFinderService.find.mockResolvedValue([]);
+    gitService.listWorktree.mockResolvedValue([
+      mockRepo.projectPath,
+      mudissueWorktreePath,
+    ]);
   });
 
   afterEach(() => {
@@ -146,5 +164,51 @@ describe("IssueAttachCommand", () => {
     const written = fileService.writeFile.mock.calls[0][1] as string;
     const parsed = matter(written);
     expect(parsed.data.attachments).toEqual(["[[a]]", "[[b.png]]"]);
+  });
+
+  it("resolves current from the cwd mudissue worktree and attaches the file", async () => {
+    const issue = {
+      issueId: "MI0100-mudissue",
+      label: "MI0100",
+      path: "/repo/issues/MI0100-mudissue",
+    };
+    const sourcePath = path.join(mudissueWorktreePath, "a.txt");
+
+    shellService.cwd.mockReturnValue(mudissueWorktreePath);
+    shellService.isAbsolute.mockImplementation((p: string) =>
+      path.isAbsolute(p),
+    );
+    trackerRepoStore.findIssue.mockResolvedValue([issue]);
+
+    fileService.exists.mockImplementation(async (p: string) => {
+      if (p === "/repo/issues/MI0100-mudissue/issue.md") return true;
+      if (p === sourcePath) return true;
+      if (p === "/repo/issues/MI0100-mudissue/files/a.txt") return false;
+      return false;
+    });
+    fileService.stat.mockResolvedValue({
+      isFile: () => true,
+    } as Awaited<ReturnType<FileService["stat"]>>);
+    fileService.mkdir.mockResolvedValue(undefined);
+    fileService.readFile.mockResolvedValue(
+      "---\ntitle: Current Attach\n---\n\nBody\n",
+    );
+
+    const cmd = new IssueAttachCommand();
+    const result = await cmd.command({
+      issueSelector: "current",
+      files: ["a.txt"],
+    });
+
+    expect(result.status).toBe("ok");
+    expect(trackerRepoStore.findIssue).toHaveBeenCalledWith("MI0100-mudissue");
+    expect(fileService.copyFile).toHaveBeenCalledWith(
+      sourcePath,
+      "/repo/issues/MI0100-mudissue/files/a.txt",
+    );
+
+    const written = fileService.writeFile.mock.calls[0][1] as string;
+    const parsed = matter(written);
+    expect(parsed.data.attachments).toEqual(["[[a]]"]);
   });
 });

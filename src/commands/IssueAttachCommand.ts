@@ -6,9 +6,7 @@ import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { FileService } from "../services/FileService.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
-import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
+import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
 import type {
   ErrorResponse,
@@ -127,26 +125,11 @@ export class IssueAttachCommand extends Command {
       );
     }
 
-    if (input.project) {
-      new TrackerRepoValidator()
-        .set(
-          await useCurrentTrackerRepoStore
-            .getState()
-            .getTrackerRepoByProjectName(input.project),
-        )
-        .validateProjectNotNone(input.project);
-    }
-
-    const folders = await useCurrentTrackerRepoStore
-      .getState()
-      .findIssue(issueSelector, {
-        project: input.project,
-      });
-    const issue = new IssueFolderValidator()
-      .set(folders)
-      .validateIssueNotNone()
-      .validateIssueNotMultiple()
-      .first();
+    const { issue } =
+      await IssueSelectorArgumentHelper.processIssueSelectorArgument(
+        issueSelector,
+        input.project,
+      );
 
     const folderStorage = new IssueFolderStorage(issue);
     const issueFilePath = await folderStorage.findIssueFile();
