@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import * as path from "path";
 import {
   SCRIPT_SELECT_ISSUE_LATEST_LIMIT,
   ScriptSelectIssueCommand,
@@ -29,6 +30,13 @@ const mockRepo: TrackerRepo = {
   config: { issue_path: "issues" },
 };
 
+const mudissueWorktreePath = path.join(
+  mockRepo.projectPath,
+  ".claude",
+  "worktrees",
+  "MI0100-mudissue",
+);
+
 class TestScriptSelectIssueCommand extends ScriptSelectIssueCommand {
   pickCalls: Array<{ issues: IssueFolder[]; title: string }> = [];
 
@@ -53,6 +61,8 @@ describe("ScriptSelectIssueCommand", () => {
   let issueFinderService: ReturnType<
     typeof createMockSystemContext
   >["issueFinderService"];
+  let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
+  let gitService: ReturnType<typeof createMockSystemContext>["gitService"];
   let loggerService: ReturnType<
     typeof createMockSystemContext
   >["loggerService"];
@@ -63,12 +73,18 @@ describe("ScriptSelectIssueCommand", () => {
     fileService = bundle.fileService;
     trackerRepoStore = bundle.trackerRepoStore;
     issueFinderService = bundle.issueFinderService;
+    shellService = bundle.shellService;
+    gitService = bundle.gitService;
     loggerService = bundle.loggerService;
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
     trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
     jest.clearAllMocks();
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
     trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
+    gitService.listWorktree.mockResolvedValue([
+      mockRepo.projectPath,
+      mudissueWorktreePath,
+    ]);
   });
 
   it("throws ISSUE_NOT_FOUND when selector matches no issues", async () => {
@@ -204,5 +220,22 @@ describe("ScriptSelectIssueCommand", () => {
       },
     });
     expect(issueFinderService.find).not.toHaveBeenCalled();
+  });
+
+  it("resolves current from the cwd mudissue worktree and outputs the folder name", async () => {
+    const folder = buildIssueFolder("MI0100-mudissue", "MI0100");
+    shellService.cwd.mockReturnValue(mudissueWorktreePath);
+    trackerRepoStore.findIssue.mockResolvedValue([folder]);
+    const command = new TestScriptSelectIssueCommand(null);
+
+    const result = await command.command("current");
+
+    expect(trackerRepoStore.findIssue).toHaveBeenCalledWith("MI0100-mudissue");
+    expect(result).toEqual({
+      status: "ok",
+      result: { issueFolderName: "MI0100-mudissue" },
+    });
+    expect(loggerService.info).toHaveBeenCalledWith("MI0100-mudissue");
+    expect(command.pickCalls).toHaveLength(0);
   });
 });

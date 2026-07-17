@@ -1,8 +1,10 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
+import { CurrentIssueResolverHelper } from "../helpers/CurrentIssueResolverHelper.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
+import type { IssueFolder } from "../types/Issue.ts";
 import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
 import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
 import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
@@ -25,9 +27,9 @@ const msg = defineMessages({
     id: "cli.common.option.project",
     defaultMessage: "Project name",
   },
-  optionIssueIdOrFolder: {
-    id: "cli.common.option.issueIdOrFolder",
-    defaultMessage: "Issue ID or issue folder name",
+  optionIssueSelector: {
+    id: "cli.common.option.issueSelector",
+    defaultMessage: "Issue ID, folder name, or suffix",
   },
 });
 
@@ -50,7 +52,7 @@ export class IssueLocateCommand extends Command {
             describe: intl.formatMessage(msg.optionProject),
           })
           .positional("issue_selector", {
-            describe: intl.formatMessage(msg.optionIssueIdOrFolder),
+            describe: intl.formatMessage(msg.optionIssueSelector),
             type: "string",
             demandOption: true,
           }),
@@ -86,14 +88,20 @@ export class IssueLocateCommand extends Command {
         .validateProjectNotNone(project)
         .first();
     }
-    const folders = await useCurrentTrackerRepoStore
-      .getState()
-      .findIssue(issueSelector, {
-        project,
-      });
-    new IssueFolderValidator().set(folders).validateIssueNotNone();
 
-    const folderList = Array.isArray(folders) ? folders : [folders];
+    let folderList: IssueFolder[];
+    if (CurrentIssueResolverHelper.isCurrentIssueSelector(issueSelector)) {
+      folderList = [await CurrentIssueResolverHelper.resolveCurrentIssue()];
+    } else {
+      const folders = await useCurrentTrackerRepoStore
+        .getState()
+        .findIssue(issueSelector, {
+          project,
+        });
+      new IssueFolderValidator().set(folders).validateIssueNotNone();
+      folderList = Array.isArray(folders) ? folders : [folders];
+    }
+
     const paths: string[] = [];
     for (const issue of folderList) {
       const storage = new IssueFolderStorage(issue);

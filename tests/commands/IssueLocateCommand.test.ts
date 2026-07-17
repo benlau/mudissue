@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import * as path from "path";
 import { IssueLocateCommand } from "../../src/commands/IssueLocateCommand.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
@@ -22,10 +23,19 @@ const mockRepo: TrackerRepo = {
   config: { issue_path: "issues" },
 };
 
+const mudissueWorktreePath = path.join(
+  mockRepo.projectPath,
+  ".claude",
+  "worktrees",
+  "MI0100-mudissue",
+);
+
 describe("IssueLocateCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let issueFinderService: ReturnType<typeof createMockSystemContext>["issueFinderService"];
   let trackerRepoStore: ReturnType<typeof createMockSystemContext>["trackerRepoStore"];
+  let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
+  let gitService: ReturnType<typeof createMockSystemContext>["gitService"];
   let loggerService: ReturnType<typeof createMockSystemContext>["loggerService"];
 
   beforeEach(() => {
@@ -33,13 +43,21 @@ describe("IssueLocateCommand", () => {
     fileService = bundle.fileService;
     issueFinderService = bundle.issueFinderService;
     trackerRepoStore = bundle.trackerRepoStore;
+    shellService = bundle.shellService;
+    gitService = bundle.gitService;
     loggerService = bundle.loggerService;
 
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
+    trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
 
     jest.clearAllMocks();
 
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
+    trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
+    gitService.listWorktree.mockResolvedValue([
+      mockRepo.projectPath,
+      mudissueWorktreePath,
+    ]);
   });
 
   const buildCommand = () =>
@@ -152,5 +170,25 @@ describe("IssueLocateCommand", () => {
     expect(issueFinderService.find).toHaveBeenCalledWith("0001", {
       project: "proj-a",
     });
+  });
+
+  it("resolves current from the cwd mudissue worktree and returns the path", async () => {
+    const folder = buildIssueFolder("MI0100-mudissue", "MI0100");
+    const issueFilePath = "/repo/issues/MI0100-mudissue/issue.md";
+    shellService.cwd.mockReturnValue(mudissueWorktreePath);
+    trackerRepoStore.findIssue.mockResolvedValue([folder]);
+    fileService.exists.mockImplementation((p: string) =>
+      Promise.resolve(p === issueFilePath),
+    );
+
+    const command = buildCommand();
+    const result = await command.command("current");
+
+    expect(trackerRepoStore.findIssue).toHaveBeenCalledWith("MI0100-mudissue");
+    expect(result).toEqual({
+      status: "ok",
+      result: { paths: [issueFilePath] },
+    });
+    expect(loggerService.info).toHaveBeenCalledWith(issueFilePath);
   });
 });

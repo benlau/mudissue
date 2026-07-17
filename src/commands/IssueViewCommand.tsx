@@ -2,9 +2,7 @@ import type { Argv } from "yargs";
 import { render } from "ink";
 import { defineMessages, IntlProvider } from "react-intl";
 import { intl } from "../intl.ts";
-import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
+import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { App } from "../App.tsx";
 import { useReactSessionStore } from "../store/ReactSessionStore.ts";
@@ -24,9 +22,9 @@ const msg = defineMessages({
     id: "cli.common.option.project",
     defaultMessage: "Project name",
   },
-  optionIssueIdOrFolder: {
-    id: "cli.common.option.issueIdOrFolder",
-    defaultMessage: "Issue ID or issue folder name",
+  optionIssueSelector: {
+    id: "cli.common.option.issueSelector",
+    defaultMessage: "Issue ID, folder name, or suffix",
   },
 });
 
@@ -52,7 +50,7 @@ export class IssueViewCommand extends Command {
             describe: intl.formatMessage(msg.optionProject),
           })
           .positional("issue_selector", {
-            describe: intl.formatMessage(msg.optionIssueIdOrFolder),
+            describe: intl.formatMessage(msg.optionIssueSelector),
             type: "string",
             demandOption: true,
           }),
@@ -74,26 +72,11 @@ export class IssueViewCommand extends Command {
   }
 
   async command(issueSelector: string, project?: string): Promise<void> {
-    if (project) {
-      new TrackerRepoValidator()
-        .set(
-          await useCurrentTrackerRepoStore
-            .getState()
-            .getTrackerRepoByProjectName(project),
-        )
-        .validateProjectNotNone(project)
-        .first();
-    }
-    const folders = await useCurrentTrackerRepoStore
-      .getState()
-      .findIssue(issueSelector, {
+    const { issue } =
+      await IssueSelectorArgumentHelper.processIssueSelectorArgument(
+        issueSelector,
         project,
-      });
-    const issue = new IssueFolderValidator()
-      .set(folders)
-      .validateIssueNotNone()
-      .validateIssueNotMultiple()
-      .first();
+      );
 
     useAppStore.getState().openIssue(issue, { project });
 

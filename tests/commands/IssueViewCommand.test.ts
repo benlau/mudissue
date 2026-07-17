@@ -1,4 +1,5 @@
 import { jest } from "@jest/globals";
+import * as path from "path";
 import { IssueViewCommand } from "../../src/commands/IssueViewCommand.tsx";
 import { App } from "../../src/App.tsx";
 import type { IssueFolder } from "../../src/types/Issue.ts";
@@ -24,11 +25,20 @@ const mockRepo: TrackerRepo = {
   config: { issue_path: "issues" },
 };
 
+const mudissueWorktreePath = path.join(
+  mockRepo.projectPath,
+  ".claude",
+  "worktrees",
+  "MI0100-mudissue",
+);
+
 describe("IssueViewCommand", () => {
   let trackerRepoStore: ReturnType<
     typeof createMockSystemContext
   >["trackerRepoStore"];
   let issueFinderService: ReturnType<typeof createMockSystemContext>["issueFinderService"];
+  let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
+  let gitService: ReturnType<typeof createMockSystemContext>["gitService"];
   let loggerService: ReturnType<typeof createMockSystemContext>["loggerService"];
 
   beforeEach(() => {
@@ -36,11 +46,19 @@ describe("IssueViewCommand", () => {
     const bundle = createMockSystemContext();
     trackerRepoStore = bundle.trackerRepoStore;
     issueFinderService = bundle.issueFinderService;
+    shellService = bundle.shellService;
+    gitService = bundle.gitService;
     loggerService = bundle.loggerService;
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
+    trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
     LoggerService.setInstance(loggerService);
     jest.clearAllMocks();
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
+    trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
+    gitService.listWorktree.mockResolvedValue([
+      mockRepo.projectPath,
+      mudissueWorktreePath,
+    ]);
   });
 
   const buildCommand = (overrides?: {
@@ -136,5 +154,25 @@ describe("IssueViewCommand", () => {
     expect(issueFinderService.find).toHaveBeenCalledWith("0001", {
       project: "proj-a",
     });
+  });
+
+  it("resolves current from the cwd mudissue worktree and opens the issue", async () => {
+    const folder = buildIssueFolder("MI0100-mudissue", "MI0100");
+    shellService.cwd.mockReturnValue(mudissueWorktreePath);
+    trackerRepoStore.findIssue.mockResolvedValue([folder]);
+    const waitUntilExit = jest.fn(async () => {});
+    const renderInk = jest.fn(() => ({ waitUntilExit }));
+    const command = buildCommand({ renderInk });
+
+    await command.command("current");
+
+    expect(trackerRepoStore.findIssue).toHaveBeenCalledWith("MI0100-mudissue");
+    expect(useAppStore.getState().getCurrentPage()).toEqual({
+      name: "ISSUE_VIEWER",
+      args: { issue: folder },
+    });
+    expect(useAppStore.getState().selectedIssueId).toBe("MI0100-mudissue");
+    expect(renderInk).toHaveBeenCalledTimes(1);
+    expect(waitUntilExit).toHaveBeenCalledTimes(1);
   });
 });

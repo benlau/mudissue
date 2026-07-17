@@ -1,6 +1,7 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
+import { CurrentIssueResolverHelper } from "../helpers/CurrentIssueResolverHelper.ts";
 import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
@@ -32,9 +33,9 @@ const msg = defineMessages({
     id: "cli.common.option.project",
     defaultMessage: "Project name",
   },
-  optionIssueIdOrFolder: {
-    id: "cli.common.option.issueIdOrFolder",
-    defaultMessage: "Issue ID or issue folder name",
+  optionIssueSelector: {
+    id: "cli.common.option.issueSelector",
+    defaultMessage: "Issue ID, folder name, or suffix",
   },
   optionOutput: {
     id: "cli.script.selectIssue.option.output",
@@ -73,7 +74,7 @@ export class ScriptSelectIssueCommand extends Command {
             describe: intl.formatMessage(msg.optionOutput),
           })
           .positional("issue_selector", {
-            describe: intl.formatMessage(msg.optionIssueIdOrFolder),
+            describe: intl.formatMessage(msg.optionIssueSelector),
             type: "string",
           }),
       async (argv) => {
@@ -144,6 +145,9 @@ export class ScriptSelectIssueCommand extends Command {
     project?: string,
   ): Promise<IssueFolder[]> {
     if (issueSelector !== undefined && issueSelector.trim() !== "") {
+      if (CurrentIssueResolverHelper.isCurrentIssueSelector(issueSelector)) {
+        return [await CurrentIssueResolverHelper.resolveCurrentIssue()];
+      }
       const folders = await useCurrentTrackerRepoStore
         .getState()
         .findIssue(issueSelector, { project });
