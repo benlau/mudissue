@@ -211,4 +211,93 @@ describe("IssueAttachCommand", () => {
     const parsed = matter(written);
     expect(parsed.data.attachments).toEqual(["[[a]]"]);
   });
+
+  it("prefixes attachment filenames with the issue label when --add-label is set", async () => {
+    issueFinderService.find.mockResolvedValue([
+      {
+        issueId: "FN004-test",
+        label: "FN004",
+        path: "/repo/issues/FN004-test",
+      },
+    ]);
+
+    fileService.exists.mockImplementation(async (p: string) => {
+      if (p === "/repo/issues/FN004-test/issue.md") return true;
+      if (p === "/cwd/a.txt") return true;
+      if (p === "/cwd/b.png") return true;
+      if (p === "/repo/issues/FN004-test/files/FN004-a.txt") return false;
+      if (p === "/repo/issues/FN004-test/files/FN004-b.png") return false;
+      return false;
+    });
+    fileService.stat.mockResolvedValue({
+      isFile: () => true,
+    } as Awaited<ReturnType<FileService["stat"]>>);
+    fileService.mkdir.mockResolvedValue(undefined);
+    fileService.readFile.mockResolvedValue(
+      "---\ntitle: Add Label Attach\n---\n\nBody\n",
+    );
+
+    const cmd = new IssueAttachCommand();
+    const result = await cmd.command({
+      issueSelector: "FN004",
+      files: ["a.txt", "b.png"],
+      addLabel: true,
+    });
+
+    expect(result.status).toBe("ok");
+    expect(fileService.copyFile).toHaveBeenCalledWith(
+      "/cwd/a.txt",
+      "/repo/issues/FN004-test/files/FN004-a.txt",
+    );
+    expect(fileService.copyFile).toHaveBeenCalledWith(
+      "/cwd/b.png",
+      "/repo/issues/FN004-test/files/FN004-b.png",
+    );
+
+    const written = fileService.writeFile.mock.calls[0][1] as string;
+    const parsed = matter(written);
+    expect(parsed.data.attachments).toEqual(["[[FN004-a]]", "[[FN004-b.png]]"]);
+  });
+
+  it("applies collision suffixes after the label prefix when --add-label is set", async () => {
+    issueFinderService.find.mockResolvedValue([
+      {
+        issueId: "FN004-test",
+        label: "FN004",
+        path: "/repo/issues/FN004-test",
+      },
+    ]);
+
+    fileService.exists.mockImplementation(async (p: string) => {
+      if (p === "/repo/issues/FN004-test/issue.md") return true;
+      if (p === "/cwd/a.txt") return true;
+      if (p === "/repo/issues/FN004-test/files/FN004-a.txt") return true;
+      if (p === "/repo/issues/FN004-test/files/FN004-a-1.txt") return false;
+      return false;
+    });
+    fileService.stat.mockResolvedValue({
+      isFile: () => true,
+    } as Awaited<ReturnType<FileService["stat"]>>);
+    fileService.mkdir.mockResolvedValue(undefined);
+    fileService.readFile.mockResolvedValue(
+      "---\ntitle: Add Label Collision\n---\n\nBody\n",
+    );
+
+    const cmd = new IssueAttachCommand();
+    const result = await cmd.command({
+      issueSelector: "FN004",
+      files: ["a.txt"],
+      addLabel: true,
+    });
+
+    expect(result.status).toBe("ok");
+    expect(fileService.copyFile).toHaveBeenCalledWith(
+      "/cwd/a.txt",
+      "/repo/issues/FN004-test/files/FN004-a-1.txt",
+    );
+
+    const written = fileService.writeFile.mock.calls[0][1] as string;
+    const parsed = matter(written);
+    expect(parsed.data.attachments).toEqual(["[[FN004-a-1]]"]);
+  });
 });

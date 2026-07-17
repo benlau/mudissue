@@ -18,6 +18,7 @@ export type IssueAttachCommandArgs = {
   issueSelector: string;
   files: string[];
   project?: string;
+  addLabel?: boolean;
 };
 
 export type IssueAttachCommandSuccessResponse =
@@ -47,10 +48,15 @@ const msg = defineMessages({
     id: "cli.issue.attach.positional.files",
     defaultMessage: "One or more file paths to attach",
   },
+  optionAddLabel: {
+    id: "cli.issue.attach.option.addLabel",
+    defaultMessage:
+      "Prefix the attached filename with the issue label (e.g. FN004-file.txt)",
+  },
   errorIssueAttachUsage: {
     id: "cli.error.issue.attach.usage",
     defaultMessage:
-      "Usage: mud issue attach <issue_selector> <file_path..> [--project <name>]",
+      "Usage: mud issue attach <issue_selector> <file_path..> [--project <name>] [--add-label]",
   },
 });
 
@@ -71,6 +77,11 @@ export class IssueAttachCommand extends Command {
           .option("project", {
             type: "string",
             describe: intl.formatMessage(msg.optionProject),
+          })
+          .option("add-label", {
+            type: "boolean",
+            describe: intl.formatMessage(msg.optionAddLabel),
+            default: false,
           })
           .positional("issue_selector", {
             describe: intl.formatMessage(msg.optionIssueSelector),
@@ -103,6 +114,7 @@ export class IssueAttachCommand extends Command {
             issueSelector: argv.issue_selector as string,
             files: (argv.files ?? []) as string[],
             project: argv.project as string | undefined,
+            addLabel: argv["add-label"] === true,
           },
         );
       },
@@ -121,7 +133,7 @@ export class IssueAttachCommand extends Command {
     if (!issueSelector || filePaths.length < 1) {
       this.throwException(
         "ATTACH_ARGS_INVALID",
-        "Usage: mud issue attach <issue_selector> <file_path..> [--project <name>]",
+        "Usage: mud issue attach <issue_selector> <file_path..> [--project <name>] [--add-label]",
       );
     }
 
@@ -168,8 +180,10 @@ export class IssueAttachCommand extends Command {
       }
 
       const base = path.basename(sourcePath);
-      const { name, ext } = splitNameAndExt(base);
-      let filename = base;
+      const prefixedBase =
+        input.addLabel === true ? `${issue.label}-${base}` : base;
+      const { name, ext } = splitNameAndExt(prefixedBase);
+      let filename = prefixedBase;
       let destPath = path.join(attachmentsDir, filename);
       let suffix = 1;
       while (await fileService.exists(destPath)) {
