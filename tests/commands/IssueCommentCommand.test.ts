@@ -1,6 +1,7 @@
 import { jest } from "@jest/globals";
 import { IssueCommentCommand } from "../../src/commands/IssueCommentCommand.ts";
 import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.ts";
+import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 describe("IssueCommentCommand", () => {
@@ -8,6 +9,16 @@ describe("IssueCommentCommand", () => {
   let issueFinderService: ReturnType<
     typeof createMockSystemContext
   >["issueFinderService"];
+  let trackerRepoStore: ReturnType<
+    typeof createMockSystemContext
+  >["trackerRepoStore"];
+
+  const mockRepo: TrackerRepo = {
+    name: "my-repo",
+    projectPath: "/repo",
+    trackerPath: "/repo",
+    config: { issue_path: "issues" },
+  };
 
   beforeEach(() => {
     jest.useFakeTimers();
@@ -16,7 +27,9 @@ describe("IssueCommentCommand", () => {
     const bundle = createMockSystemContext();
     fileService = bundle.fileService;
     issueFinderService = bundle.issueFinderService;
+    trackerRepoStore = bundle.trackerRepoStore;
     issueFinderService.find.mockResolvedValue([]);
+    trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
   });
 
   afterEach(() => {
@@ -35,6 +48,14 @@ describe("IssueCommentCommand", () => {
   });
 
   it("throws COMMENT_CONTENT_EMPTY when interactive input is cancelled", async () => {
+    issueFinderService.find.mockResolvedValue([
+      {
+        issueId: "0001-test",
+        label: "0001",
+        path: "/repo/issues/0001-test",
+      },
+    ]);
+
     class TestCommand extends IssueCommentCommand {
       protected override async askUserTextContent(): Promise<string | null> {
         return null;
@@ -42,7 +63,9 @@ describe("IssueCommentCommand", () => {
     }
     const cmd = new TestCommand();
 
-    await expect(cmd.command({ issueSelector: "0001" })).rejects.toMatchObject({
+    await expect(
+      cmd.command({ issueSelector: "0001", author: "Ben" }),
+    ).rejects.toMatchObject({
       status: "error",
       error: { code: "COMMENT_CONTENT_EMPTY" },
     });

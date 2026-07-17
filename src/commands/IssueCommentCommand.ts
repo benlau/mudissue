@@ -2,10 +2,8 @@ import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
-import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
 import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { CommentAuthorHelper } from "../helpers/CommentAuthorHelper.ts";
 import { DateFormatter } from "../foundation/formatter/DateFormatter.ts";
 import type {
@@ -132,6 +130,20 @@ export class IssueCommentCommand extends Command {
       );
     }
 
+    const { issue } =
+      await IssueSelectorArgumentHelper.processIssueSelectorArgument(
+        issueSelector,
+        input.project,
+      );
+
+    const author = await CommentAuthorHelper.queryCommentAuthor(input.author);
+    if (author === "") {
+      this.throwException(
+        "COMMENT_AUTHOR_NOT_FOUND",
+        "Could not determine comment author. Use --author or set USERNAME in the system registry.",
+      );
+    }
+
     let content = input.content;
     if (content == null || content === "") {
       const entered = await this.askUserTextContent(
@@ -152,35 +164,6 @@ export class IssueCommentCommand extends Command {
         "Comment content must not be empty.",
       );
     }
-
-    const author = await CommentAuthorHelper.queryCommentAuthor(input.author);
-    if (author === "") {
-      this.throwException(
-        "COMMENT_AUTHOR_NOT_FOUND",
-        "Could not determine comment author. Use --author or set USERNAME in the system registry.",
-      );
-    }
-
-    if (input.project) {
-      new TrackerRepoValidator()
-        .set(
-          await useCurrentTrackerRepoStore
-            .getState()
-            .getTrackerRepoByProjectName(input.project),
-        )
-        .validateProjectNotNone(input.project);
-    }
-
-    const folders = await useCurrentTrackerRepoStore
-      .getState()
-      .findIssue(issueSelector, {
-        project: input.project,
-      });
-    const issue = new IssueFolderValidator()
-      .set(folders)
-      .validateIssueNotNone()
-      .validateIssueNotMultiple()
-      .first();
 
     const folderStorage = new IssueFolderStorage(issue);
     const issueFilePath = await folderStorage.findIssueFile();
