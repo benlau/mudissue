@@ -379,6 +379,14 @@ export class IssueFolderStorage {
   }
 
   /**
+   * Maps an attachment frontmatter/wikilink ref to an on-disk path under files/.
+   * Extension-less refs (md/txt wikilinks) resolve via exists to .md then .txt.
+   */
+  async resolveAttachmentRef(ref: string): Promise<string | undefined> {
+    return this.resolveAttachmentPath(this.getAttachmentsDir(), ref);
+  }
+
+  /**
    * Maps an attachment frontmatter ref to an on-disk path under attachmentsDir.
    * Extension-less refs (md/txt wikilinks) resolve via exists to .md then .txt.
    */

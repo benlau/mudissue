@@ -41,7 +41,12 @@ function AppContent() {
   }
 
   if (currentPage.name === "ISSUE_VIEWER") {
-    return <IssueViewer issue={currentPage.args.issue} />;
+    return (
+      <IssueViewer
+        issue={currentPage.args.issue}
+        attachmentPath={currentPage.args.attachmentPath}
+      />
+    );
   }
   return <IssueTable />;
 }

@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import * as path from "path";
 import { Text } from "ink";
 import stringWidth from "string-width";
 import { BasicLayouter } from "../../foundation/layouter/BasicLayouter.ts";
@@ -6,7 +7,7 @@ import { useAppStore } from "../../store/AppStore.ts";
 import type { IssueViewerPage, Page } from "../../types/page.ts";
 import { DefaultTheme } from "../../types/Theme.ts";
 
-const MAX_PREVIOUS_IDS = 2;
+const MAX_PREVIOUS_LABELS = 2;
 const PREV_SEPARATOR = " > ";
 const TITLE_SEPARATOR = ":";
 
@@ -22,69 +23,76 @@ function isIssueViewerPage(page: Page): page is IssueViewerPage {
 export function IssueBreadcrumbs({ title, width }: IssueBreadcrumbsProps) {
   const navigationStack = useAppStore((s) => s.navigationStack);
 
-  const { previousIds, currentId, displayTitle } = useMemo(() => {
-    const viewerPages = navigationStack.filter(isIssueViewerPage);
-    const current = viewerPages[viewerPages.length - 1];
-    const previous = viewerPages.slice(
-      Math.max(0, viewerPages.length - 1 - MAX_PREVIOUS_IDS),
-      Math.max(0, viewerPages.length - 1),
-    );
-    const currentIssueId = current?.args.issue.issueId ?? "";
-    const previousIssueIds = previous.map((page) => page.args.issue.issueId);
+  const { previousLabels, currentLabel, displayTitle, isAttachmentView } =
+    useMemo(() => {
+      const viewerPages = navigationStack.filter(isIssueViewerPage);
+      const current = viewerPages[viewerPages.length - 1];
+      const previous = viewerPages.slice(
+        Math.max(0, viewerPages.length - 1 - MAX_PREVIOUS_LABELS),
+        Math.max(0, viewerPages.length - 1),
+      );
+      const attachmentPath = current?.args.attachmentPath;
+      const isAttachment = attachmentPath != null;
+      const currentLabel = isAttachment
+        ? path.basename(attachmentPath)
+        : (current?.args.issue.label ?? "");
+      const previousLabels = previous.map((page) => page.args.issue.label);
 
-    let prefix = "";
-    for (const id of previousIssueIds) {
-      if (prefix !== "") {
+      let prefix = "";
+      for (const label of previousLabels) {
+        if (prefix !== "") {
+          prefix += PREV_SEPARATOR;
+        }
+        prefix += label;
+      }
+      if (previousLabels.length > 0 && currentLabel !== "") {
         prefix += PREV_SEPARATOR;
       }
-      prefix += id;
-    }
-    if (previousIssueIds.length > 0 && currentIssueId !== "") {
-      prefix += PREV_SEPARATOR;
-    }
-    prefix += currentIssueId;
+      prefix += currentLabel;
 
-    const trimmedTitle = title.trim();
-    const showTitle = trimmedTitle !== "" && currentIssueId !== "";
-    if (showTitle) {
-      prefix += TITLE_SEPARATOR;
-    }
+      const trimmedTitle = title.trim();
+      const showTitle =
+        !isAttachment && trimmedTitle !== "" && currentLabel !== "";
+      if (showTitle) {
+        prefix += TITLE_SEPARATOR;
+      }
 
-    const titleBudget = Math.max(0, width - stringWidth(prefix));
-    const truncatedTitle = showTitle
-      ? BasicLayouter.stringWidthTruncateEnd(trimmedTitle, titleBudget)
-      : "";
+      const titleBudget = Math.max(0, width - stringWidth(prefix));
+      const truncatedTitle = showTitle
+        ? BasicLayouter.stringWidthTruncateEnd(trimmedTitle, titleBudget)
+        : "";
 
-    return {
-      previousIds: previousIssueIds,
-      currentId: currentIssueId,
-      displayTitle: truncatedTitle,
-    };
-  }, [navigationStack, title, width]);
+      return {
+        previousLabels,
+        currentLabel,
+        displayTitle: truncatedTitle,
+        isAttachmentView: isAttachment,
+      };
+    }, [navigationStack, title, width]);
 
-  if (currentId === "") {
+  if (currentLabel === "") {
     return null;
   }
 
-  const showTitle = displayTitle !== "";
+  const showTitle = !isAttachmentView && displayTitle !== "";
 
   return (
     <>
-      {previousIds.map((id, index) => (
-        <React.Fragment key={`${index}-${id}`}>
+      {previousLabels.map((label, index) => (
+        <React.Fragment key={`${index}-${label}`}>
           {index > 0 ? (
             <Text color={DefaultTheme.accents.green}>{PREV_SEPARATOR}</Text>
           ) : null}
           <Text bold color={DefaultTheme.accents.orange}>
-            {id}
+            {label}
           </Text>
         </React.Fragment>
       ))}
-      {previousIds.length > 0 ? (
+      {previousLabels.length > 0 ? (
         <Text color={DefaultTheme.accents.green}>{PREV_SEPARATOR}</Text>
       ) : null}
       <Text bold color={DefaultTheme.accents.orange}>
-        {currentId}
+        {currentLabel}
       </Text>
       {showTitle ? (
         <>

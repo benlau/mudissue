@@ -1,4 +1,5 @@
 import { IssueFolderLinkFormatter } from "../formatter/IssueFolderLinkFormatter.ts";
+import { WikiLinkFormatter } from "../formatter/WikiLinkFormatter.ts";
 import { IssueSelectorMatcher } from "../matchers/IssueSelectorMatcher.ts";
 import type { LineOperationInfo } from "../../types/LineOperation.ts";
 import type { LineRange } from "../../types/LineRange.ts";
@@ -131,6 +132,37 @@ function detectWikiLinkLines(context: DetectorContext): LineOperationInfo[] {
   return results;
 }
 
+function detectAttachmentLines(context: DetectorContext): LineOperationInfo[] {
+  const { lines, frontmatter } = context;
+  if (frontmatter == null) {
+    return [];
+  }
+
+  const fieldRange = frontmatter.fields.attachments;
+  if (fieldRange == null) {
+    return [];
+  }
+
+  const results: LineOperationInfo[] = [];
+  for (const lineIndex of lineIndexesInRange(fieldRange)) {
+    const line = lines[lineIndex] ?? "";
+    const match = WIKILINK_PATTERN.exec(line);
+    if (match == null) {
+      continue;
+    }
+    const attachmentRef = WikiLinkFormatter.stripWikiLink(match[0]);
+    if (attachmentRef === "") {
+      continue;
+    }
+    results.push({
+      kind: "attachment",
+      logicalLineIndexes: [lineIndex],
+      attachmentRef,
+    });
+  }
+  return results;
+}
+
 function detectCheckboxLines(context: DetectorContext): LineOperationInfo[] {
   const { lines, frontmatter } = context;
   const results: LineOperationInfo[] = [];
@@ -153,6 +185,7 @@ const DETECTORS = [
   detectFrontMatterFieldLines,
   detectCheckboxLines,
   detectWikiLinkLines,
+  detectAttachmentLines,
   detectLinkageLines,
 ];
 

@@ -13,6 +13,7 @@ import { useStore } from "zustand";
 import { FileService } from "../../services/FileService.ts";
 import { IssueLinkHelper } from "../../helpers/IssueLinkHelper.ts";
 import { IssueMarkdownFileStorage } from "../../utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
 import { TrackerRepoStorage } from "../../utils/storage/TrackerRepoStorage.ts";
 import { useAlertDialogStore } from "../../store/AlertDialogStore.ts";
 import { useAppStore } from "../../store/AppStore.ts";
@@ -154,6 +155,18 @@ const messages = defineMessages({
     id: "views.markdownViewer.priority.label",
     defaultMessage: "Set priority",
   },
+  openAttachmentLabel: {
+    id: "views.markdownViewer.attachment.label",
+    defaultMessage: "Open attachment",
+  },
+  attachmentNotFoundToast: {
+    id: "views.markdownViewer.attachment.notFound",
+    defaultMessage: "Attachment not found: {attachmentRef}",
+  },
+  attachmentBinaryToast: {
+    id: "views.markdownViewer.attachment.binary",
+    defaultMessage: "Cannot open binary attachment: {attachmentRef}",
+  },
 });
 
 function extractFirstHeading(lines: string[]): string | undefined {
@@ -285,6 +298,36 @@ async function jumpFromSelectors(
   await resolveAndJump(issueSelector, intl);
 }
 
+async function openAttachment(
+  issueFolder: IssueFolder,
+  attachmentRef: string,
+  intl: IntlShape,
+): Promise<void> {
+  const storage = new IssueFolderStorage(issueFolder);
+  const resolved = await storage.resolveAttachmentRef(attachmentRef);
+  if (resolved == null) {
+    await useToastStore.getState().info(
+      intl.formatMessage(messages.attachmentNotFoundToast, {
+        attachmentRef,
+      }),
+    );
+    return;
+  }
+
+  if (await FileService.getInstance().isBinaryFile(resolved)) {
+    await useToastStore.getState().info(
+      intl.formatMessage(messages.attachmentBinaryToast, {
+        attachmentRef,
+      }),
+    );
+    return;
+  }
+
+  useAppStore.getState().pushIssueViewer(issueFolder, {
+    attachmentPath: resolved,
+  });
+}
+
 function parseLineOperationInfos(
   lines: string[],
   linkTypeFieldNames?: string[],
@@ -340,6 +383,26 @@ function getLineOperations(
         label: context.intl.formatMessage(messages.jumpLabel),
         action: async () => {
           await jumpFromSelectors(selectors, context.intl);
+        },
+      });
+      continue;
+    }
+
+    if (item.kind === "attachment") {
+      if (context.issueFolder == null || item.attachmentRef == null) {
+        continue;
+      }
+      const issueFolder = context.issueFolder;
+      const attachmentRef = item.attachmentRef;
+      operations.push({
+        kind: "attachment",
+        displayRows,
+        info: item,
+        symbol: JUMP_SYMBOL,
+        key: JUMP_KEY,
+        label: context.intl.formatMessage(messages.openAttachmentLabel),
+        action: async () => {
+          await openAttachment(issueFolder, attachmentRef, context.intl);
         },
       });
       continue;

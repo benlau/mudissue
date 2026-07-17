@@ -241,6 +241,58 @@ describe("MarkdownLineOperationParser", () => {
     ]);
   });
 
+  it("detects attachment operations from the attachments frontmatter field", () => {
+    const lines = [
+      "---",
+      "title: Demo",
+      "attachments:",
+      "  - [[notes]]",
+      "  - [[screenshot.png]]",
+      "---",
+      "# Body",
+      "See [[notes]] in body",
+    ];
+
+    expect(MarkdownLineOperationParser.detect(lines)).toEqual(
+      expect.arrayContaining([
+        {
+          kind: "attachment",
+          logicalLineIndexes: [3],
+          attachmentRef: "notes",
+        },
+        {
+          kind: "attachment",
+          logicalLineIndexes: [4],
+          attachmentRef: "screenshot.png",
+        },
+      ]),
+    );
+    expect(MarkdownLineOperationParser.detect(lines)).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "attachment",
+          logicalLineIndexes: [7],
+        }),
+      ]),
+    );
+  });
+
+  it("skips attachments field lines without wiki links", () => {
+    const lines = [
+      "---",
+      "title: Demo",
+      "attachments:",
+      "---",
+      "# Body",
+    ];
+
+    expect(MarkdownLineOperationParser.detect(lines)).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "attachment" }),
+      ]),
+    );
+  });
+
   it("does not detect wiki links inside frontmatter as wikilink operations", () => {
     const lines = [
       "---",

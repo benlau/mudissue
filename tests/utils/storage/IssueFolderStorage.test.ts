@@ -553,6 +553,20 @@ describe("IssueFolderStorage", () => {
       expect(mockFileService.readdir).not.toHaveBeenCalled();
     });
 
+    it("resolveAttachmentRef maps extension-less refs to .md then .txt", async () => {
+      const filesDir = `${folderAbsPath}/files`;
+      mockFileService.exists.mockImplementation(async (p: string) => {
+        if (p === `${filesDir}/notes.md`) return false;
+        if (p === `${filesDir}/notes.txt`) return true;
+        return false;
+      });
+
+      const storage = new IssueFolderStorage(buildIssueFolder());
+      const resolved = await storage.resolveAttachmentRef("[[notes]]");
+
+      expect(resolved).toEqual(`${filesDir}/notes.txt`);
+    });
+
     it("returns the issue file path when issue_file option is set", async () => {
       mockFileService.exists.mockImplementation(async (p: string) =>
         p === `${folderAbsPath}/issue.md`,

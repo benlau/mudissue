@@ -88,15 +88,15 @@ exports[`views/components snapshots matches snapshot: FilterTextDialog 1`] = `
 "
 `;
 
-exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-one-previous 1`] = `"MI0001-alpha > MI0002-beta:Current title"`;
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-one-previous 1`] = `"MI0001 > MI0002:Current title"`;
 
-exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-single 1`] = `"MI0001-alpha:Sample issue title"`;
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-single 1`] = `"MI0001:Sample issue title"`;
 
-exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-three-previous-shows-last-two 1`] = `"MI0002-beta > MI0003-gamma > MI0004-delta:Curre…"`;
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-three-previous-shows-last-two 1`] = `"MI0002 > MI0003 > MI0004:Current title"`;
 
-exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-truncated-title 1`] = `"MI0001-alpha:A ve…"`;
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-truncated-title 1`] = `"MI0001:A very lon…"`;
 
-exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-two-previous 1`] = `"MI0001-alpha > MI0002-beta > MI0003-gamma:Curre…"`;
+exports[`views/components snapshots matches snapshot: IssueBreadcrumbs-two-previous 1`] = `"MI0001 > MI0002 > MI0003:Current title"`;
 
 exports[`views/components snapshots matches snapshot: IssueSearchingDialog 1`] = `
 "
@@ -144,7 +144,7 @@ New<+> | Search</> >"
 `;
 
 exports[`views/components snapshots matches snapshot: IssueViewer 1`] = `
-"MI0001-sample
+"MI0001
 
 
 

@@ -228,6 +228,26 @@ describe("AppStore", () => {
       expect(useAppStore.getState().getSelectedIssues()).toEqual([issue]);
     });
 
+    it("returns an empty array when viewing an attachment", () => {
+      const issue = buildIssue("MI0002");
+      useAppStore.setState({
+        mainIssueLists: [buildIssue("MI0001"), issue],
+        selectedIssueId: issue.issueId,
+        navigationStack: [
+          ISSUE_TABLE_PAGE,
+          {
+            name: "ISSUE_VIEWER",
+            args: {
+              issue,
+              attachmentPath: "/repo/issues/MI0002-sample/files/notes.txt",
+            },
+          },
+        ],
+      });
+
+      expect(useAppStore.getState().getSelectedIssues()).toEqual([]);
+    });
+
     it("returns the selected table row when the viewer is closed", () => {
       const issue = buildIssue("MI0002");
       useAppStore.setState({
@@ -763,6 +783,21 @@ describe("AppStore", () => {
       expect(useAppStore.getState().getCurrentPage()).toEqual({
         name: "ISSUE_VIEWER",
         args: { issue: outside },
+      });
+    });
+
+    it("pushIssueViewer stores attachmentPath on the viewer page", () => {
+      const issue = buildIssue("MI0001");
+      const attachmentPath = "/repo/issues/MI0001-sample/files/notes.txt";
+      useAppStore.setState({
+        mainIssueLists: [issue],
+      });
+
+      useAppStore.getState().pushIssueViewer(issue, { attachmentPath });
+
+      expect(useAppStore.getState().getCurrentPage()).toEqual({
+        name: "ISSUE_VIEWER",
+        args: { issue, attachmentPath },
       });
     });
 

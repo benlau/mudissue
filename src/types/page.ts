@@ -9,6 +9,8 @@ export type IssueViewerPage = {
   args: {
     issue: IssueFolder;
     project?: string;
+    /** Absolute path to an attachment file opened instead of the issue markdown. */
+    attachmentPath?: string;
   };
 };
 

@@ -22,13 +22,16 @@ import { useToastStore } from "./ToastStore.ts";
 
 function buildIssueViewerPage(
   issue: IssueFolder,
-  project?: string,
+  options?: { project?: string; attachmentPath?: string },
 ): IssueViewerPage {
   return {
     name: "ISSUE_VIEWER",
     args: {
       issue,
-      ...(project !== undefined ? { project } : {}),
+      ...(options?.project !== undefined ? { project: options.project } : {}),
+      ...(options?.attachmentPath !== undefined
+        ? { attachmentPath: options.attachmentPath }
+        : {}),
     },
   };
 }
@@ -51,7 +54,10 @@ export type AppStoreState = {
   reset: () => void;
   refreshIssueLists: () => Promise<IssueFolder[]>;
   searchIssues: (filter: string | null) => Promise<void>;
-  pushIssueViewer: (issue: IssueFolder, options?: { project?: string }) => void;
+  pushIssueViewer: (
+    issue: IssueFolder,
+    options?: { project?: string; attachmentPath?: string },
+  ) => void;
   replaceIssueViewer: (
     issue: IssueFolder,
     options?: { project?: string },
@@ -188,8 +194,11 @@ export const useAppStore = create<AppStoreState>()(
       });
     },
 
-    pushIssueViewer: (issue: IssueFolder, options?: { project?: string }) => {
-      const viewerPage = buildIssueViewerPage(issue, options?.project);
+    pushIssueViewer: (
+      issue: IssueFolder,
+      options?: { project?: string; attachmentPath?: string },
+    ) => {
+      const viewerPage = buildIssueViewerPage(issue, options);
       set((draft) => {
         draft.navigationStack = accessNavigationStack(draft.navigationStack)
           .push(viewerPage)
@@ -203,7 +212,7 @@ export const useAppStore = create<AppStoreState>()(
       issue: IssueFolder,
       options?: { project?: string },
     ) => {
-      const viewerPage = buildIssueViewerPage(issue, options?.project);
+      const viewerPage = buildIssueViewerPage(issue, options);
       set((draft) => {
         draft.navigationStack = accessNavigationStack(draft.navigationStack)
           .replaceTop(viewerPage)
@@ -309,6 +318,9 @@ export const useAppStore = create<AppStoreState>()(
     getSelectedIssues: () => {
       const currentPage = get().getCurrentPage();
       if (currentPage.name === "ISSUE_VIEWER") {
+        if (currentPage.args.attachmentPath != null) {
+          return [];
+        }
         return [currentPage.args.issue];
       }
       const {
