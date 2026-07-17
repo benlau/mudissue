@@ -8,8 +8,9 @@ import {
   useMemo,
 } from "react";
 import { Box, Text, useInput } from "ink";
-import { defineMessages, useIntl, type IntlShape } from "react-intl";
+import { defineMessages } from "react-intl";
 import { useStore } from "zustand";
+import { intl } from "../../intl.ts";
 import { FileService } from "../../services/FileService.ts";
 import { IssueLinkHelper } from "../../helpers/IssueLinkHelper.ts";
 import { IssueMarkdownFileStorage } from "../../utils/storage/IssueMarkdownFileStorage.ts";
@@ -218,13 +219,9 @@ type GetLineOperationsContext = {
   toggleCheckboxAtLine: (logicalLineIndex: number) => Promise<void>;
   issueFolder?: IssueFolder;
   filePath: string;
-  intl: IntlShape;
 };
 
-async function openLineOperationPicker(
-  ops: LineOperation[],
-  intl: IntlShape,
-): Promise<void> {
+async function openLineOperationPicker(ops: LineOperation[]): Promise<void> {
   const response = await usePickItemDialogStore
     .getState()
     .open(ops, (op) => op.label, {
@@ -255,10 +252,7 @@ function issueSelectorsFromLine(
   return [];
 }
 
-async function resolveAndJump(
-  issueSelector: string,
-  intl: IntlShape,
-): Promise<void> {
+async function resolveAndJump(issueSelector: string): Promise<void> {
   const issues = await useCurrentTrackerRepoStore
     .getState()
     .findIssue(issueSelector);
@@ -273,10 +267,7 @@ async function resolveAndJump(
   useAppStore.getState().pushIssueViewer(issues[0]!);
 }
 
-async function jumpFromSelectors(
-  selectors: string[],
-  intl: IntlShape,
-): Promise<void> {
+async function jumpFromSelectors(selectors: string[]): Promise<void> {
   if (selectors.length === 0) {
     return;
   }
@@ -295,13 +286,12 @@ async function jumpFromSelectors(
     }
     issueSelector = response.acceptedValue;
   }
-  await resolveAndJump(issueSelector, intl);
+  await resolveAndJump(issueSelector);
 }
 
 async function openAttachment(
   issueFolder: IssueFolder,
   attachmentRef: string,
-  intl: IntlShape,
 ): Promise<void> {
   const storage = new IssueFolderStorage(issueFolder);
   const resolved = await storage.resolveAttachmentRef(attachmentRef);
@@ -380,9 +370,9 @@ function getLineOperations(
         info: item,
         symbol: JUMP_SYMBOL,
         key: JUMP_KEY,
-        label: context.intl.formatMessage(messages.jumpLabel),
+        label: intl.formatMessage(messages.jumpLabel),
         action: async () => {
-          await jumpFromSelectors(selectors, context.intl);
+          await jumpFromSelectors(selectors);
         },
       });
       continue;
@@ -400,9 +390,9 @@ function getLineOperations(
         info: item,
         symbol: JUMP_SYMBOL,
         key: JUMP_KEY,
-        label: context.intl.formatMessage(messages.openAttachmentLabel),
+        label: intl.formatMessage(messages.openAttachmentLabel),
         action: async () => {
-          await openAttachment(issueFolder, attachmentRef, context.intl);
+          await openAttachment(issueFolder, attachmentRef);
         },
       });
       continue;
@@ -426,9 +416,9 @@ function getLineOperations(
         info: item,
         symbol: JUMP_SYMBOL,
         key: JUMP_KEY,
-        label: context.intl.formatMessage(messages.jumpLabel),
+        label: intl.formatMessage(messages.jumpLabel),
         action: async () => {
-          await jumpFromSelectors(jumpSelectors, context.intl);
+          await jumpFromSelectors(jumpSelectors);
         },
       });
       operations.push({
@@ -437,22 +427,17 @@ function getLineOperations(
         info: item,
         symbol: UNLINK_SYMBOL,
         key: UNLINK_KEY,
-        label: context.intl.formatMessage(messages.unlinkLabel),
+        label: intl.formatMessage(messages.unlinkLabel),
         action: async () => {
           const confirmResult = await useConfirmationDialogStore
             .getState()
             .open({
-              title: context.intl.formatMessage(messages.unlinkConfirmTitle),
-              message: context.intl.formatMessage(
-                messages.unlinkConfirmMessage,
-                {
-                  issueSelector,
-                  linkType: linkageType,
-                },
-              ),
-              confirmLabel: context.intl.formatMessage(
-                messages.unlinkConfirmLabel,
-              ),
+              title: intl.formatMessage(messages.unlinkConfirmTitle),
+              message: intl.formatMessage(messages.unlinkConfirmMessage, {
+                issueSelector,
+                linkType: linkageType,
+              }),
+              confirmLabel: intl.formatMessage(messages.unlinkConfirmLabel),
               variant: "destructive",
             });
           if (confirmResult.type !== "accepted") {
@@ -468,7 +453,7 @@ function getLineOperations(
             useFileWatcherStore.getState().requestReload(context.filePath);
             if (result.dstNotFound) {
               await useToastStore.getState().info(
-                context.intl.formatMessage(messages.unlinkDstNotFoundToast, {
+                intl.formatMessage(messages.unlinkDstNotFoundToast, {
                   issueSelector,
                 }),
               );
@@ -493,7 +478,7 @@ function getLineOperations(
         info: item,
         symbol: CHECKBOX_SYMBOL,
         key: CHECKBOX_KEY,
-        label: context.intl.formatMessage(messages.checkboxLabel),
+        label: intl.formatMessage(messages.checkboxLabel),
         action: async () => {
           await context.toggleCheckboxAtLine(logicalLineIndex);
         },
@@ -508,7 +493,7 @@ function getLineOperations(
         info: item,
         symbol: FIELD_SYMBOL,
         key: FIELD_KEY,
-        label: context.intl.formatMessage(messages.statusLabel),
+        label: intl.formatMessage(messages.statusLabel),
         action: async () => {
           await setSelectedIssueStatusPaletteCommand.callback();
         },
@@ -523,7 +508,7 @@ function getLineOperations(
         info: item,
         symbol: FIELD_SYMBOL,
         key: FIELD_KEY,
-        label: context.intl.formatMessage(messages.priorityLabel),
+        label: intl.formatMessage(messages.priorityLabel),
         action: async () => {
           await setSelectedIssuePriorityPaletteCommand.callback();
         },
@@ -544,7 +529,6 @@ export function MarkdownViewer({
   onChanged,
   onLogicalLineIndexChanged,
 }: MarkdownViewerProps) {
-  const intl = useIntl();
   const hasPopup = usePopupStore((s) => s.hasPopup);
   const isTextEditOpenForFile = useTextEditDialogStore(
     (s) => s.isDialogOpen && s.filePath === filePath,
@@ -797,7 +781,6 @@ export function MarkdownViewer({
         handle.getState().toggleCheckboxAtLine(logicalLineIndex),
       issueFolder,
       filePath,
-      intl,
     },
   );
   const frontmatterBoundaryDisplayRows = getFrontmatterBoundaryDisplayRows(
@@ -868,7 +851,7 @@ export function MarkdownViewer({
         }
 
         if (opsForRow.length === 2 && spacePressed) {
-          void openLineOperationPicker(opsForRow, intl);
+          void openLineOperationPicker(opsForRow);
           return;
         }
 
@@ -876,7 +859,7 @@ export function MarkdownViewer({
           opsForRow.length > 2 &&
           (spacePressed || multiOpKeyPressed)
         ) {
-          void openLineOperationPicker(opsForRow, intl);
+          void openLineOperationPicker(opsForRow);
           return;
         }
       }
