@@ -25,6 +25,7 @@ import {
 } from "./MarkdownViewer.tsx";
 import { EditIssueMarkdownFileHelper } from "../../helpers/EditIssueMarkdownFileHelper.ts";
 import { CustomScriptPaletteHelper } from "../../helpers/CustomScriptPaletteHelper.ts";
+import { useTextEditDialogStore } from "../../store/TextEditDialogStore.ts";
 import { useTerminalSize, useTerminalName } from "../hooks/useTerminal.ts";
 
 const issueViewerMessages = defineMessages({
@@ -68,7 +69,7 @@ export function IssueViewer({
   useTerminalName(issue.issueId);
   const { cols, rows: terminalRows } = useTerminalSize();
   const [displayTitle, setDisplayTitle] = useState("");
-  const [issueFilePath, setIssueFilePath] = useState<string | undefined>();
+  const [filePath, setFilePath] = useState<string | undefined>();
   const [pathResolved, setPathResolved] = useState(false);
 
   const cancelledRef = useRef(false);
@@ -80,10 +81,10 @@ export function IssueViewer({
     cancelledRef.current = false;
     setDisplayTitle("");
     setPathResolved(false);
-    setIssueFilePath(undefined);
+    setFilePath(undefined);
 
     if (attachmentPath != null) {
-      setIssueFilePath(attachmentPath);
+      setFilePath(attachmentPath);
       setPathResolved(true);
       setDisplayTitle(path.basename(attachmentPath));
       return () => {
@@ -93,11 +94,11 @@ export function IssueViewer({
 
     const resolvePath = async () => {
       const storage = new IssueFolderStorage(issue);
-      const filePath = await storage.findIssueFile();
+      const resolvedPath = await storage.findIssueFile();
       if (cancelledRef.current) return;
-      setIssueFilePath(filePath);
+      setFilePath(resolvedPath);
       setPathResolved(true);
-      if (!filePath) {
+      if (!resolvedPath) {
         setDisplayTitle(issue.metadata?.title ?? issue.issueId);
       }
     };
@@ -159,30 +160,43 @@ export function IssueViewer({
   }, []);
 
   const handleOpenTextEditDialog = useCallback(async () => {
-    if (!issueFilePath || isAttachmentView) return;
-    const result = await EditIssueMarkdownFileHelper.edit(issue, {
-      filePath: issueFilePath,
-      initialLineIndex: selectedLogicalLineIndexRef.current,
-    });
+    if (!filePath) return;
+
+    const result = isAttachmentView
+      ? await useTextEditDialogStore.getState().open({
+          filePath,
+          initialLineIndex: selectedLogicalLineIndexRef.current,
+        })
+      : await EditIssueMarkdownFileHelper.edit(issue, {
+          filePath,
+          initialLineIndex: selectedLogicalLineIndexRef.current,
+        });
+
     selectedLogicalLineIndexRef.current = result.lastLogicalLineIndex;
-    useFileWatcherStore.getState().cancelReload(issueFilePath);
-    const raw = (await fileService.readFile(issueFilePath, "utf-8")) as string;
+    useFileWatcherStore.getState().cancelReload(filePath);
+    const raw = (await fileService.readFile(filePath, "utf-8")) as string;
     markdownViewerHandle.getState().setContent({
       content: raw,
       logicalLineIndex: result.lastLogicalLineIndex,
     });
-  }, [issue, issueFilePath, markdownViewerHandle, fileService, isAttachmentView]);
+  }, [
+    issue,
+    filePath,
+    markdownViewerHandle,
+    fileService,
+    isAttachmentView,
+  ]);
 
   const handlePickEditor = useCallback(async () => {
-    if (!issueFilePath || isEditingFile || isAttachmentView) return;
+    if (!filePath || isEditingFile) return;
 
     setIsEditingFile(true);
     try {
-      await editFile(issueFilePath, { pickEditor: true });
+      await editFile(filePath, { pickEditor: true });
     } finally {
       setIsEditingFile(false);
     }
-  }, [editFile, isEditingFile, issueFilePath, isAttachmentView]);
+  }, [editFile, isEditingFile, filePath]);
 
   const currentTrackerRepo = useCurrentTrackerRepoStore(
     (s) => s.currentTrackerRepo,
@@ -203,7 +217,7 @@ export function IssueViewer({
         description: intl.formatMessage(
           issueViewerMessages.externalEditPaletteDescription,
         ),
-        isDisabled: !issueFilePath || isAttachmentView,
+        isDisabled: !filePath,
         callback: async () => {
           await handlePickEditor();
         },
@@ -213,13 +227,7 @@ export function IssueViewer({
       ),
       ...customScriptPaletteHelper.buildPaletteCommands(scripts ?? []),
     ];
-  }, [
-    customScriptPaletteHelper,
-    handlePickEditor,
-    intl,
-    issueFilePath,
-    isAttachmentView,
-  ]);
+  }, [customScriptPaletteHelper, handlePickEditor, intl, filePath]);
 
   const openViewerPalette = useCallback(
     (options?: {
@@ -253,7 +261,6 @@ export function IssueViewer({
       {
         label: "Edit",
         key: "E",
-        isDisabled: isAttachmentView,
         callback: () => {
           void handleOpenTextEditDialog();
         },
@@ -264,7 +271,7 @@ export function IssueViewer({
         description: intl.formatMessage(
           issueViewerMessages.externalEditDescription,
         ),
-        isDisabled: !issueFilePath || isAttachmentView,
+        isDisabled: !filePath,
         callback: () => {
           void handlePickEditor();
         },
@@ -303,7 +310,7 @@ export function IssueViewer({
     handleOpenTextEditDialog,
     intl,
     isAttachmentView,
-    issueFilePath,
+    filePath,
     openNextIssue,
     openPreviousIssue,
     openViewerPalette,
@@ -317,10 +324,10 @@ export function IssueViewer({
       <Box flexGrow={1} flexDirection="column">
         {!pathResolved ? (
           <Box height={contentHeight} />
-        ) : issueFilePath ? (
+        ) : filePath ? (
           <MarkdownViewer
             handle={markdownViewerHandle}
-            path={issueFilePath}
+            path={filePath}
             width={cols}
             height={contentHeight}
             issueFolder={issue}

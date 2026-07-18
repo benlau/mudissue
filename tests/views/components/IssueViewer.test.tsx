@@ -24,6 +24,7 @@ import {
   resetFileWatcherStore,
   useFileWatcherStore,
 } from "../../../src/store/FileWatcherStore.ts";
+import { useTextEditDialogStore } from "../../../src/store/TextEditDialogStore.ts";
 import type { IssueSearchStoreState } from "../../../src/store/IssueSearchStore.ts";
 import {
   IssueSearchStoreFactory,
@@ -34,6 +35,7 @@ import {
   true;
 
 const ISSUE_PATH = "/repo/issues/MI0001-demo/MI0001-demo.md";
+const ATTACHMENT_PATH = "/repo/issues/MI0001-demo/files/notes.md";
 const FILE_BODY = `---
 title: Demo issue
 status: open
@@ -42,6 +44,15 @@ priority: high
 # Heading
 
 Body line
+`;
+const ATTACHMENT_BODY = `---
+title: Attachment title
+status: closed
+priority: low
+---
+# Notes
+
+Attachment body
 `;
 
 function mockIssueSearchStoreForAppContext(): void {
@@ -70,18 +81,34 @@ async function pressDownAsync(
   }
 }
 
-function renderIssueViewer(issue: IssueFolder): ReturnType<typeof render> {
+function renderIssueViewer(
+  issue: IssueFolder,
+  attachmentPath?: string,
+): ReturnType<typeof render> {
   let view: ReturnType<typeof render>;
   act(() => {
     view = render(
       <IntlProvider locale="en" messages={{}}>
         <AppContextProvider>
-          <IssueViewer issue={issue} />
+          <IssueViewer issue={issue} attachmentPath={attachmentPath} />
         </AppContextProvider>
       </IntlProvider>,
     );
   });
   return view!;
+}
+
+function attachmentViewerNavigationStack(
+  issue: IssueFolder,
+  attachmentPath: string,
+) {
+  return [
+    ...viewerNavigationStack(issue),
+    {
+      name: "ISSUE_VIEWER" as const,
+      args: { issue, attachmentPath },
+    },
+  ];
 }
 
 afterEach(() => {
@@ -91,6 +118,13 @@ afterEach(() => {
   });
   resetAppStore();
   resetFileWatcherStore();
+  useTextEditDialogStore.setState({
+    isDialogOpen: false,
+    openSession: 0,
+    filePath: null,
+    initialLineIndex: 0,
+    pendingResolve: null,
+  });
   jest.restoreAllMocks();
 });
 
@@ -235,5 +269,146 @@ describe("IssueViewer", () => {
     expect(mockFileService.readFile.mock.calls.length).toBeGreaterThan(
       readCountAfterInitialLoad,
     );
+  });
+
+  it("opens TextEditDialog for attachment inline edit without EditIssueMarkdownFileHelper", async () => {
+    const issue = buildIssueFolder("MI0001", {
+      path: "/repo/issues/MI0001-demo",
+      title: "Demo issue",
+      status: "open",
+      priority: "high",
+    });
+
+    const openSpy = jest
+      .spyOn(useTextEditDialogStore.getState(), "open")
+      .mockResolvedValue({
+        lastUpdatedTimestamp: new Date("2026-05-10T12:00:00Z"),
+        lastLogicalLineIndex: 2,
+      });
+    const editHelperSpy = jest.spyOn(EditIssueMarkdownFileHelper, "edit");
+
+    const mockFileService = FileService.getInstance() as jest.Mocked<FileService>;
+    mockFileService.readFile.mockResolvedValue(ATTACHMENT_BODY);
+    mockFileService.stat.mockResolvedValue({
+      mtime: new Date("2026-05-10T12:00:00Z"),
+    } as never);
+
+    useAppStore.setState({
+      mainIssueLists: [issue],
+      navigationStack: attachmentViewerNavigationStack(issue, ATTACHMENT_PATH),
+      selectedIssueId: issue.issueId,
+    });
+
+    const view = renderIssueViewer(issue, ATTACHMENT_PATH);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      view.stdin.write("E");
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(openSpy).toHaveBeenCalledWith({
+      filePath: ATTACHMENT_PATH,
+      initialLineIndex: 0,
+    });
+    expect(editHelperSpy).not.toHaveBeenCalled();
+  });
+
+  it("reloads markdown viewer content after attachment inline edit closes", async () => {
+    const issue = buildIssueFolder("MI0001", {
+      path: "/repo/issues/MI0001-demo",
+      title: "Demo issue",
+      status: "open",
+      priority: "high",
+    });
+
+    jest.spyOn(useTextEditDialogStore.getState(), "open").mockResolvedValue({
+      lastUpdatedTimestamp: new Date("2026-05-10T12:00:00Z"),
+      lastLogicalLineIndex: 2,
+    });
+
+    const mockFileService = FileService.getInstance() as jest.Mocked<FileService>;
+    mockFileService.readFile.mockResolvedValue(ATTACHMENT_BODY);
+    mockFileService.stat.mockResolvedValue({
+      mtime: new Date("2026-05-10T12:00:00Z"),
+    } as never);
+
+    useAppStore.setState({
+      mainIssueLists: [issue],
+      navigationStack: attachmentViewerNavigationStack(issue, ATTACHMENT_PATH),
+      selectedIssueId: issue.issueId,
+    });
+
+    const cancelReloadSpy = jest.spyOn(
+      useFileWatcherStore.getState(),
+      "cancelReload",
+    );
+
+    const view = renderIssueViewer(issue, ATTACHMENT_PATH);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    const readCountAfterInitialLoad = mockFileService.readFile.mock.calls.length;
+
+    await act(async () => {
+      view.stdin.write("E");
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(cancelReloadSpy).toHaveBeenCalledWith(ATTACHMENT_PATH);
+    expect(mockFileService.readFile.mock.calls.length).toBeGreaterThan(
+      readCountAfterInitialLoad,
+    );
+  });
+
+  it("does not apply issue metadata updates when attachment content has frontmatter", async () => {
+    const issue = buildIssueFolder("MI0001", {
+      path: "/repo/issues/MI0001-demo",
+      title: "Demo issue",
+      status: "open",
+      priority: "high",
+    });
+
+    const mockFileService = FileService.getInstance() as jest.Mocked<FileService>;
+    mockFileService.readFile.mockResolvedValue(ATTACHMENT_BODY);
+    mockFileService.stat.mockResolvedValue({
+      mtime: new Date("2026-05-10T12:00:00Z"),
+    } as never);
+
+    useAppStore.setState({
+      mainIssueLists: [issue],
+      navigationStack: attachmentViewerNavigationStack(issue, ATTACHMENT_PATH),
+      selectedIssueId: issue.issueId,
+    });
+
+    const applyIssueMetadataUpdateSpy = jest.spyOn(
+      useAppStore.getState(),
+      "applyIssueMetadataUpdate",
+    );
+
+    renderIssueViewer(issue, ATTACHMENT_PATH);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(applyIssueMetadataUpdateSpy).not.toHaveBeenCalled();
   });
 });
