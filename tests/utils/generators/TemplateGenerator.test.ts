@@ -50,54 +50,6 @@ describe("TemplateGenerator", () => {
     expect(result).toBeUndefined();
   });
 
-  it("should render obsidian-kanban template with board context", () => {
-    const generator = new TemplateGenerator();
-
-    const result = generator.getTemplate("obsidian-kanban", {
-      columns: [
-        {
-          title: "inbox",
-          cards: [{ wikiLink: "[[0001]]" }],
-        },
-        {
-          title: "in_progress",
-          cards: [{ wikiLink: "[[0002]]" }],
-        },
-      ],
-      listCollapse: [false, false],
-    });
-
-    expect(result).toEqual(
-      [
-        "---",
-        "kanban-plugin: board",
-        "---",
-        "",
-        "",
-        "## inbox",
-        "",
-        "",
-        "- [ ] [[0001]]",
-        "",
-        "",
-        "",
-        "## in_progress",
-        "",
-        "",
-        "- [ ] [[0002]]",
-        "",
-        "",
-        "",
-        "%% kanban:settings",
-        "```",
-        '{"kanban-plugin":"board","list-collapse":[false,false]}',
-        "```",
-        "%%",
-        "",
-      ].join("\n"),
-    );
-  });
-
   it("should render issue-merge-section template with issue export context", () => {
     const generator = new TemplateGenerator();
 

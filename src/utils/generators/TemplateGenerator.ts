@@ -1,6 +1,5 @@
 import issueTemplate from "../../assets/templates/issue.md";
 import mudconfTemplate from "../../assets/templates/mud.conf";
-import obsidianKanbanTemplate from "../../assets/templates/obsidian-kanban.md";
 import issueMergeSectionTemplate from "../../assets/templates/issue-merge-section.md";
 import ejs from "ejs";
 
@@ -17,7 +16,6 @@ export class TemplateGenerator {
     this.templates = new Map<TemplateType, ResourceTemplate>();
     this.templates.set("issue", issueTemplate);
     this.templates.set("mudconf", mudconfTemplate);
-    this.templates.set("obsidian-kanban", obsidianKanbanTemplate);
     this.templates.set("issue-merge-section", issueMergeSectionTemplate);
   }
 

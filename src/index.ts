@@ -28,7 +28,6 @@ import { IssueLinkCommand } from "./commands/IssueLinkCommand.ts";
 import { IssueUnlinkCommand } from "./commands/IssueUnlinkCommand.ts";
 import { TrackerRepoOpenCommand } from "./commands/TrackerRepoOpenCommand.ts";
 import { TrackerRepoLocateCommand } from "./commands/TrackerRepoLocateCommand.ts";
-import { TrackerRepoExportCommand } from "./commands/TrackerRepoExportCommand.ts";
 import { IssueBranchCreateCommand } from "./commands/IssueBranchCreateCommand.ts";
 import { IssueBranchGetCommand } from "./commands/IssueBranchGetCommand.ts";
 import { IssueBranchRemoveCommand } from "./commands/IssueBranchRemoveCommand.ts";
@@ -119,7 +118,7 @@ const msg = defineMessages({
   },
   demandTracker: {
     id: "cli.demand.tracker",
-    defaultMessage: "Specify 'open', 'locate', or 'export'",
+    defaultMessage: "Specify 'open' or 'locate'",
   },
   demandBranch: {
     id: "cli.demand.branch",
@@ -185,7 +184,6 @@ const ISSUE_LEAF_COMMANDS = [
 const TRACKER_REPO_COMMANDS = [
   TrackerRepoOpenCommand,
   TrackerRepoLocateCommand,
-  TrackerRepoExportCommand,
 ] as const;
 
 const BRANCH_COMMANDS = [
