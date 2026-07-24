@@ -320,4 +320,63 @@ describe("MarkdownLineOperationParser", () => {
       ]),
     );
   });
+
+  it("detects boolean frontmatter fields as LineOperationInfo", () => {
+    const detected = MarkdownLineOperationParser.detect([
+      "---",
+      "title: Demo",
+      "TaskRequirement: false",
+      "ImplementPlan: true",
+      "---",
+      "# Body",
+    ]);
+    expect(detected).toContainEqual({
+      kind: "boolean",
+      logicalLineIndexes: [2],
+    });
+    expect(detected).toContainEqual({
+      kind: "boolean",
+      logicalLineIndexes: [3],
+    });
+  });
+
+  it("does not detect quoted string true/false as boolean fields", () => {
+    const detected = MarkdownLineOperationParser.detect([
+      "---",
+      "title: Demo",
+      'flag: "true"',
+      "label: false-ish",
+      "---",
+      "# Body",
+    ]);
+    expect(detected).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "boolean" }),
+      ]),
+    );
+  });
+
+  it("detects boolean fields alongside status and priority", () => {
+    const detected = MarkdownLineOperationParser.detect([
+      "---",
+      "title: Demo",
+      "status: open",
+      "priority: high",
+      "Commit: false",
+      "---",
+      "# Body",
+    ]);
+    expect(detected).toContainEqual({
+      kind: "status",
+      logicalLineIndexes: [2],
+    });
+    expect(detected).toContainEqual({
+      kind: "priority",
+      logicalLineIndexes: [3],
+    });
+    expect(detected).toContainEqual({
+      kind: "boolean",
+      logicalLineIndexes: [4],
+    });
+  });
 });

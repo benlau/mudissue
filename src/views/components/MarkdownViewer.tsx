@@ -148,6 +148,10 @@ const messages = defineMessages({
     id: "views.markdownViewer.checkbox.label",
     defaultMessage: "Toggle checkbox",
   },
+  booleanLabel: {
+    id: "views.markdownViewer.boolean.label",
+    defaultMessage: "Toggle boolean",
+  },
   statusLabel: {
     id: "views.markdownViewer.status.label",
     defaultMessage: "Set status",
@@ -217,6 +221,7 @@ const UNLINK_KEY = "-";
 
 type GetLineOperationsContext = {
   toggleCheckboxAtLine: (logicalLineIndex: number) => Promise<void>;
+  toggleBooleanAtLine: (logicalLineIndex: number) => Promise<void>;
   issueFolder?: IssueFolder;
   filePath: string;
 };
@@ -481,6 +486,22 @@ function getLineOperations(
         label: intl.formatMessage(messages.checkboxLabel),
         action: async () => {
           await context.toggleCheckboxAtLine(logicalLineIndex);
+        },
+      });
+      continue;
+    }
+
+    if (item.kind === "boolean") {
+      const logicalLineIndex = item.logicalLineIndexes[0]!;
+      operations.push({
+        kind: "boolean",
+        displayRows,
+        info: item,
+        symbol: CHECKBOX_SYMBOL,
+        key: CHECKBOX_KEY,
+        label: intl.formatMessage(messages.booleanLabel),
+        action: async () => {
+          await context.toggleBooleanAtLine(logicalLineIndex);
         },
       });
       continue;
@@ -779,6 +800,8 @@ export function MarkdownViewer({
     {
       toggleCheckboxAtLine: (logicalLineIndex) =>
         handle.getState().toggleCheckboxAtLine(logicalLineIndex),
+      toggleBooleanAtLine: (logicalLineIndex) =>
+        handle.getState().toggleBooleanAtLine(logicalLineIndex),
       issueFolder,
       filePath,
     },

@@ -46,9 +46,9 @@ Body line
     ).toEqual({
       lineRange: { start: 0, end: 4 },
       fields: {
-        title: { start: 1, end: 1 },
-        status: { start: 2, end: 2 },
-        priority: { start: 3, end: 3 },
+        title: { lineRange: { start: 1, end: 1 }, value: "Demo issue" },
+        status: { lineRange: { start: 2, end: 2 }, value: "open" },
+        priority: { lineRange: { start: 3, end: 3 }, value: "high" },
       },
     });
   });
@@ -67,9 +67,12 @@ status: open
     ).toEqual({
       lineRange: { start: 0, end: 6 },
       fields: {
-        title: { start: 1, end: 1 },
-        tags: { start: 2, end: 4 },
-        status: { start: 5, end: 5 },
+        title: { lineRange: { start: 1, end: 1 }, value: "Demo issue" },
+        tags: {
+          lineRange: { start: 2, end: 4 },
+          value: ["bug", "feature"],
+        },
+        status: { lineRange: { start: 5, end: 5 }, value: "open" },
       },
     });
   });
@@ -82,9 +85,80 @@ status: open
     ).toEqual({
       lineRange: { start: 0, end: 3 },
       fields: {
-        title: { start: 1, end: 1 },
-        status: { start: 2, end: 2 },
+        title: { lineRange: { start: 1, end: 1 }, value: "Demo issue" },
+        status: { lineRange: { start: 2, end: 2 }, value: "open" },
       },
     });
+  });
+
+  it("parses boolean frontmatter values as real booleans on fields", () => {
+    expect(
+      FrontMatterLineParser.parse(`---
+title: Demo issue
+TaskRequirement: false
+ImplementPlan: true
+flag: "true"
+---
+# Body
+`),
+    ).toEqual({
+      lineRange: { start: 0, end: 5 },
+      fields: {
+        title: { lineRange: { start: 1, end: 1 }, value: "Demo issue" },
+        TaskRequirement: {
+          lineRange: { start: 2, end: 2 },
+          value: false,
+        },
+        ImplementPlan: { lineRange: { start: 3, end: 3 }, value: true },
+        flag: { lineRange: { start: 4, end: 4 }, value: "true" },
+      },
+    });
+  });
+});
+
+describe("FrontMatterLineParser.toggleBooleanAtLine", () => {
+  it("flips a boolean frontmatter field from false to true", () => {
+    expect(
+      FrontMatterLineParser.toggleBooleanAtLine(
+        ["---", "Commit: false", "---", "# Body"],
+        1,
+      ),
+    ).toEqual(["---", "Commit: true", "---", "# Body"]);
+  });
+
+  it("flips a boolean frontmatter field from true to false", () => {
+    expect(
+      FrontMatterLineParser.toggleBooleanAtLine(
+        ["---", "Commit: true", "---", "# Body"],
+        1,
+      ),
+    ).toEqual(["---", "Commit: false", "---", "# Body"]);
+  });
+
+  it("returns null for a boolean-looking line outside frontmatter", () => {
+    expect(
+      FrontMatterLineParser.toggleBooleanAtLine(
+        ["---", "title: Demo", "---", "Commit: false"],
+        3,
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null for a quoted string true/false field", () => {
+    expect(
+      FrontMatterLineParser.toggleBooleanAtLine(
+        ["---", 'flag: "true"', "---", "# Body"],
+        1,
+      ),
+    ).toBeNull();
+  });
+
+  it("returns null for a non-boolean frontmatter field", () => {
+    expect(
+      FrontMatterLineParser.toggleBooleanAtLine(
+        ["---", "status: open", "---", "# Body"],
+        1,
+      ),
+    ).toBeNull();
   });
 });

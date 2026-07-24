@@ -38,6 +38,7 @@ export type MarkdownViewerHandleStoreState = {
   getSelectedContent: () => string | null;
   replaceSelection: (replacement: string) => string | null;
   toggleCheckboxAtLine: (logicalLineIndex: number) => Promise<void>;
+  toggleBooleanAtLine: (logicalLineIndex: number) => Promise<void>;
   save: () => Promise<void>;
   setOnLinesChanged: (callback: (lines: string[]) => void) => void;
   setOnSaved: (callback: (mtime: Date) => void) => void;
@@ -187,6 +188,25 @@ export function createMarkdownViewerHandleStore(): MarkdownViewerHandleStore {
       }
       try {
         await lineOperationsStorage.toggleCheckboxAtLine(logicalLineIndex);
+        await lineOperationsStorage.saveNow();
+      } finally {
+        if (filePath != null) {
+          useFileWatcherStore.getState().setFileWatchEnabled(filePath, true);
+        }
+      }
+    },
+
+    toggleBooleanAtLine: async (logicalLineIndex) => {
+      if (lineOperationsStorage == null) {
+        return;
+      }
+
+      const filePath = get().filePath;
+      if (filePath != null) {
+        useFileWatcherStore.getState().setFileWatchEnabled(filePath, false);
+      }
+      try {
+        await lineOperationsStorage.toggleBooleanAtLine(logicalLineIndex);
         await lineOperationsStorage.saveNow();
       } finally {
         if (filePath != null) {

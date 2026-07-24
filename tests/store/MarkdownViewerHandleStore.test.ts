@@ -141,6 +141,48 @@ describe("MarkdownViewerHandleStore", () => {
     );
     expect(useFileWatcherStore.getState().generationByPath).toEqual({});
   });
+
+  it("pauses file watching while toggling a boolean frontmatter field and writing", async () => {
+    const mockFileService = createMockFileService();
+    mockFileService.writeFile.mockResolvedValue(undefined);
+    mockFileService.stat.mockResolvedValue({
+      mtime: new Date("2026-07-07T00:00:00Z"),
+    } as never);
+    FileService.setInstance(mockFileService as unknown as FileService);
+
+    resetFileWatcherStore();
+    useFileWatcherStore.getState().registerWatcher(ISSUE_PATH);
+
+    const content = "---\nCommit: false\n---\n# Body";
+    const store = createMarkdownViewerHandleStore();
+    store.getState().setFilePath(ISSUE_PATH);
+    store.getState().setContent({ content });
+    store.getState().setOnLinesChanged((lines) => {
+      store.getState().updateContent(lines.join("\n"));
+    });
+
+    const setEnabledSpy = jest.spyOn(
+      useFileWatcherStore.getState(),
+      "setFileWatchEnabled",
+    );
+    setEnabledSpy.mockClear();
+
+    await store.getState().toggleBooleanAtLine(1);
+
+    expect(setEnabledSpy.mock.calls).toEqual([
+      [ISSUE_PATH, false],
+      [ISSUE_PATH, true],
+    ]);
+    expect(store.getState().content).toEqual(
+      "---\nCommit: true\n---\n# Body",
+    );
+    expect(mockFileService.writeFile).toHaveBeenCalledWith(
+      ISSUE_PATH,
+      "---\nCommit: true\n---\n# Body",
+      "utf-8",
+    );
+    expect(useFileWatcherStore.getState().generationByPath).toEqual({});
+  });
 });
 
 describe("MarkdownViewerHandleStoreManager", () => {

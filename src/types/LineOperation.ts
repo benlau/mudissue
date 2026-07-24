@@ -6,6 +6,7 @@ export type LineOperationInfo = {
     | "checkbox"
     | "status"
     | "priority"
+    | "boolean"
     | "frontmatter_boundary";
   logicalLineIndexes: number[];
   linkageType?: string;
@@ -16,7 +17,14 @@ export type LineOperationInfo = {
 };
 
 export type LineOperation = {
-  kind: "jump" | "unlink" | "attachment" | "checkbox" | "status" | "priority";
+  kind:
+    | "jump"
+    | "unlink"
+    | "attachment"
+    | "checkbox"
+    | "status"
+    | "priority"
+    | "boolean";
   displayRows: number[];
   info: LineOperationInfo;
   symbol: string;

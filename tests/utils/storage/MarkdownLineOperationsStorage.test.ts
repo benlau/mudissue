@@ -34,6 +34,59 @@ describe("MarkdownLineOperationsStorage", () => {
     expect(storage.getLines()).toEqual(["- [x] Task"]);
   });
 
+  it("mutates lines when toggling a boolean frontmatter field", async () => {
+    const storage = new MarkdownLineOperationsStorage(ISSUE_PATH);
+    storage.setLines([
+      "---",
+      "Commit: false",
+      "---",
+      "# Body",
+    ]);
+
+    await storage.toggleBooleanAtLine(1);
+
+    expect(storage.getLines()).toEqual([
+      "---",
+      "Commit: true",
+      "---",
+      "# Body",
+    ]);
+  });
+
+  it("does not mutate when toggling a boolean-looking line outside frontmatter", async () => {
+    const storage = new MarkdownLineOperationsStorage(ISSUE_PATH);
+    storage.setLines([
+      "---",
+      "title: Demo",
+      "---",
+      "Commit: false",
+    ]);
+
+    await storage.toggleBooleanAtLine(3);
+
+    expect(storage.getLines()).toEqual([
+      "---",
+      "title: Demo",
+      "---",
+      "Commit: false",
+    ]);
+  });
+
+  it("notifies listeners when lines change from a boolean toggle", async () => {
+    const storage = new MarkdownLineOperationsStorage(ISSUE_PATH);
+    storage.setLines(["---", "Commit: true", "---"]);
+    const onLinesChanged = jest.fn();
+    storage.setOnLinesChanged(onLinesChanged);
+
+    await storage.toggleBooleanAtLine(1);
+
+    expect(onLinesChanged).toHaveBeenCalledWith([
+      "---",
+      "Commit: false",
+      "---",
+    ]);
+  });
+
   it("notifies listeners when lines change from a toggle", async () => {
     const storage = new MarkdownLineOperationsStorage(ISSUE_PATH);
     storage.setLines(["- [ ] Task"]);

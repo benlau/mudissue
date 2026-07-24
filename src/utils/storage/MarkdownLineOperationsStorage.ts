@@ -1,3 +1,4 @@
+import { FrontMatterLineParser } from "../../foundation/parser/FrontMatterLineParser.ts";
 import { MarkdownParser } from "../../foundation/parser/MarkdownParser.ts";
 import { SAVE_DEBOUNCE_MS } from "../../constants.ts";
 import { FileService } from "../../services/FileService.ts";
@@ -59,6 +60,20 @@ export class MarkdownLineOperationsStorage {
 
     const nextLines = [...this.lines];
     nextLines[logicalLineIndex] = nextLine;
+    this.lines = nextLines;
+    this.reloadSuppressedUntil =
+      Date.now() + SAVE_DEBOUNCE_MS + RELOAD_SUPPRESS_AFTER_SAVE_MS;
+    this.onLinesChanged?.(this.lines);
+    this.scheduleSave();
+  }
+
+  async toggleBooleanAtLine(logicalLineIndex: number): Promise<void> {
+    const nextLines = FrontMatterLineParser.toggleBooleanAtLine(
+      this.lines,
+      logicalLineIndex,
+    );
+    if (nextLines == null) return;
+
     this.lines = nextLines;
     this.reloadSuppressedUntil =
       Date.now() + SAVE_DEBOUNCE_MS + RELOAD_SUPPRESS_AFTER_SAVE_MS;

@@ -62,13 +62,34 @@ function detectFrontMatterFieldLines(
 
   const results: LineOperationInfo[] = [];
   for (const field of FRONTMATTER_FIELD_KINDS) {
-    const fieldRange = frontmatter.fields[field];
-    if (fieldRange == null) {
+    const fieldInfo = frontmatter.fields[field];
+    if (fieldInfo == null) {
       continue;
     }
     results.push({
       kind: field,
-      logicalLineIndexes: lineIndexesInRange(fieldRange),
+      logicalLineIndexes: lineIndexesInRange(fieldInfo.lineRange),
+    });
+  }
+  return results;
+}
+
+function detectBooleanFieldLines(
+  context: DetectorContext,
+): LineOperationInfo[] {
+  const { frontmatter } = context;
+  if (frontmatter == null) {
+    return [];
+  }
+
+  const results: LineOperationInfo[] = [];
+  for (const fieldInfo of Object.values(frontmatter.fields)) {
+    if (fieldInfo.value !== true && fieldInfo.value !== false) {
+      continue;
+    }
+    results.push({
+      kind: "boolean",
+      logicalLineIndexes: lineIndexesInRange(fieldInfo.lineRange),
     });
   }
   return results;
@@ -82,12 +103,12 @@ function detectLinkageLines(context: DetectorContext): LineOperationInfo[] {
 
   const results: LineOperationInfo[] = [];
   for (const fieldName of linkTypeFieldNames) {
-    const fieldRange = frontmatter.fields[fieldName];
-    if (fieldRange == null) {
+    const fieldInfo = frontmatter.fields[fieldName];
+    if (fieldInfo == null) {
       continue;
     }
 
-    for (const lineIndex of lineIndexesInRange(fieldRange)) {
+    for (const lineIndex of lineIndexesInRange(fieldInfo.lineRange)) {
       const line = lines[lineIndex] ?? "";
       const match = WIKILINK_PATTERN.exec(line);
       if (match == null) {
@@ -138,13 +159,13 @@ function detectAttachmentLines(context: DetectorContext): LineOperationInfo[] {
     return [];
   }
 
-  const fieldRange = frontmatter.fields.attachments;
-  if (fieldRange == null) {
+  const fieldInfo = frontmatter.fields.attachments;
+  if (fieldInfo == null) {
     return [];
   }
 
   const results: LineOperationInfo[] = [];
-  for (const lineIndex of lineIndexesInRange(fieldRange)) {
+  for (const lineIndex of lineIndexesInRange(fieldInfo.lineRange)) {
     const line = lines[lineIndex] ?? "";
     const match = WIKILINK_PATTERN.exec(line);
     if (match == null) {
@@ -183,6 +204,7 @@ function detectCheckboxLines(context: DetectorContext): LineOperationInfo[] {
 const DETECTORS = [
   detectFrontmatterBoundaryLines,
   detectFrontMatterFieldLines,
+  detectBooleanFieldLines,
   detectCheckboxLines,
   detectWikiLinkLines,
   detectAttachmentLines,
