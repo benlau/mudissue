@@ -198,7 +198,7 @@ export type IssueRenameCommandSuccessResult = {
   newIssueFolderName: string;
 };
 
-export type IssueChangeIdCommandSuccessResult = {
+export type IssueChangeLabelCommandSuccessResult = {
   oldIssueFolderName: string;
   newIssueFolderName: string;
 };

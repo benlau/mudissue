@@ -1,23 +1,23 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
-import { ChangeIssueIdHelper } from "../helpers/ChangeIssueIdHelper.ts";
+import { ChangeIssueLabelHelper } from "../helpers/ChangeIssueLabelHelper.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { intl } from "../intl.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,
-  IssueChangeIdCommandSuccessResult,
+  IssueChangeLabelCommandSuccessResult,
   SuccessResponse,
 } from "../types/Response.ts";
 
-export type IssueChangeIdCommandSuccessResponse =
-  SuccessResponse<IssueChangeIdCommandSuccessResult>;
+export type IssueChangeLabelCommandSuccessResponse =
+  SuccessResponse<IssueChangeLabelCommandSuccessResult>;
 
 const msg = defineMessages({
-  issueChangeIdDescribe: {
-    id: "cli.issue.changeId.describe",
+  issueChangeLabelDescribe: {
+    id: "cli.issue.changeLabel.describe",
     defaultMessage:
-      "Change an issue id (folder prefix and number; suffix unchanged)",
+      "Change an issue label (folder prefix and number; suffix unchanged)",
   },
   optionProject: {
     id: "cli.common.option.project",
@@ -27,24 +27,24 @@ const msg = defineMessages({
     id: "cli.common.option.issueSelector",
     defaultMessage: "Issue ID, folder name, or suffix",
   },
-  issueChangeIdNewId: {
-    id: "cli.issue.changeId.positional.newId",
-    defaultMessage: "New issue id (prefix and number only)",
+  issueChangeLabelNewLabel: {
+    id: "cli.issue.changeLabel.positional.newLabel",
+    defaultMessage: "New issue label (prefix and number only)",
   },
 });
 
-export class IssueChangeIdCommand extends Command {
-  name = "issue change-id";
+export class IssueChangeLabelCommand extends Command {
+  name = "issue change-label";
 
   constructor() {
     super();
   }
 
   static register(yargs: Argv): Argv {
-    const cmd = new IssueChangeIdCommand();
+    const cmd = new IssueChangeLabelCommand();
     return yargs.command(
-      "change-id <issue_selector> <new_id>",
-      intl.formatMessage(msg.issueChangeIdDescribe),
+      "change-label <issue_selector> <new_label>",
+      intl.formatMessage(msg.issueChangeLabelDescribe),
       (builder) =>
         builder
           .option("project", {
@@ -56,8 +56,8 @@ export class IssueChangeIdCommand extends Command {
             type: "string",
             demandOption: true,
           })
-          .positional("new_id", {
-            describe: intl.formatMessage(msg.issueChangeIdNewId),
+          .positional("new_label", {
+            describe: intl.formatMessage(msg.issueChangeLabelNewLabel),
             type: "string",
             demandOption: true,
           }),
@@ -71,7 +71,7 @@ export class IssueChangeIdCommand extends Command {
         await cmd.runCommand(
           { outputJson },
           argv.issue_selector ?? "",
-          argv.new_id ?? "",
+          argv.new_label ?? "",
           argv.project,
         );
       },
@@ -80,19 +80,19 @@ export class IssueChangeIdCommand extends Command {
 
   async command(
     issueSelector: string,
-    newId: string,
+    newLabel: string,
     project?: string,
-  ): Promise<IssueChangeIdCommandSuccessResponse | ErrorResponse> {
+  ): Promise<IssueChangeLabelCommandSuccessResponse | ErrorResponse> {
     const { repo, issue } =
       await IssueSelectorArgumentHelper.processIssueSelectorArgument(
         issueSelector,
         project,
       );
 
-    const result = await new ChangeIssueIdHelper().changeIssueId(
+    const result = await new ChangeIssueLabelHelper().changeIssueLabel(
       repo,
       issue,
-      newId,
+      newLabel,
     );
 
     return {

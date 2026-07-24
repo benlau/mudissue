@@ -1,6 +1,6 @@
 import { defineMessages } from "react-intl";
 import { IssueSelectorMatcher } from "../../foundation/matchers/IssueSelectorMatcher.ts";
-import { ChangeIssueIdHelper } from "../../helpers/ChangeIssueIdHelper.ts";
+import { ChangeIssueLabelHelper } from "../../helpers/ChangeIssueLabelHelper.ts";
 import { intl } from "../../intl.ts";
 import { useAlertDialogStore } from "../../store/AlertDialogStore.ts";
 import { useAppStore } from "../../store/AppStore.ts";
@@ -12,46 +12,46 @@ import { isErrorResponse } from "../../types/Response.ts";
 
 const messages = defineMessages({
   label: {
-    id: "views.paletteCommands.changeId.label",
+    id: "views.paletteCommands.changeLabel.label",
     defaultMessage: "Change Label",
   },
   description: {
-    id: "views.paletteCommands.changeId.description",
+    id: "views.paletteCommands.changeLabel.description",
     defaultMessage: "Change the label of the first selected issue",
   },
   dialogTitle: {
-    id: "views.paletteCommands.changeId.dialogTitle",
+    id: "views.paletteCommands.changeLabel.dialogTitle",
     defaultMessage: "Change Label",
   },
   dialogPrompt: {
-    id: "views.paletteCommands.changeId.dialogPrompt",
+    id: "views.paletteCommands.changeLabel.dialogPrompt",
     defaultMessage: "New label: ",
   },
   dialogPlaceholder: {
-    id: "views.paletteCommands.changeId.dialogPlaceholder",
+    id: "views.paletteCommands.changeLabel.dialogPlaceholder",
     defaultMessage: "e.g. MI042",
   },
   invalidIdFormat: {
-    id: "views.paletteCommands.changeId.invalidIdFormat",
+    id: "views.paletteCommands.changeLabel.invalidIdFormat",
     defaultMessage: "Invalid label format.",
   },
   repoNotFoundAlert: {
-    id: "views.paletteCommands.changeId.repoNotFoundAlert",
+    id: "views.paletteCommands.changeLabel.repoNotFoundAlert",
     defaultMessage: "Could not find the project for this issue.",
   },
   successToast: {
-    id: "views.paletteCommands.changeId.successToast",
+    id: "views.paletteCommands.changeLabel.successToast",
     defaultMessage: "{oldFolder} → {newFolder}",
   },
   idAlreadyExistsToast: {
-    id: "views.paletteCommands.changeId.idAlreadyExistsToast",
+    id: "views.paletteCommands.changeLabel.idAlreadyExistsToast",
     defaultMessage: "Label {id} already exists",
   },
 });
 
-export class ChangeIdPaletteCommand implements PaletteCommand {
+export class ChangeLabelPaletteCommand implements PaletteCommand {
   readonly label = intl.formatMessage(messages.label);
-  readonly key = "changeId";
+  readonly key = "changeLabel";
   readonly description = intl.formatMessage(messages.description);
 
   async callback(): Promise<void> {
@@ -87,7 +87,7 @@ export class ChangeIdPaletteCommand implements PaletteCommand {
     }
 
     try {
-      const result = await new ChangeIssueIdHelper().changeIssueId(
+      const result = await new ChangeIssueLabelHelper().changeIssueLabel(
         repo,
         issue,
         dialogResult.value,
@@ -115,7 +115,7 @@ export class ChangeIdPaletteCommand implements PaletteCommand {
       );
     } catch (err) {
       if (isErrorResponse(err)) {
-        if (err.error.code === "CHANGE_ISSUE_ID_TARGET_EXISTS") {
+        if (err.error.code === "CHANGE_ISSUE_LABEL_TARGET_EXISTS") {
           await useToastStore.getState().error(
             intl.formatMessage(messages.idAlreadyExistsToast, {
               id: dialogResult.value,
@@ -132,5 +132,5 @@ export class ChangeIdPaletteCommand implements PaletteCommand {
   }
 }
 
-export const changeIdPaletteCommand: PaletteCommand =
-  new ChangeIdPaletteCommand();
+export const changeLabelPaletteCommand: PaletteCommand =
+  new ChangeLabelPaletteCommand();

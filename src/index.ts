@@ -16,7 +16,7 @@ import { IssueArchiveCommand } from "./commands/IssueArchiveCommand.ts";
 import { IssueMergeCommand } from "./commands/IssueMergeCommand.ts";
 import { IssueLocateCommand } from "./commands/IssueLocateCommand.ts";
 import { IssueRenameCommand } from "./commands/IssueRenameCommand.ts";
-import { IssueChangeIdCommand } from "./commands/IssueChangeIdCommand.ts";
+import { IssueChangeLabelCommand } from "./commands/IssueChangeLabelCommand.ts";
 import { IssueAttachCommand } from "./commands/IssueAttachCommand.ts";
 import { IssueTagCommand } from "./commands/IssueTagCommand.ts";
 import { IssueUntagCommand } from "./commands/IssueUntagCommand.ts";
@@ -136,7 +136,7 @@ const msg = defineMessages({
   demandIssue: {
     id: "cli.demand.issue",
     defaultMessage:
-      "Specify 'create', 'edit', 'view', 'cat', 'set-property', 'get-property', 'search', 'remove', 'archive', 'merge', 'locate', 'rename', 'change-id', 'attach', 'tag', 'untag', 'comment', 'append', 'prepend', 'touch', 'link', 'unlink', 'branch', 'tmux', or 'worktree'",
+      "Specify 'create', 'edit', 'view', 'cat', 'set-property', 'get-property', 'search', 'remove', 'archive', 'merge', 'locate', 'rename', 'change-label', 'attach', 'tag', 'untag', 'comment', 'append', 'prepend', 'touch', 'link', 'unlink', 'branch', 'tmux', or 'worktree'",
   },
   demandRegistry: {
     id: "cli.demand.registry",
@@ -169,7 +169,7 @@ const ISSUE_LEAF_COMMANDS = [
   IssueMergeCommand,
   IssueLocateCommand,
   IssueRenameCommand,
-  IssueChangeIdCommand,
+  IssueChangeLabelCommand,
   IssueAttachCommand,
   IssueTagCommand,
   IssueUntagCommand,
