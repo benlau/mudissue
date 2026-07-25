@@ -84,6 +84,37 @@ export function ensureScrollShowsSelection(
   return scrollOffset;
 }
 
+type DisplayRowHighlightOptions = {
+  globalIndex: number;
+  displayLineCount: number;
+  isCursor: boolean;
+  selectedLogicalRange: { start: number; end: number } | null;
+  logicalLineIndex: number;
+};
+
+/** Viewport padding rows (past content) must not inherit selection/cursor inverse. */
+function isDisplayRowHighlighted({
+  globalIndex,
+  displayLineCount,
+  isCursor,
+  selectedLogicalRange,
+  logicalLineIndex,
+}: DisplayRowHighlightOptions): boolean {
+  if (globalIndex >= displayLineCount) {
+    return false;
+  }
+  if (isCursor) {
+    return true;
+  }
+  if (selectedLogicalRange == null) {
+    return false;
+  }
+  return (
+    logicalLineIndex >= selectedLogicalRange.start &&
+    logicalLineIndex <= selectedLogicalRange.end
+  );
+}
+
 export type MarkdownViewerChangedPayload = {
   path: string;
   lines: string[];
@@ -925,13 +956,18 @@ export function MarkdownViewer({
     <>
       {paddedVisible.map((line, i) => {
         const globalIndex = scrollOffset + i;
-        const isCursor = globalIndex === clampedIndex;
-        const logicalForRow = textLayouter.getLogicalLineIndex(globalIndex);
-        const isInSelection =
-          selectedLogicalRange != null &&
-          logicalForRow >= selectedLogicalRange.start &&
-          logicalForRow <= selectedLogicalRange.end;
-        const isHighlighted = isCursor || isInSelection;
+        const isPastContent = globalIndex >= displayLines.length;
+        const isCursor = !isPastContent && globalIndex === clampedIndex;
+        const logicalForRow = isPastContent
+          ? -1
+          : textLayouter.getLogicalLineIndex(globalIndex);
+        const isHighlighted = isDisplayRowHighlighted({
+          globalIndex,
+          displayLineCount: displayLines.length,
+          isCursor,
+          selectedLogicalRange,
+          logicalLineIndex: logicalForRow,
+        });
         const opsForRow = LineOperationFormatter.getOperationsForRow(
           lineOperations,
           globalIndex,
