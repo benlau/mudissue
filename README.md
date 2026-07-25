@@ -19,6 +19,7 @@ MudIssue (乜野事 in Cantonese) is a personal command-line issue tracker desig
 - **Machine-Readable Output:** Includes a `--json` option to provide precise, parsable data for AI agent processing.
 
 
+
 # Installation
 
 ```
@@ -26,8 +27,6 @@ npm install -g mudissue
 ```
 
 That will install a `mud` command for manipulating the issue repository.
-
-If upgrading from an older version that used the `mi` command and `mi.conf`, reinstall the package, rename config files to `mud.conf` (or `.git/mudissue/mud.conf`), and update shell completion and scripts.
 
 ## Shell Completion
 
@@ -45,13 +44,13 @@ This creates `mud.conf` in the current directory. The config defines where issue
 
 **Using `init --inside-git`**
 
-To store the config inside the git metadata directory instead of the project root:
+If you prefer not to add a `mud.conf` file to your project root (for example, to avoid committing it to version control), you can store the configuration inside the git metadata directory instead:
 
 ```bash
 mud init --inside-git
 ```
 
-This creates `.git/mudissue/mud.conf` which in a directory not visible from .git in case you don't want to commit the config to VCS and don't want to bother from editing the .gitignore.    
+This creates `.git/mudissue/mud.conf`, which is located in a directory not typically tracked by VCS and avoids the need to modify your `.gitignore`.    
 
 ## Working from Any Subdirectory including worktree
 
@@ -68,6 +67,9 @@ To launch the TUI environment, run:
 ```bash
 mud view
 ```
+
+![Issue Table](./docs/images/issue-table-001.jpeg)
+
 ### **Core Operations**
 
 These single-key shortcuts allow you to navigate and manipulate issues instantly:
