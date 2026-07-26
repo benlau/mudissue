@@ -26,6 +26,19 @@ exports[`views/components snapshots matches snapshot: ConfirmationDialog 1`] = `
 "
 `;
 
+exports[`views/components snapshots matches snapshot: ConfirmationDialog-cancel-disabled 1`] = `
+"
+ ┌──File not found──────────────────────────────────────┐
+ │                                                      │
+ │ The file was not present. Go back to the previous pa │
+ │ ge?                                                  │
+ │                                                      │
+ │                                       Go Back<Enter> │
+ └──────────────────────────────────────────────────────┘
+
+"
+`;
+
 exports[`views/components snapshots matches snapshot: ConfirmationDialog-quit 1`] = `
 "
  ┌──Quit MudIssue?──────────────────────────────────────┐

@@ -8,6 +8,7 @@ import type { PaletteCommand } from "../../types/PaletteCommand.ts";
 import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
 import { useEditFile } from "../../contexts/AppContext.tsx";
 import { useAppStore } from "../../store/AppStore.ts";
+import { useConfirmationDialogStore } from "../../store/ConfirmationDialogStore.ts";
 import { useCurrentTrackerRepoStore } from "../../store/CurrentTrackerRepoStore.ts";
 import { useFileWatcherStore } from "../../store/FileWatcherStore.ts";
 import { useMarkdownViewerHandleStore } from "../../store/MarkdownViewerHandleStore.ts";
@@ -44,6 +45,19 @@ const issueViewerMessages = defineMessages({
   externalEditPaletteDescription: {
     id: "views.issueViewer.command.externalEdit.description",
     defaultMessage: "Open the issue file in an external editor",
+  },
+  fileMissingTitle: {
+    id: "views.issueViewer.fileMissing.title",
+    defaultMessage: "File not found",
+  },
+  fileMissingMessage: {
+    id: "views.issueViewer.fileMissing.message",
+    defaultMessage:
+      "The file was not present. Go back to the previous page?",
+  },
+  fileMissingConfirmLabel: {
+    id: "views.issueViewer.fileMissing.confirmLabel",
+    defaultMessage: "Go Back",
   },
 });
 
@@ -145,6 +159,18 @@ export function IssueViewer({
     },
     [applyIssueMetadataUpdate, issue, isAttachmentView],
   );
+
+  const handleFileMissing = useCallback(async () => {
+    await useConfirmationDialogStore.getState().open({
+      title: intl.formatMessage(issueViewerMessages.fileMissingTitle),
+      message: intl.formatMessage(issueViewerMessages.fileMissingMessage),
+      confirmLabel: intl.formatMessage(
+        issueViewerMessages.fileMissingConfirmLabel,
+      ),
+      cancelDisabled: true,
+    });
+    closeIssue();
+  }, [closeIssue, intl]);
 
   const rows = Math.max(5, terminalRows);
 
@@ -334,6 +360,9 @@ export function IssueViewer({
             isDisabled={isEditingFile}
             onChanged={handleMarkdownChanged}
             onLogicalLineIndexChanged={handleLogicalLineIndexChanged}
+            onFileMissing={() => {
+              void handleFileMissing();
+            }}
           />
         ) : (
           <Box height={contentHeight}>

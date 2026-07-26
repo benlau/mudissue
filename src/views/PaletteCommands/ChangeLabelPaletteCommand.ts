@@ -5,6 +5,7 @@ import { intl } from "../../intl.ts";
 import { useAlertDialogStore } from "../../store/AlertDialogStore.ts";
 import { useAppStore } from "../../store/AppStore.ts";
 import { useCurrentTrackerRepoStore } from "../../store/CurrentTrackerRepoStore.ts";
+import { useFileWatcherStore } from "../../store/FileWatcherStore.ts";
 import { useTextInputDialogStore } from "../../store/TextInputDialogStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
@@ -86,6 +87,9 @@ export class ChangeLabelPaletteCommand implements PaletteCommand {
       return;
     }
 
+    const fileWatcherStore = useFileWatcherStore.getState();
+    fileWatcherStore.stopAllWatchers();
+
     try {
       const result = await new ChangeIssueLabelHelper().changeIssueLabel(
         repo,
@@ -128,6 +132,8 @@ export class ChangeLabelPaletteCommand implements PaletteCommand {
         return;
       }
       throw err;
+    } finally {
+      fileWatcherStore.resumeWatchers();
     }
   }
 }

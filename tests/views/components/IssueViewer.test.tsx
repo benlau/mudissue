@@ -13,6 +13,7 @@ import { FileService } from "../../../src/services/FileService.ts";
 import { IssueViewer } from "../../../src/views/components/IssueViewer.tsx";
 import { AppContextProvider } from "../../../src/contexts/AppContext.tsx";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
+import { useConfirmationDialogStore } from "../../../src/store/ConfirmationDialogStore.ts";
 import { useTerminalSizeStore } from "../../../src/views/hooks/useTerminal.ts";
 import { viewerNavigationStack } from "../../fixture/navigationStack.ts";
 import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
@@ -118,6 +119,17 @@ afterEach(() => {
   });
   resetAppStore();
   resetFileWatcherStore();
+  useConfirmationDialogStore.setState({
+    isDialogOpen: false,
+    title: "",
+    message: "",
+    confirmLabel: undefined,
+    variant: "default",
+    ctrlCToConfirm: false,
+    cancelDisabled: false,
+    pendingResolve: null,
+    activeOpenPromise: null,
+  });
   useTextEditDialogStore.setState({
     isDialogOpen: false,
     openSession: 0,
@@ -410,5 +422,145 @@ describe("IssueViewer", () => {
     });
 
     expect(applyIssueMetadataUpdateSpy).not.toHaveBeenCalled();
+  });
+
+  it("closes the issue viewer when the missing-file dialog is cancelled", async () => {
+    const issue = buildIssueFolder("MI0001", {
+      path: "/repo/issues/MI0001-demo",
+      title: "Demo issue",
+      status: "open",
+      priority: "high",
+    });
+
+    jest
+      .spyOn(IssueFolderStorage.prototype, "findIssueFile")
+      .mockResolvedValue(ISSUE_PATH);
+
+    const enoent = Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+    const mockFileService = FileService.getInstance() as jest.Mocked<FileService>;
+    mockFileService.readFile.mockRejectedValue(enoent);
+
+    useAppStore.setState({
+      mainIssueLists: [issue],
+      navigationStack: viewerNavigationStack(issue),
+      selectedIssueId: issue.issueId,
+    });
+
+    const confirmationOpenMock = jest
+      .fn<
+        ReturnType<typeof useConfirmationDialogStore.getState>["open"]
+      >()
+      .mockResolvedValue({ type: "cancelled" });
+    useConfirmationDialogStore.setState({ open: confirmationOpenMock });
+    const closeIssueMock = jest.fn();
+    useAppStore.setState({ closeIssue: closeIssueMock });
+
+    renderIssueViewer(issue);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(confirmationOpenMock).toHaveBeenCalledTimes(1);
+    expect(confirmationOpenMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cancelDisabled: true,
+      }),
+    );
+    expect(closeIssueMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes the issue viewer when the missing-file confirmation is accepted", async () => {
+    const issue = buildIssueFolder("MI0001", {
+      path: "/repo/issues/MI0001-demo",
+      title: "Demo issue",
+      status: "open",
+      priority: "high",
+    });
+
+    jest
+      .spyOn(IssueFolderStorage.prototype, "findIssueFile")
+      .mockResolvedValue(ISSUE_PATH);
+
+    const enoent = Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+    const mockFileService = FileService.getInstance() as jest.Mocked<FileService>;
+    mockFileService.readFile.mockRejectedValue(enoent);
+
+    useAppStore.setState({
+      mainIssueLists: [issue],
+      navigationStack: viewerNavigationStack(issue),
+      selectedIssueId: issue.issueId,
+    });
+
+    const confirmationOpenMock = jest
+      .fn<
+        ReturnType<typeof useConfirmationDialogStore.getState>["open"]
+      >()
+      .mockResolvedValue({ type: "accepted" });
+    useConfirmationDialogStore.setState({ open: confirmationOpenMock });
+    const closeIssueMock = jest.fn();
+    useAppStore.setState({ closeIssue: closeIssueMock });
+
+    renderIssueViewer(issue);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(confirmationOpenMock).toHaveBeenCalledTimes(1);
+    expect(confirmationOpenMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cancelDisabled: true,
+      }),
+    );
+    expect(closeIssueMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not open the missing-file dialog for non-ENOENT read errors", async () => {
+    const issue = buildIssueFolder("MI0001", {
+      path: "/repo/issues/MI0001-demo",
+      title: "Demo issue",
+      status: "open",
+      priority: "high",
+    });
+
+    jest
+      .spyOn(IssueFolderStorage.prototype, "findIssueFile")
+      .mockResolvedValue(ISSUE_PATH);
+
+    const mockFileService = FileService.getInstance() as jest.Mocked<FileService>;
+    mockFileService.readFile.mockRejectedValue(
+      Object.assign(new Error("EACCES"), { code: "EACCES" }),
+    );
+
+    useAppStore.setState({
+      mainIssueLists: [issue],
+      navigationStack: viewerNavigationStack(issue),
+      selectedIssueId: issue.issueId,
+    });
+
+    const confirmationOpenMock = jest
+      .fn<
+        ReturnType<typeof useConfirmationDialogStore.getState>["open"]
+      >()
+      .mockResolvedValue({ type: "cancelled" });
+    useConfirmationDialogStore.setState({ open: confirmationOpenMock });
+
+    renderIssueViewer(issue);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(confirmationOpenMock).not.toHaveBeenCalled();
   });
 });

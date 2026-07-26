@@ -158,4 +158,84 @@ describe("useFileWatcherStore", () => {
       [FILE_PATH]: 1,
     });
   });
+
+  it("stopAllWatchers tears down every FileService.watch and clears deferred reloads", () => {
+    const secondPath = "/repo/issues/0002/issue.md";
+    const secondUnsubscribe = jest.fn();
+    watchMock.mockReturnValueOnce(secondUnsubscribe);
+    useFileWatcherStore.getState().registerWatcher(secondPath);
+    useFileWatcherStore.getState().deferReload(FILE_PATH);
+
+    useFileWatcherStore.getState().stopAllWatchers();
+
+    expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(SAVE_DEBOUNCE_MS);
+    expect(useFileWatcherStore.getState().generationByPath).toEqual({});
+  });
+
+  it("unregisterWatcher after stopAllWatchers is safe and does not re-watch", () => {
+    useFileWatcherStore.getState().stopAllWatchers();
+    watchMock.mockClear();
+
+    useFileWatcherStore.getState().unregisterWatcher(FILE_PATH);
+
+    expect(watchMock).not.toHaveBeenCalled();
+    expect(unsubscribeMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("resumeWatchers restarts FileService.watch for still-registered paths", () => {
+    useFileWatcherStore.getState().stopAllWatchers();
+    const resumeUnsubscribe = jest.fn();
+    watchMock.mockClear();
+    watchMock.mockReturnValue(resumeUnsubscribe);
+
+    useFileWatcherStore.getState().resumeWatchers();
+
+    expect(watchMock).toHaveBeenCalledTimes(1);
+    expect(watchMock).toHaveBeenCalledWith(FILE_PATH, expect.any(Function));
+
+    const watchCallback = watchMock.mock.calls[0]![1] as () => void;
+    watchCallback();
+    jest.advanceTimersByTime(SAVE_DEBOUNCE_MS);
+
+    expect(useFileWatcherStore.getState().generationByPath).toEqual({
+      [FILE_PATH]: 1,
+    });
+  });
+
+  it("resumeWatchers called three times watches each registered path only once", () => {
+    useFileWatcherStore.getState().stopAllWatchers();
+    watchMock.mockClear();
+
+    useFileWatcherStore.getState().resumeWatchers();
+    useFileWatcherStore.getState().resumeWatchers();
+    useFileWatcherStore.getState().resumeWatchers();
+
+    expect(watchMock).toHaveBeenCalledTimes(1);
+    expect(watchMock).toHaveBeenCalledWith(FILE_PATH, expect.any(Function));
+  });
+
+  it("resumeWatchers without stopAllWatchers does not watch the path again", () => {
+    watchMock.mockClear();
+
+    useFileWatcherStore.getState().resumeWatchers();
+
+    expect(watchMock).not.toHaveBeenCalled();
+  });
+
+  it("registerWatcher after stopAllWatchers starts watching a new path", () => {
+    useFileWatcherStore.getState().stopAllWatchers();
+    useFileWatcherStore.getState().unregisterWatcher(FILE_PATH);
+    watchMock.mockClear();
+    const newUnsubscribe = jest.fn();
+    watchMock.mockReturnValue(newUnsubscribe);
+
+    const newPath = "/repo/issues/0003/issue.md";
+    useFileWatcherStore.getState().registerWatcher(newPath);
+
+    expect(watchMock).toHaveBeenCalledTimes(1);
+    expect(watchMock).toHaveBeenCalledWith(newPath, expect.any(Function));
+  });
 });

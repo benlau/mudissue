@@ -25,6 +25,21 @@ function openCtrlCConfirmationDialog(): void {
     confirmLabel: "Quit",
     variant: "destructive",
     ctrlCToConfirm: true,
+    cancelDisabled: false,
+    pendingResolve: null,
+  });
+}
+
+function openCancelDisabledConfirmationDialog(): void {
+  usePopupStore.getState().pushPopup(PopupNames.ConfirmationDialog);
+  useConfirmationDialogStore.setState({
+    isDialogOpen: true,
+    title: "File not found",
+    message: "The file was not present. Go back to the previous page?",
+    confirmLabel: "Go Back",
+    variant: "default",
+    ctrlCToConfirm: false,
+    cancelDisabled: true,
     pendingResolve: null,
   });
 }
@@ -38,6 +53,7 @@ describe("ConfirmationDialog", () => {
       confirmLabel: undefined,
       variant: "default",
       ctrlCToConfirm: false,
+      cancelDisabled: false,
       pendingResolve: null,
       activeOpenPromise: null,
     });
@@ -121,5 +137,40 @@ describe("ConfirmationDialog", () => {
     });
 
     expect(close).toHaveBeenCalled();
+  });
+
+  it("hides Cancel and ignores Esc when cancelDisabled is true", async () => {
+    const close = jest.fn();
+    const confirm = jest.fn();
+    useConfirmationDialogStore.setState({ close, confirm });
+
+    openCancelDisabledConfirmationDialog();
+
+    let view: ReturnType<typeof render>;
+    act(() => {
+      view = render(
+        <IntlProvider locale="en" messages={{}}>
+          <ConfirmationDialog />
+        </IntlProvider>,
+      );
+    });
+
+    act(() => {
+      view!.stdin.write(AnsiEscapeCode.ESC);
+    });
+    await act(async () => {
+      await flushInkInput();
+    });
+
+    expect(close).not.toHaveBeenCalled();
+
+    act(() => {
+      view!.stdin.write("\r");
+    });
+    await act(async () => {
+      await flushInkInput();
+    });
+
+    expect(confirm).toHaveBeenCalled();
   });
 });

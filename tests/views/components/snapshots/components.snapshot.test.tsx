@@ -125,6 +125,7 @@ function resetDialogStores(): void {
     confirmLabel: undefined,
     variant: "default",
     ctrlCToConfirm: false,
+    cancelDisabled: false,
     pendingResolve: null,
   });
   usePickItemDialogStore.setState({
@@ -284,6 +285,27 @@ const snapshotCases: SnapshotCase[] = [
         confirmLabel: "Quit",
         variant: "destructive",
         ctrlCToConfirm: true,
+      });
+    },
+    terminalSize: { columns: 56, rows: 10 },
+    render: () => (
+      <Box width={56} height={10}>
+        <IntlProvider locale="en" messages={{}}>
+          <ConfirmationDialog />
+        </IntlProvider>
+      </Box>
+    ),
+  },
+  {
+    id: "ConfirmationDialog-cancel-disabled",
+    setup: () => {
+      usePopupStore.getState().pushPopup(PopupNames.ConfirmationDialog);
+      useConfirmationDialogStore.setState({
+        isDialogOpen: true,
+        title: "File not found",
+        message: "The file was not present. Go back to the previous page?",
+        confirmLabel: "Go Back",
+        cancelDisabled: true,
       });
     },
     terminalSize: { columns: 56, rows: 10 },

@@ -134,7 +134,17 @@ export type MarkdownViewerProps = {
   isDisabled?: boolean;
   onChanged?: (payload: MarkdownViewerChangedPayload) => void;
   onLogicalLineIndexChanged?: (logicalLineIndex: number) => void;
+  onFileMissing?: (filePath: string) => void;
 };
+
+function isEnoent(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: unknown }).code === "ENOENT"
+  );
+}
 
 const messages = defineMessages({
   unlinkConfirmTitle: {
@@ -580,6 +590,7 @@ export function MarkdownViewer({
   isDisabled = false,
   onChanged,
   onLogicalLineIndexChanged,
+  onFileMissing,
 }: MarkdownViewerProps) {
   const hasPopup = usePopupStore((s) => s.hasPopup);
   const isTextEditOpenForFile = useTextEditDialogStore(
@@ -609,6 +620,9 @@ export function MarkdownViewer({
   );
 
   const cancelledRef = useRef(false);
+  const fileMissingReportedRef = useRef(false);
+  const onFileMissingRef = useRef(onFileMissing);
+  onFileMissingRef.current = onFileMissing;
   const onChangedRef = useRef(onChanged);
   onChangedRef.current = onChanged;
   const metadataRef = useRef<{
@@ -619,6 +633,14 @@ export function MarkdownViewer({
   }>({ displayTitle: "" });
   const onLogicalLineIndexChangedRef = useRef(onLogicalLineIndexChanged);
   onLogicalLineIndexChangedRef.current = onLogicalLineIndexChanged;
+
+  const reportFileMissing = useCallback(() => {
+    if (cancelledRef.current || fileMissingReportedRef.current) {
+      return;
+    }
+    fileMissingReportedRef.current = true;
+    onFileMissingRef.current?.(filePath);
+  }, [filePath]);
 
   const emitChanged = useCallback(
     (nextLines: string[], updatedAt: Date) => {
@@ -647,17 +669,23 @@ export function MarkdownViewer({
   );
 
   const loadFile = useCallback(async () => {
-    const raw = (await fileService.readFile(filePath, "utf-8")) as string;
-    if (cancelledRef.current) return;
+    try {
+      const raw = (await fileService.readFile(filePath, "utf-8")) as string;
+      if (cancelledRef.current) return;
 
-    const normalizedRaw = raw.replace(/\r\n/g, "\n");
-    const currentText = handle.getState().content;
-    if (normalizedRaw === currentText && currentText.length > 0) {
-      return;
+      const normalizedRaw = raw.replace(/\r\n/g, "\n");
+      const currentText = handle.getState().content;
+      if (normalizedRaw === currentText && currentText.length > 0) {
+        return;
+      }
+
+      applyContent(raw);
+    } catch (err) {
+      if (isEnoent(err)) {
+        reportFileMissing();
+      }
     }
-
-    applyContent(raw);
-  }, [applyContent, filePath, fileService, handle]);
+  }, [applyContent, filePath, fileService, handle, reportFileMissing]);
 
   useEffect(() => {
     handle.getState().setFilePath(filePath);
@@ -683,35 +711,41 @@ export function MarkdownViewer({
 
     let cancelled = false;
     void (async () => {
-      const rawLines = content.length > 0 ? content.split("\n") : [""];
-      const mdStorage = new IssueMarkdownFileStorage(filePath);
-      await mdStorage.load();
-      if (cancelled || cancelledRef.current) return;
+      try {
+        const rawLines = content.length > 0 ? content.split("\n") : [""];
+        const mdStorage = new IssueMarkdownFileStorage(filePath);
+        await mdStorage.load();
+        if (cancelled || cancelledRef.current) return;
 
-      const { frontmatter } = mdStorage.getParsed();
-      const dataTitle =
-        typeof frontmatter?.title === "string" ? frontmatter.title : undefined;
-      const frontmatterTitle =
-        typeof frontmatter?.title === "string" && frontmatter.title.trim() !== ""
-          ? frontmatter.title.trim()
-          : undefined;
+        const { frontmatter } = mdStorage.getParsed();
+        const dataTitle =
+          typeof frontmatter?.title === "string" ? frontmatter.title : undefined;
+        const frontmatterTitle =
+          typeof frontmatter?.title === "string" && frontmatter.title.trim() !== ""
+            ? frontmatter.title.trim()
+            : undefined;
 
-      metadataRef.current = {
-        displayTitle: buildDisplayTitle(dataTitle, rawLines, filePath),
-        frontmatterTitle,
-        status: mdStorage.getStatus(),
-        priority: mdStorage.getPriority(),
-      };
+        metadataRef.current = {
+          displayTitle: buildDisplayTitle(dataTitle, rawLines, filePath),
+          frontmatterTitle,
+          status: mdStorage.getStatus(),
+          priority: mdStorage.getPriority(),
+        };
 
-      const stat = await fileService.stat(filePath);
-      if (cancelled || cancelledRef.current) return;
-      emitChanged(rawLines, stat.mtime);
+        const stat = await fileService.stat(filePath);
+        if (cancelled || cancelledRef.current) return;
+        emitChanged(rawLines, stat.mtime);
+      } catch (err) {
+        if (isEnoent(err)) {
+          reportFileMissing();
+        }
+      }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [content, emitChanged, filePath, fileService]);
+  }, [content, emitChanged, filePath, fileService, reportFileMissing]);
 
   const fileWatcherEnabled = !isDisabled && !isTextEditOpenForFile;
 
@@ -724,6 +758,7 @@ export function MarkdownViewer({
 
   useEffect(() => {
     cancelledRef.current = false;
+    fileMissingReportedRef.current = false;
     handle.getState().resetCursor();
     setScrollOffset(0);
     void loadFile();

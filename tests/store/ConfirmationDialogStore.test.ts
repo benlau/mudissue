@@ -10,6 +10,7 @@ describe("useConfirmationDialogStore", () => {
       confirmLabel: undefined,
       variant: "default",
       ctrlCToConfirm: false,
+      cancelDisabled: false,
       pendingResolve: null,
       activeOpenPromise: null,
     });
@@ -97,6 +98,33 @@ describe("useConfirmationDialogStore", () => {
       message: "M",
     });
     expect(useConfirmationDialogStore.getState().ctrlCToConfirm).toBe(false);
+  });
+
+  it("open stores cancelDisabled when provided and clears on confirm", async () => {
+    const p = useConfirmationDialogStore.getState().open({
+      title: "File not found",
+      message: "The file was not present.",
+      cancelDisabled: true,
+    });
+    expect(useConfirmationDialogStore.getState().cancelDisabled).toBe(true);
+
+    useConfirmationDialogStore.getState().close();
+    expect(useConfirmationDialogStore.getState().isDialogOpen).toBe(true);
+    expect(usePopupStore.getState().latestPopup).toBe(
+      PopupNames.ConfirmationDialog,
+    );
+
+    useConfirmationDialogStore.getState().confirm();
+    await expect(p).resolves.toEqual({ type: "accepted" });
+    expect(useConfirmationDialogStore.getState().cancelDisabled).toBe(false);
+  });
+
+  it("open defaults cancelDisabled to false when omitted", async () => {
+    useConfirmationDialogStore.getState().open({
+      title: "T",
+      message: "M",
+    });
+    expect(useConfirmationDialogStore.getState().cancelDisabled).toBe(false);
   });
 
   it("concurrent open shares one popup and both promises resolve on close", async () => {

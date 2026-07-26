@@ -80,6 +80,15 @@ export type FileWatcherStoreState = {
   registerWatcher: (filePath: string) => void;
   unregisterWatcher: (filePath: string) => void;
   setFileWatchEnabled: (filePath: string, enabled: boolean) => void;
+  /**
+   * Tear down every FileService.watch and clear deferred reloads without
+   * clearing registration refcounts. Call before filesystem renames that would
+   * remove a watched path; pair with resumeWatchers on failure, or let React
+   * unregister/register when the viewer path changes after success.
+   */
+  stopAllWatchers: () => void;
+  /** Restart FileService.watch for paths that still have active registrations. */
+  resumeWatchers: () => void;
   requestReload: (filePath: string) => void;
   deferReload: (filePath: string) => void;
   cancelReload: (filePath: string) => void;
@@ -116,6 +125,24 @@ export const useFileWatcherStore = create<FileWatcherStoreState>()(
       watchEnabledByPath.set(filePath, enabled);
       if (!enabled) {
         clearDeferReloadTimer(filePath);
+      }
+    },
+
+    stopAllWatchers: () => {
+      for (const timer of deferReloadTimers.values()) {
+        globalThis.clearTimeout(timer);
+      }
+      deferReloadTimers.clear();
+      for (const filePath of [...watchUnsubscribers.keys()]) {
+        stopWatching(filePath);
+      }
+    },
+
+    resumeWatchers: () => {
+      for (const filePath of watchedPathRefCounts.keys()) {
+        if ((watchedPathRefCounts.get(filePath) ?? 0) > 0) {
+          startWatching(filePath);
+        }
       }
     },
 

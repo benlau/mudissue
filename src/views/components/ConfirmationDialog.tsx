@@ -37,6 +37,7 @@ export function ConfirmationDialog() {
   const confirmLabel = useConfirmationDialogStore((s) => s.confirmLabel);
   const variant = useConfirmationDialogStore((s) => s.variant);
   const ctrlCToConfirm = useConfirmationDialogStore((s) => s.ctrlCToConfirm);
+  const cancelDisabled = useConfirmationDialogStore((s) => s.cancelDisabled);
   const close = useConfirmationDialogStore((s) => s.close);
   const confirm = useConfirmationDialogStore((s) => s.confirm);
   const latestPopup = usePopupStore((s) => s.latestPopup);
@@ -87,6 +88,7 @@ export function ConfirmationDialog() {
         label: intl.formatMessage(messages.cancel),
         key: "Esc",
         callback: close,
+        isHidden: cancelDisabled,
       },
       {
         label: confirmLabel ?? intl.formatMessage(messages.confirm),
@@ -95,7 +97,7 @@ export function ConfirmationDialog() {
         color: confirmAccentColor,
       },
     ],
-    [close, confirm, confirmAccentColor, confirmLabel, intl],
+    [cancelDisabled, close, confirm, confirmAccentColor, confirmLabel, intl],
   );
 
   useInput(

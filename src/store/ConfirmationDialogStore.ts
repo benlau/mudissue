@@ -15,6 +15,8 @@ export type ConfirmationDialogOpenOptions = {
   variant?: ConfirmationDialogVariant;
   /** When true, Ctrl+C confirms the dialog. */
   ctrlCToConfirm?: boolean;
+  /** When true, hide Cancel and ignore Esc / close(). */
+  cancelDisabled?: boolean;
 };
 
 type ConfirmationDialogStoreState = {
@@ -24,6 +26,7 @@ type ConfirmationDialogStoreState = {
   confirmLabel?: string;
   variant: ConfirmationDialogVariant;
   ctrlCToConfirm: boolean;
+  cancelDisabled: boolean;
   pendingResolve: ((result: ConfirmationDialogResult) => void) | null;
   activeOpenPromise: Promise<ConfirmationDialogResult> | null;
   open: (
@@ -40,6 +43,7 @@ const initialSlice = {
   confirmLabel: undefined,
   variant: "default" as ConfirmationDialogVariant,
   ctrlCToConfirm: false,
+  cancelDisabled: false,
   pendingResolve: null as ConfirmationDialogStoreState["pendingResolve"],
   activeOpenPromise: null as ConfirmationDialogStoreState["activeOpenPromise"],
 };
@@ -67,6 +71,7 @@ export const useConfirmationDialogStore = create<ConfirmationDialogStoreState>(
         confirmLabel: options.confirmLabel,
         variant: options.variant ?? "default",
         ctrlCToConfirm: options.ctrlCToConfirm ?? false,
+        cancelDisabled: options.cancelDisabled ?? false,
         pendingResolve: resolveOpen,
         activeOpenPromise: promise,
       });
@@ -74,7 +79,10 @@ export const useConfirmationDialogStore = create<ConfirmationDialogStoreState>(
     },
 
     close: () => {
-      const { isDialogOpen, pendingResolve } = get();
+      const { isDialogOpen, cancelDisabled, pendingResolve } = get();
+      if (cancelDisabled) {
+        return;
+      }
       if (isDialogOpen) {
         usePopupStore.getState().popPopup();
       }
