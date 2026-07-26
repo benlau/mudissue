@@ -7,7 +7,7 @@
  * parentheses are stripped to keep folder names unambiguous on disk and in
  * shell/git paths.
  */
-const FORBIDDEN_CHARS = /[\\/:*?"<>|\s&.[\]()]/g;
+const FORBIDDEN_CHARS = /[\\/:*?"<>|`\s&.[\]()]/g;
 
 export class FileNameFormatter {
   static format(input: string): string {

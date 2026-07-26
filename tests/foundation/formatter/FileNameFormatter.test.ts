@@ -17,6 +17,7 @@ describe("FileNameFormatter", () => {
       expect(FileNameFormatter.format("a:b")).toBe("a-b");
       expect(FileNameFormatter.format("a\\b")).toBe("a-b");
       expect(FileNameFormatter.format("a&b")).toBe("a-b");
+      expect(FileNameFormatter.format("a`b")).toBe("a-b");
     });
 
     it("replaces square brackets with dash for wikilink compatibility", () => {
