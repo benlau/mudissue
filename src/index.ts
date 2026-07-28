@@ -31,7 +31,6 @@ import { TrackerRepoLocateCommand } from "./commands/TrackerRepoLocateCommand.ts
 import { IssueBranchCreateCommand } from "./commands/IssueBranchCreateCommand.ts";
 import { IssueBranchGetCommand } from "./commands/IssueBranchGetCommand.ts";
 import { IssueBranchRemoveCommand } from "./commands/IssueBranchRemoveCommand.ts";
-import { TmuxRunCommand } from "./commands/TmuxRunCommand.ts";
 import { IssueWorktreeCreateCommand } from "./commands/IssueWorktreeCreateCommand.ts";
 import { IssueWorktreeLocateCommand } from "./commands/IssueWorktreeLocateCommand.ts";
 import { IssueWorktreeListCommand } from "./commands/IssueWorktreeListCommand.ts";
@@ -96,10 +95,6 @@ const msg = defineMessages({
     id: "cli.branch.describe",
     defaultMessage: "Manage git branches for issues",
   },
-  tmuxDescribe: {
-    id: "cli.tmux.describe",
-    defaultMessage: "Run tmux actions for an issue",
-  },
   worktreeDescribe: {
     id: "cli.worktree.describe",
     defaultMessage: "Manage git worktrees associated with issues",
@@ -124,10 +119,6 @@ const msg = defineMessages({
     id: "cli.demand.branch",
     defaultMessage: "Specify 'create', 'get', or 'remove'",
   },
-  demandTmux: {
-    id: "cli.demand.tmux",
-    defaultMessage: "Specify 'run'",
-  },
   demandWorktree: {
     id: "cli.demand.worktree",
     defaultMessage:
@@ -136,7 +127,7 @@ const msg = defineMessages({
   demandIssue: {
     id: "cli.demand.issue",
     defaultMessage:
-      "Specify 'create', 'edit', 'view', 'cat', 'set-property', 'get-property', 'search', 'remove', 'archive', 'merge', 'locate', 'rename', 'change-label', 'attach', 'tag', 'untag', 'comment', 'append', 'prepend', 'touch', 'link', 'unlink', 'branch', 'tmux', or 'worktree'",
+      "Specify 'create', 'edit', 'view', 'cat', 'set-property', 'get-property', 'search', 'remove', 'archive', 'merge', 'locate', 'rename', 'change-label', 'attach', 'tag', 'untag', 'comment', 'append', 'prepend', 'touch', 'link', 'unlink', 'branch', or 'worktree'",
   },
   demandRegistry: {
     id: "cli.demand.registry",
@@ -252,10 +243,6 @@ yargsInstance = yargsInstance.command(
         return by.demandCommand(1, intl.formatMessage(msg.demandBranch));
       },
     );
-    y = y.command("tmux", intl.formatMessage(msg.tmuxDescribe), (tmuxYargs) => {
-      let ty: Argv = TmuxRunCommand.register(tmuxYargs);
-      return ty.demandCommand(1, intl.formatMessage(msg.demandTmux));
-    });
     y = y.command(
       "worktree",
       intl.formatMessage(msg.worktreeDescribe),
