@@ -237,6 +237,31 @@ function buildDisplayTitle(
   );
 }
 
+type ViewerMetadata = {
+  displayTitle: string;
+  frontmatterTitle?: string;
+  status?: string;
+  priority?: string;
+};
+
+function parseViewerMetadata(raw: string, filePath: string): ViewerMetadata {
+  const mdStorage = new IssueMarkdownFileStorage(filePath);
+  mdStorage.loadFromRaw(raw);
+  const { frontmatter } = mdStorage.getParsed();
+  const rawLines = raw.length > 0 ? raw.split("\n") : [""];
+  const rawTitle =
+    typeof frontmatter?.title === "string" ? frontmatter.title : undefined;
+  const frontmatterTitle =
+    rawTitle != null && rawTitle.trim() !== "" ? rawTitle.trim() : undefined;
+
+  return {
+    displayTitle: buildDisplayTitle(rawTitle, rawLines, filePath),
+    frontmatterTitle,
+    status: mdStorage.getStatus(),
+    priority: mdStorage.getPriority(),
+  };
+}
+
 function displayIndexForLogicalLine(
   textLayouter: TextLayouter,
   logicalLineIndex: number,
@@ -679,6 +704,7 @@ export function MarkdownViewer({
         return;
       }
 
+      metadataRef.current = parseViewerMetadata(normalizedRaw, filePath);
       applyContent(raw);
     } catch (err) {
       if (isEnoent(err)) {
@@ -709,29 +735,12 @@ export function MarkdownViewer({
       return;
     }
 
+    metadataRef.current = parseViewerMetadata(content, filePath);
+
     let cancelled = false;
     void (async () => {
       try {
         const rawLines = content.length > 0 ? content.split("\n") : [""];
-        const mdStorage = new IssueMarkdownFileStorage(filePath);
-        await mdStorage.load();
-        if (cancelled || cancelledRef.current) return;
-
-        const { frontmatter } = mdStorage.getParsed();
-        const dataTitle =
-          typeof frontmatter?.title === "string" ? frontmatter.title : undefined;
-        const frontmatterTitle =
-          typeof frontmatter?.title === "string" && frontmatter.title.trim() !== ""
-            ? frontmatter.title.trim()
-            : undefined;
-
-        metadataRef.current = {
-          displayTitle: buildDisplayTitle(dataTitle, rawLines, filePath),
-          frontmatterTitle,
-          status: mdStorage.getStatus(),
-          priority: mdStorage.getPriority(),
-        };
-
         const stat = await fileService.stat(filePath);
         if (cancelled || cancelledRef.current) return;
         emitChanged(rawLines, stat.mtime);

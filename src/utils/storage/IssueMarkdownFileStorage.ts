@@ -32,12 +32,7 @@ export class IssueMarkdownFileStorage {
     this.cache = newEmptyCache();
   }
 
-  async load(): Promise<void> {
-    const raw = (await this.fileService.readFile(
-      this.absPath,
-      "utf-8",
-    )) as string;
-
+  loadFromRaw(raw: string): void {
     try {
       const parsed = matter(raw);
       this.cache = {
@@ -54,6 +49,14 @@ export class IssueMarkdownFileStorage {
         parseError: true,
       };
     }
+  }
+
+  async load(): Promise<void> {
+    const raw = (await this.fileService.readFile(
+      this.absPath,
+      "utf-8",
+    )) as string;
+    this.loadFromRaw(raw);
   }
 
   getStatus(): string | undefined {

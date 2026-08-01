@@ -188,6 +188,47 @@ describe("IssueMarkdownFileStorage", () => {
     expect(readFile).toHaveBeenCalledTimes(1);
   });
 
+  describe("loadFromRaw", () => {
+    it("parses frontmatter and body without reading the file", () => {
+      const path = "/repo/issues/0001/issue.md";
+      const { readFile } = makeInMemoryFileService();
+      const storage = new IssueMarkdownFileStorage(path);
+      storage.loadFromRaw(
+        "---\ntitle: FromRaw\nstatus: open\npriority: high\n---\n\nHello\n",
+      );
+
+      expect(storage.getParsed()).toEqual({
+        status: "open",
+        frontmatter: {
+          title: "FromRaw",
+          status: "open",
+          priority: "high",
+        },
+        content: "\nHello\n",
+        raw: "---\ntitle: FromRaw\nstatus: open\npriority: high\n---\n\nHello\n",
+      });
+      expect(storage.getPriority()).toBe("high");
+      expect(readFile).not.toHaveBeenCalled();
+    });
+
+    it("marks PARSE_ERROR when frontmatter is invalid", () => {
+      const path = "/repo/issues/0001/issue.md";
+      const { readFile } = makeInMemoryFileService();
+      const storage = new IssueMarkdownFileStorage(path);
+      storage.loadFromRaw(["---", "title: value:", "---", "", "Body"].join("\n"));
+
+      expect(storage.getStatus()).toBe("PARSE_ERROR");
+      expect(storage.getPriority()).toBe("PARSE_ERROR");
+      expect(storage.getParsed()).toEqual({
+        status: "PARSE_ERROR",
+        frontmatter: {},
+        content: ["---", "title: value:", "---", "", "Body"].join("\n"),
+        raw: ["---", "title: value:", "---", "", "Body"].join("\n"),
+      });
+      expect(readFile).not.toHaveBeenCalled();
+    });
+  });
+
   describe("appendToContent", () => {
     it("appends after existing body with a blank-line separator", async () => {
       const path = "/repo/issues/0001/issue.md";
