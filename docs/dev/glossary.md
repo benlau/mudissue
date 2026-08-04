@@ -35,7 +35,7 @@ A single issue’s directory inside the **issues folder**. Its name follows the 
 Each issue folder can hold:
 
 - The **issue file** (Markdown)
-- Attachments and other files you add beside it
+- Attached files under a `files/` subdirectory
 
 Example layout:
 
@@ -43,7 +43,7 @@ Example layout:
 issues/
   MI001-summary/
     MI001-summary.md    # issue file (when pattern is "long")
-    screenshot.png      # attachment
+    files/              # attached files
 ```
 
 ## Issue file
@@ -97,7 +97,7 @@ When the pattern is `long` or `short`, mudissue records parent/child links in fr
   <issues_folder>/             # default: issues/ (under tracker folder)
     <issue_folder>/            # e.g. MI001-summary/
       <issue_file>             # e.g. MI001-summary.md, MI001.md, or issue.md
-      files/                   # attachments (see mud issue attach)
+      files/                   # attached files (see mud issue file attach)
         ...
 ```
 

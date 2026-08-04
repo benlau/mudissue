@@ -106,7 +106,7 @@ describe("IssueRemoveCommand", () => {
       Promise.resolve(p === issueFilePath || p === attachmentPath),
     );
     fileService.readFile.mockResolvedValue(
-      "---\nattachments:\n  - '[[a.png]]'\n---\n\n",
+      "---\nfiles:\n  - '[[a.png]]'\n---\n\n",
     );
 
     const command = buildCommand();
@@ -134,7 +134,7 @@ describe("IssueRemoveCommand", () => {
       Promise.resolve(p === issueFilePath || p === attachmentPath),
     );
     fileService.readFile.mockResolvedValue(
-      "---\nattachments:\n  - '[[a.png]]'\n---\n\n",
+      "---\nfiles:\n  - '[[a.png]]'\n---\n\n",
     );
 
     const command = buildCommand();

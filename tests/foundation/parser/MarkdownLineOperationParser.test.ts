@@ -241,11 +241,11 @@ describe("MarkdownLineOperationParser", () => {
     ]);
   });
 
-  it("detects attachment operations from the attachments frontmatter field", () => {
+  it("detects attachment operations from the files frontmatter field", () => {
     const lines = [
       "---",
       "title: Demo",
-      "attachments:",
+      "files:",
       "  - [[notes]]",
       "  - [[screenshot.png]]",
       "---",
@@ -277,11 +277,11 @@ describe("MarkdownLineOperationParser", () => {
     );
   });
 
-  it("skips attachments field lines without wiki links", () => {
+  it("skips files field lines without wiki links", () => {
     const lines = [
       "---",
       "title: Demo",
-      "attachments:",
+      "files:",
       "---",
       "# Body",
     ];

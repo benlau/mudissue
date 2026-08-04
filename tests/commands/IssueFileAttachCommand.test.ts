@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import * as path from "path";
 import matter from "gray-matter";
-import { IssueAttachCommand } from "../../src/commands/IssueAttachCommand.ts";
+import { IssueFileAttachCommand } from "../../src/commands/IssueFileAttachCommand.ts";
 import { LoggerService } from "../../src/services/LoggerService.ts";
 import type { FileService } from "../../src/services/FileService.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
@@ -21,7 +21,7 @@ const mudissueWorktreePath = path.join(
   "MI0100-mudissue",
 );
 
-describe("IssueAttachCommand", () => {
+describe("IssueFileAttachCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
   let gitService: ReturnType<typeof createMockSystemContext>["gitService"];
@@ -57,7 +57,7 @@ describe("IssueAttachCommand", () => {
 
   it("throws ISSUE_NOT_FOUND when selector matches none", async () => {
     issueFinderService.find.mockResolvedValue([]);
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
 
     await expect(
       cmd.command({ issueSelector: "999", files: ["a.txt"] }),
@@ -74,7 +74,7 @@ describe("IssueAttachCommand", () => {
       { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b",
        },
     ]);
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
 
     await expect(
       cmd.command({ issueSelector: "0001", files: ["a.txt"] }),
@@ -92,7 +92,7 @@ describe("IssueAttachCommand", () => {
     fileService.exists.mockResolvedValue(false);
     fileService.readdir.mockResolvedValue([]);
 
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     await expect(
       cmd.command({ issueSelector: "0001", files: ["a.txt"] }),
     ).rejects.toMatchObject({
@@ -112,7 +112,7 @@ describe("IssueAttachCommand", () => {
       return false;
     });
 
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     await expect(
       cmd.command({ issueSelector: "0001", files: ["missing.txt"] }),
     ).rejects.toMatchObject({
@@ -141,7 +141,7 @@ describe("IssueAttachCommand", () => {
     fileService.mkdir.mockResolvedValue(undefined);
     fileService.readFile.mockResolvedValue("---\ntitle: Test\n---\n\nBody\n");
 
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     const result = await cmd.command({
       issueSelector: "0001",
       files: ["a.txt", "b.png"],
@@ -163,7 +163,7 @@ describe("IssueAttachCommand", () => {
 
     const written = fileService.writeFile.mock.calls[0][1] as string;
     const parsed = matter(written);
-    expect(parsed.data.attachments).toEqual(["[[a]]", "[[b.png]]"]);
+    expect(parsed.data.files).toEqual(["[[a]]", "[[b.png]]"]);
   });
 
   it("resolves current from the cwd mudissue worktree and attaches the file", async () => {
@@ -194,7 +194,7 @@ describe("IssueAttachCommand", () => {
       "---\ntitle: Current Attach\n---\n\nBody\n",
     );
 
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     const result = await cmd.command({
       issueSelector: "current",
       files: ["a.txt"],
@@ -209,7 +209,7 @@ describe("IssueAttachCommand", () => {
 
     const written = fileService.writeFile.mock.calls[0][1] as string;
     const parsed = matter(written);
-    expect(parsed.data.attachments).toEqual(["[[a]]"]);
+    expect(parsed.data.files).toEqual(["[[a]]"]);
   });
 
   it("prefixes attachment filenames with the issue label when --add-label is set", async () => {
@@ -237,7 +237,7 @@ describe("IssueAttachCommand", () => {
       "---\ntitle: Add Label Attach\n---\n\nBody\n",
     );
 
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     const result = await cmd.command({
       issueSelector: "FN004",
       files: ["a.txt", "b.png"],
@@ -256,7 +256,7 @@ describe("IssueAttachCommand", () => {
 
     const written = fileService.writeFile.mock.calls[0][1] as string;
     const parsed = matter(written);
-    expect(parsed.data.attachments).toEqual(["[[FN004-a]]", "[[FN004-b.png]]"]);
+    expect(parsed.data.files).toEqual(["[[FN004-a]]", "[[FN004-b.png]]"]);
   });
 
   it("applies collision suffixes after the label prefix when --add-label is set", async () => {
@@ -283,7 +283,7 @@ describe("IssueAttachCommand", () => {
       "---\ntitle: Add Label Collision\n---\n\nBody\n",
     );
 
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     const result = await cmd.command({
       issueSelector: "FN004",
       files: ["a.txt"],
@@ -298,6 +298,6 @@ describe("IssueAttachCommand", () => {
 
     const written = fileService.writeFile.mock.calls[0][1] as string;
     const parsed = matter(written);
-    expect(parsed.data.attachments).toEqual(["[[FN004-a-1]]"]);
+    expect(parsed.data.files).toEqual(["[[FN004-a-1]]"]);
   });
 });

@@ -443,10 +443,10 @@ describe("IssueFolderStorage", () => {
   });
 
   describe("appendAttachments", () => {
-    it("appends formatted wikilinks to existing attachments array", async () => {
+    it("appends formatted wikilinks to existing files array", async () => {
       const issuePath = `${folderAbsPath}/issue.md`;
       const existingContent =
-        "---\nattachments:\n  - '[[foo.png]]'\n  - '[[bar]]'\n---\n\n# Body\n";
+        "---\nfiles:\n  - '[[foo.png]]'\n  - '[[bar]]'\n---\n\n# Body\n";
       mockFileService.exists.mockResolvedValue(true);
       (mockFileService.readFile as jest.Mock).mockResolvedValue(existingContent);
 
@@ -455,7 +455,7 @@ describe("IssueFolderStorage", () => {
 
       const written = (mockFileService.writeFile as jest.Mock).mock.calls[0][1] as string;
       const parsed = matter(written);
-      expect(parsed.data.attachments).toEqual([
+      expect(parsed.data.files).toEqual([
         "[[foo.png]]",
         "[[bar]]",
         "[[baz.pdf]]",
@@ -466,7 +466,7 @@ describe("IssueFolderStorage", () => {
       );
     });
 
-    it("creates attachments array when missing", async () => {
+    it("creates files array when missing", async () => {
       const existingContent = "---\ntitle: Issue\n---\n\nBody\n";
       mockFileService.exists.mockResolvedValue(true);
       (mockFileService.readFile as jest.Mock).mockResolvedValue(existingContent);
@@ -476,11 +476,11 @@ describe("IssueFolderStorage", () => {
 
       const written = (mockFileService.writeFile as jest.Mock).mock.calls[0][1] as string;
       const parsed = matter(written);
-      expect(parsed.data.attachments).toEqual(["[[a.png]]", "[[b]]"]);
+      expect(parsed.data.files).toEqual(["[[a.png]]", "[[b]]"]);
     });
 
-    it("does not duplicate attachments with the same compare key", async () => {
-      const existingContent = "---\nattachments:\n  - '[[foo.png]]'\n---\n\n";
+    it("does not duplicate files with the same compare key", async () => {
+      const existingContent = "---\nfiles:\n  - '[[foo.png]]'\n---\n\n";
       mockFileService.exists.mockResolvedValue(true);
       (mockFileService.readFile as jest.Mock).mockResolvedValue(existingContent);
 
@@ -489,11 +489,11 @@ describe("IssueFolderStorage", () => {
 
       const written = (mockFileService.writeFile as jest.Mock).mock.calls[0][1] as string;
       const parsed = matter(written);
-      expect(parsed.data.attachments).toEqual(["[[foo.png]]", "[[bar]]"]);
+      expect(parsed.data.files).toEqual(["[[foo.png]]", "[[bar]]"]);
     });
 
     it("does not duplicate when bare text filename matches existing wikilink", async () => {
-      const existingContent = "---\nattachments:\n  - '[[bar]]'\n---\n\n";
+      const existingContent = "---\nfiles:\n  - '[[bar]]'\n---\n\n";
       mockFileService.exists.mockResolvedValue(true);
       (mockFileService.readFile as jest.Mock).mockResolvedValue(existingContent);
 
@@ -502,7 +502,7 @@ describe("IssueFolderStorage", () => {
 
       const written = (mockFileService.writeFile as jest.Mock).mock.calls[0][1] as string;
       const parsed = matter(written);
-      expect(parsed.data.attachments).toEqual(["[[bar]]"]);
+      expect(parsed.data.files).toEqual(["[[bar]]"]);
     });
 
     it("throws when no issue file found", async () => {
@@ -543,7 +543,7 @@ describe("IssueFolderStorage", () => {
         return false;
       });
       mockFileService.readFile.mockResolvedValue(
-        "---\nattachments:\n  - '[[a.png]]'\n  - '[[notes]]'\n---\n\n",
+        "---\nfiles:\n  - '[[a.png]]'\n  - '[[notes]]'\n---\n\n",
       );
 
       const storage = new IssueFolderStorage(buildIssueFolder());
@@ -587,7 +587,7 @@ describe("IssueFolderStorage", () => {
         return false;
       });
       mockFileService.readFile.mockResolvedValue(
-        "---\nattachments:\n  - '[[a.png]]'\n---\n\n",
+        "---\nfiles:\n  - '[[a.png]]'\n---\n\n",
       );
 
       const storage = new IssueFolderStorage(buildIssueFolder());
@@ -611,7 +611,7 @@ describe("IssueFolderStorage", () => {
         p === issuePath || p === `${filesDir}/a.png`,
       );
       mockFileService.readFile.mockResolvedValue(
-        "---\nattachments:\n  - '[[a.png]]'\n---\n\n",
+        "---\nfiles:\n  - '[[a.png]]'\n---\n\n",
       );
       mockFileService.rm.mockResolvedValue(undefined);
       mockFileService.rmdir.mockResolvedValue(undefined);
@@ -652,7 +652,7 @@ describe("IssueFolderStorage", () => {
         p === issuePath || p === `${filesDir}/a.png`,
       );
       mockFileService.readFile.mockResolvedValue(
-        "---\nattachments:\n  - '[[a.png]]'\n---\n\n",
+        "---\nfiles:\n  - '[[a.png]]'\n---\n\n",
       );
 
       const storage = new IssueFolderStorage(buildIssueFolder());

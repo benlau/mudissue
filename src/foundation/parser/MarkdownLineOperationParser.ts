@@ -159,7 +159,7 @@ function detectAttachmentLines(context: DetectorContext): LineOperationInfo[] {
     return [];
   }
 
-  const fieldInfo = frontmatter.fields.attachments;
+  const fieldInfo = frontmatter.fields.files;
   if (fieldInfo == null) {
     return [];
   }

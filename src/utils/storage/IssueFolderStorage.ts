@@ -337,7 +337,7 @@ export class IssueFolderStorage {
 
   /**
    * Returns absolute paths for the requested kinds of issue-folder files.
-   * Attachment paths are derived from the frontmatter attachments field (no readdir).
+   * Attachment paths are derived from the frontmatter files field (no readdir).
    */
   async listFiles(
     options: { attachments?: boolean; issueMarkdownFile?: boolean } = {
@@ -357,10 +357,8 @@ export class IssueFolderStorage {
         "utf-8",
       )) as string;
       const parsed = matter(content);
-      const refs: string[] = Array.isArray(parsed.data.attachments)
-        ? parsed.data.attachments.filter(
-            (x): x is string => typeof x === "string",
-          )
+      const refs: string[] = Array.isArray(parsed.data.files)
+        ? parsed.data.files.filter((x): x is string => typeof x === "string")
         : [];
       const attachmentsDir = this.getAttachmentsDir();
       for (const ref of refs) {
@@ -451,7 +449,7 @@ export class IssueFolderStorage {
   }
 
   /**
-   * Appends the given attachment filenames to this issue's frontmatter attachments array
+   * Appends the given attachment filenames to this issue's frontmatter files array
    * as Obsidian wikilinks (md/txt omit extension; other types keep it).
    */
   async appendAttachments(newAttachmentNames: string[]): Promise<void> {
@@ -464,21 +462,21 @@ export class IssueFolderStorage {
       "utf-8",
     )) as string;
     const parsed = matter(content);
-    const attachments: string[] = Array.isArray(parsed.data.attachments)
-      ? [...parsed.data.attachments].filter((x) => typeof x === "string")
+    const files: string[] = Array.isArray(parsed.data.files)
+      ? [...parsed.data.files].filter((x) => typeof x === "string")
       : [];
     const existingKeys = new Set(
-      attachments.map((a) => WikiLinkFormatter.stripWikiLink(a)),
+      files.map((a) => WikiLinkFormatter.stripWikiLink(a)),
     );
     for (const name of newAttachmentNames) {
       const ref = WikiLinkFormatter.formatFileLink(name);
       const key = WikiLinkFormatter.stripWikiLink(ref);
       if (!existingKeys.has(key)) {
-        attachments.push(ref);
+        files.push(ref);
         existingKeys.add(key);
       }
     }
-    parsed.data.attachments = attachments;
+    parsed.data.files = files;
     const updated = matter.stringify(parsed.content, parsed.data);
     await this.fileService.writeFile(filePath, updated);
   }

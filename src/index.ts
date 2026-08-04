@@ -17,7 +17,7 @@ import { IssueMergeCommand } from "./commands/IssueMergeCommand.ts";
 import { IssueLocateCommand } from "./commands/IssueLocateCommand.ts";
 import { IssueRenameCommand } from "./commands/IssueRenameCommand.ts";
 import { IssueChangeLabelCommand } from "./commands/IssueChangeLabelCommand.ts";
-import { IssueAttachCommand } from "./commands/IssueAttachCommand.ts";
+import { IssueFileAttachCommand } from "./commands/IssueFileAttachCommand.ts";
 import { IssueTagCommand } from "./commands/IssueTagCommand.ts";
 import { IssueUntagCommand } from "./commands/IssueUntagCommand.ts";
 import { IssueCommentCommand } from "./commands/IssueCommentCommand.ts";
@@ -99,6 +99,10 @@ const msg = defineMessages({
     id: "cli.worktree.describe",
     defaultMessage: "Manage git worktrees associated with issues",
   },
+  fileDescribe: {
+    id: "cli.file.describe",
+    defaultMessage: "Manage files attached to issues",
+  },
   registryDescribe: {
     id: "cli.registry.describe",
     defaultMessage: "Read or write mudissue registry values",
@@ -124,10 +128,14 @@ const msg = defineMessages({
     defaultMessage:
       "Specify 'create', 'locate', 'list', 'run', 'rebase', 'merge', 'push', or 'remove'",
   },
+  demandFile: {
+    id: "cli.demand.file",
+    defaultMessage: "Specify 'attach'",
+  },
   demandIssue: {
     id: "cli.demand.issue",
     defaultMessage:
-      "Specify 'create', 'edit', 'view', 'cat', 'set-property', 'get-property', 'search', 'remove', 'archive', 'merge', 'locate', 'rename', 'change-label', 'attach', 'tag', 'untag', 'comment', 'append', 'prepend', 'touch', 'link', 'unlink', 'branch', or 'worktree'",
+      "Specify 'create', 'edit', 'view', 'cat', 'set-property', 'get-property', 'search', 'remove', 'archive', 'merge', 'locate', 'rename', 'change-label', 'tag', 'untag', 'comment', 'append', 'prepend', 'touch', 'link', 'unlink', 'branch', 'worktree', or 'file'",
   },
   demandRegistry: {
     id: "cli.demand.registry",
@@ -161,7 +169,6 @@ const ISSUE_LEAF_COMMANDS = [
   IssueLocateCommand,
   IssueRenameCommand,
   IssueChangeLabelCommand,
-  IssueAttachCommand,
   IssueTagCommand,
   IssueUntagCommand,
   IssueCommentCommand,
@@ -194,6 +201,8 @@ const WORKTREE_COMMANDS = [
   IssueWorktreePushCommand,
   IssueWorktreeRemoveCommand,
 ] as const;
+
+const FILE_COMMANDS = [IssueFileAttachCommand] as const;
 
 const REGISTRY_COMMANDS = [
   RegistryGetCommand,
@@ -254,6 +263,13 @@ yargsInstance = yargsInstance.command(
         return wy.demandCommand(1, intl.formatMessage(msg.demandWorktree));
       },
     );
+    y = y.command("file", intl.formatMessage(msg.fileDescribe), (fileYargs) => {
+      let fy: Argv = fileYargs;
+      for (const Command of FILE_COMMANDS) {
+        fy = Command.register(fy);
+      }
+      return fy.demandCommand(1, intl.formatMessage(msg.demandFile));
+    });
     return y.demandCommand(1, intl.formatMessage(msg.demandIssue));
   },
 );

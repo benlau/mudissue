@@ -14,14 +14,14 @@ import type {
   SuccessResponse,
 } from "../types/Response.ts";
 
-export type IssueAttachCommandArgs = {
+export type IssueFileAttachCommandArgs = {
   issueSelector: string;
   files: string[];
   project?: string;
   addLabel?: boolean;
 };
 
-export type IssueAttachCommandSuccessResponse =
+export type IssueFileAttachCommandSuccessResponse =
   SuccessResponse<IssueAttachCommandSuccessResult>;
 
 function splitNameAndExt(filename: string): { name: string; ext: string } {
@@ -31,8 +31,8 @@ function splitNameAndExt(filename: string): { name: string; ext: string } {
 }
 
 const msg = defineMessages({
-  issueAttachDescribe: {
-    id: "cli.issue.attach.describe",
+  issueFileAttachDescribe: {
+    id: "cli.issue.file.attach.describe",
     defaultMessage:
       "Copy one or more files into an issue's files/ folder and record them in frontmatter",
   },
@@ -44,34 +44,34 @@ const msg = defineMessages({
     id: "cli.common.option.issueSelector",
     defaultMessage: "Issue ID, folder name, or suffix",
   },
-  issueAttachFiles: {
-    id: "cli.issue.attach.positional.files",
+  issueFileAttachFiles: {
+    id: "cli.issue.file.attach.positional.files",
     defaultMessage: "One or more file paths to attach",
   },
   optionAddLabel: {
-    id: "cli.issue.attach.option.addLabel",
+    id: "cli.issue.file.attach.option.addLabel",
     defaultMessage:
       "Prefix the attached filename with the issue label (e.g. FN004-file.txt)",
   },
-  errorIssueAttachUsage: {
-    id: "cli.error.issue.attach.usage",
+  errorIssueFileAttachUsage: {
+    id: "cli.error.issue.file.attach.usage",
     defaultMessage:
-      "Usage: mud issue attach <issue_selector> <file_path..> [--project <name>] [--add-label]",
+      "Usage: mud issue file attach <issue_selector> <file_path..> [--project <name>] [--add-label]",
   },
 });
 
-export class IssueAttachCommand extends Command {
-  name = "issue attach";
+export class IssueFileAttachCommand extends Command {
+  name = "issue file attach";
 
   constructor() {
     super();
   }
 
   static register(yargs: Argv): Argv {
-    const cmd = new IssueAttachCommand();
+    const cmd = new IssueFileAttachCommand();
     return yargs.command(
       "attach <issue_selector> <files...>",
-      intl.formatMessage(msg.issueAttachDescribe),
+      intl.formatMessage(msg.issueFileAttachDescribe),
       (builder) =>
         builder
           .option("project", {
@@ -89,7 +89,7 @@ export class IssueAttachCommand extends Command {
             demandOption: true,
           })
           .positional("files", {
-            describe: intl.formatMessage(msg.issueAttachFiles),
+            describe: intl.formatMessage(msg.issueFileAttachFiles),
             type: "string",
             array: true,
             demandOption: true,
@@ -97,7 +97,9 @@ export class IssueAttachCommand extends Command {
           .check((argv) => {
             const files = (argv.files ?? []) as unknown;
             if (!Array.isArray(files) || files.length < 1) {
-              throw new Error(intl.formatMessage(msg.errorIssueAttachUsage));
+              throw new Error(
+                intl.formatMessage(msg.errorIssueFileAttachUsage),
+              );
             }
             return true;
           }),
@@ -122,8 +124,8 @@ export class IssueAttachCommand extends Command {
   }
 
   async command(
-    input: IssueAttachCommandArgs,
-  ): Promise<IssueAttachCommandSuccessResponse | ErrorResponse> {
+    input: IssueFileAttachCommandArgs,
+  ): Promise<IssueFileAttachCommandSuccessResponse | ErrorResponse> {
     const fileService = FileService.getInstance();
     const shellService = ShellService.getInstance();
     const loggerService = LoggerService.getInstance();
@@ -133,7 +135,7 @@ export class IssueAttachCommand extends Command {
     if (!issueSelector || filePaths.length < 1) {
       this.throwException(
         "ATTACH_ARGS_INVALID",
-        "Usage: mud issue attach <issue_selector> <file_path..> [--project <name>] [--add-label]",
+        "Usage: mud issue file attach <issue_selector> <file_path..> [--project <name>] [--add-label]",
       );
     }
 
