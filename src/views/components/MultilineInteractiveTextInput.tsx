@@ -8,6 +8,7 @@ import {
   MultilineCursorTextLayouter,
   type VisibleRow,
 } from "../../foundation/layouter/MultilineCursorTextLayouter.ts";
+import { useClipboardStore } from "../../store/ClipboardStore.ts";
 import { clamp } from "../../types/maths.ts";
 
 export type MultilineInteractiveTextInputState = {
@@ -153,8 +154,23 @@ function reduceKey(
       layouter.moveToLineEnd();
       return { handled: true, kind: "update", state: { layouter, revision: state.revision } };
     }
+    if (ch === "d") {
+      const result = layouter.deleteAfterCursor();
+      const nextLayouter = result ?? layouter;
+      return { handled: true, kind: "update", state: { layouter: nextLayouter, revision: state.revision } };
+    }
     if (ch === "k") {
-      layouter.killLineFromCursor();
+      const killed = layouter.killLineFromCursor();
+      if (killed !== "") {
+        useClipboardStore.getState().write(killed);
+      }
+      return { handled: true, kind: "update", state: { layouter, revision: state.revision } };
+    }
+    if (ch === "v") {
+      const clipboard = useClipboardStore.getState().content;
+      if (clipboard !== "") {
+        layouter.insertTextAtCursor(clipboard);
+      }
       return { handled: true, kind: "update", state: { layouter, revision: state.revision } };
     }
     return { handled: false };

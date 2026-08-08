@@ -228,6 +228,21 @@ export class MultilineCursorTextLayouter {
     return this;
   }
 
+  deleteAfterCursor(): MultilineCursorTextLayouter | null {
+    const line = this.currentLine();
+    if (this.cursorIndex < line.length) {
+      this.lines[this.lineIndex] =
+        line.slice(0, this.cursorIndex) + line.slice(this.cursorIndex + 1);
+      this.reconcileScrollToCursor();
+      return this;
+    }
+    if (this.lineIndex >= this.lines.length - 1) return null;
+    this.lines[this.lineIndex] = line + this.lines[this.lineIndex + 1]!;
+    this.lines.splice(this.lineIndex + 1, 1);
+    this.reconcileScrollToCursor();
+    return this;
+  }
+
   insertNewline(): MultilineCursorTextLayouter {
     const line = this.currentLine();
     const before = line.slice(0, this.cursorIndex);
@@ -241,11 +256,12 @@ export class MultilineCursorTextLayouter {
     return this;
   }
 
-  killLineFromCursor(): MultilineCursorTextLayouter {
+  /** Kills from cursor to EOL (or removes an empty line). Returns the killed text. */
+  killLineFromCursor(): string {
     const line = this.currentLine();
     if (line.length === 0) {
       if (this.lines.length <= 1) {
-        return this;
+        return "";
       }
       if (this.lineIndex < this.lines.length - 1) {
         this.lines.splice(this.lineIndex, 1);
@@ -257,11 +273,12 @@ export class MultilineCursorTextLayouter {
       }
       this.clampCursor();
       this.reconcileScrollToCursor();
-      return this;
+      return "\n";
     }
+    const killed = line.slice(this.cursorIndex);
     this.lines[this.lineIndex] = line.slice(0, this.cursorIndex);
     this.reconcileScrollToCursor();
-    return this;
+    return killed;
   }
 
   layout(): MultilineCursorLayoutResult {

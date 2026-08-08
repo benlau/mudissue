@@ -273,8 +273,21 @@ describe("MultilineCursorTextLayouter", () => {
       height: 1,
     });
 
-    layouter.killLineFromCursor();
+    expect(layouter.killLineFromCursor()).toBe(" world");
+    expect(layouter.getLines()).toEqual(["hello"]);
+    expect(layouter.getCursorIndex()).toBe(5);
+  });
 
+  it("returns empty string when killLineFromCursor has nothing after the cursor", () => {
+    const layouter = new MultilineCursorTextLayouter({
+      lines: ["hello"],
+      lineIndex: 0,
+      cursorIndex: 5,
+      width: 10,
+      height: 1,
+    });
+
+    expect(layouter.killLineFromCursor()).toBe("");
     expect(layouter.getLines()).toEqual(["hello"]);
     expect(layouter.getCursorIndex()).toBe(5);
   });
@@ -288,8 +301,7 @@ describe("MultilineCursorTextLayouter", () => {
       height: 3,
     });
 
-    layouter.killLineFromCursor();
-
+    expect(layouter.killLineFromCursor()).toBe("\n");
     expect(layouter.getLines()).toEqual(["a", "b"]);
     expect(layouter.getLineIndex()).toBe(1);
     expect(layouter.getCursorIndex()).toBe(0);
@@ -305,8 +317,7 @@ describe("MultilineCursorTextLayouter", () => {
       height: 2,
     });
 
-    layouter.killLineFromCursor();
-
+    expect(layouter.killLineFromCursor()).toBe("\n");
     expect(layouter.getLines()).toEqual(["a"]);
     expect(layouter.getLineIndex()).toBe(0);
     expect(layouter.getCursorIndex()).toBe(1);
@@ -322,11 +333,53 @@ describe("MultilineCursorTextLayouter", () => {
       height: 1,
     });
 
-    layouter.killLineFromCursor();
-
+    expect(layouter.killLineFromCursor()).toBe("");
     expect(layouter.getLines()).toEqual([""]);
     expect(layouter.getLineIndex()).toBe(0);
     expect(layouter.getCursorIndex()).toBe(0);
+  });
+
+  it("deletes the character at the cursor with deleteAfterCursor", () => {
+    const layouter = new MultilineCursorTextLayouter({
+      lines: ["hello"],
+      lineIndex: 0,
+      cursorIndex: 1,
+      width: 10,
+      height: 1,
+    });
+
+    expect(layouter.deleteAfterCursor()).not.toBeNull();
+    expect(layouter.getLines()).toEqual(["hllo"]);
+    expect(layouter.getCursorIndex()).toBe(1);
+  });
+
+  it("joins the next line when deleteAfterCursor is at end of line", () => {
+    const layouter = new MultilineCursorTextLayouter({
+      lines: ["ab", "cd"],
+      lineIndex: 0,
+      cursorIndex: 2,
+      width: 10,
+      height: 2,
+    });
+
+    expect(layouter.deleteAfterCursor()).not.toBeNull();
+    expect(layouter.getLines()).toEqual(["abcd"]);
+    expect(layouter.getLineIndex()).toBe(0);
+    expect(layouter.getCursorIndex()).toBe(2);
+  });
+
+  it("returns null when deleteAfterCursor is at end of the last line", () => {
+    const layouter = new MultilineCursorTextLayouter({
+      lines: ["hi"],
+      lineIndex: 0,
+      cursorIndex: 2,
+      width: 10,
+      height: 1,
+    });
+
+    expect(layouter.deleteAfterCursor()).toBeNull();
+    expect(layouter.getLines()).toEqual(["hi"]);
+    expect(layouter.getCursorIndex()).toBe(2);
   });
 
   it("moves the cursor down by page size in display rows", () => {

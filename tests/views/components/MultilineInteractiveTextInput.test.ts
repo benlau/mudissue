@@ -1,5 +1,6 @@
 import { jest } from "@jest/globals";
 import type { Key } from "ink";
+import { useClipboardStore } from "../../../src/store/ClipboardStore.ts";
 import {
   createMultilineInteractiveTextInputStore,
   type MultilineInteractiveTextInputStore,
@@ -38,6 +39,7 @@ describe("createMultilineInteractiveTextInputStore", () => {
   beforeEach(() => {
     store = createMultilineInteractiveTextInputStore("", 10, 3);
     onChange = jest.fn();
+    useClipboardStore.setState({ content: "" });
   });
 
   function activeCtx(overrides?: Partial<{
@@ -133,33 +135,79 @@ describe("createMultilineInteractiveTextInputStore", () => {
     expect(onChange).toHaveBeenCalledWith("Hello");
   });
 
-  it("does not handle Ctrl+D in applyKey", () => {
+  it("deletes the character at the cursor on Ctrl+D", () => {
+    store.getState().applyKey("hello", buildKey({}), activeCtx());
+    store.getState().applyKey("", buildKey({ leftArrow: true }), activeCtx());
+    store.getState().applyKey("", buildKey({ leftArrow: true }), activeCtx());
     const handled = store
       .getState()
       .applyKey("d", buildKey({ ctrl: true }), activeCtx());
 
-    expect(handled).toBe(false);
-    expect(store.getState().getText()).toBe("");
-    expect(onChange).not.toHaveBeenCalled();
+    expect(handled).toBe(true);
+    expect(store.getState().getText()).toBe("helo");
+    expect(store.getState().layouter.getCursorIndex()).toBe(3);
+    expect(onChange).toHaveBeenCalledWith("helo");
   });
 
-  it("kills from cursor to end of line on Ctrl+K", () => {
+  it("kills from cursor to end of line on Ctrl+K and stores the killed text", () => {
     store.getState().applyKey("hello", buildKey({}), activeCtx());
     store.getState().applyKey("", buildKey({ leftArrow: true }), activeCtx());
     store.getState().applyKey("", buildKey({ leftArrow: true }), activeCtx());
     store.getState().applyKey("k", buildKey({ ctrl: true }), activeCtx());
 
     expect(store.getState().getText()).toBe("hel");
+    expect(useClipboardStore.getState().content).toBe("lo");
   });
 
-  it("removes an empty line on Ctrl+K", () => {
+  it("removes an empty line on Ctrl+K and stores a newline in the clipboard", () => {
     store.getState().applyKey("hello", buildKey({}), activeCtx());
     store.getState().applyKey("", buildKey({ return: true }), activeCtx());
     store.getState().applyKey("k", buildKey({ ctrl: true }), activeCtx());
 
     expect(store.getState().getText()).toBe("hello");
     expect(store.getState().layouter.getLineIndex()).toBe(0);
+    expect(useClipboardStore.getState().content).toBe("\n");
     expect(onChange).toHaveBeenCalledWith("hello");
+  });
+
+  it("does not overwrite the clipboard when Ctrl+K kills nothing", () => {
+    useClipboardStore.getState().write("keep me");
+    store.getState().applyKey("hi", buildKey({}), activeCtx());
+    store.getState().applyKey("k", buildKey({ ctrl: true }), activeCtx());
+
+    expect(store.getState().getText()).toBe("hi");
+    expect(useClipboardStore.getState().content).toBe("keep me");
+  });
+
+  it("pastes clipboard content at the cursor on Ctrl+V", () => {
+    useClipboardStore.getState().write("XYZ");
+    store.getState().applyKey("ab", buildKey({}), activeCtx());
+    store.getState().applyKey("", buildKey({ leftArrow: true }), activeCtx());
+    store.getState().applyKey("v", buildKey({ ctrl: true }), activeCtx());
+
+    expect(store.getState().getText()).toBe("aXYZb");
+    expect(onChange).toHaveBeenCalledWith("aXYZb");
+  });
+
+  it("pastes multiline clipboard content on Ctrl+V", () => {
+    useClipboardStore.getState().write("one\ntwo");
+    store.getState().applyKey("v", buildKey({ ctrl: true }), activeCtx());
+
+    expect(store.getState().getText()).toBe("one\ntwo");
+    expect(store.getState().layouter.getLines()).toEqual(["one", "two"]);
+    expect(onChange).toHaveBeenCalledWith("one\ntwo");
+  });
+
+  it("does nothing on Ctrl+V when the clipboard is empty", () => {
+    store.getState().applyKey("hi", buildKey({}), activeCtx());
+    onChange.mockClear();
+    const handled = store
+      .getState()
+      .applyKey("v", buildKey({ ctrl: true }), activeCtx());
+
+    expect(handled).toBe(true);
+    expect(store.getState().getText()).toBe("hi");
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("moves the cursor down by height minus one on PageDown", () => {
