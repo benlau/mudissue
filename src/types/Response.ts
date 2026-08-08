@@ -257,3 +257,7 @@ export type VersionCommandSuccessResult = { version: string };
 export type ScriptSelectIssueCommandSuccessResult = {
   issueFolderName: string;
 };
+
+export type ScriptUniqCommandSuccessResult = {
+  issueFolderName: string;
+};
