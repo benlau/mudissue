@@ -53,8 +53,6 @@ expect(ZodErrorFormatter.format(parsed.error)).toEqual(
 );
 ```
 
-See also the **DAMP** principle in `.claude/skills/typescript-damp/SKILL.md`: compare whole objects/values so the shape is obvious at a glance.
-
 ## 4. Do not dynamically import internal modules in tests
 
 - Use normal static imports for internal modules under `src/` and `tests/`.

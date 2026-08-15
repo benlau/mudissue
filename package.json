@@ -1,11 +1,19 @@
 {
   "name": "mudissue",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "mudissue",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
     "mud": "dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benlau/mudissue.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   },
   "scripts": {
     "build": "node esbuild.config.mjs",
