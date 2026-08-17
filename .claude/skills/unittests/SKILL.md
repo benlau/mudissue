@@ -8,6 +8,7 @@ description: How to write unit tests in this repo—no real filesystem, mock Fil
 ## 1. Do not use the real filesystem for test data
 
 - Do not create files or directories on disk to set up tests (no `fs` / `fs.promises`, no temp folders under `/tmp`, no writing fixtures beside the test run).
+- Do not import `fs`, `node:fs`, `fs/promises`, or `node:fs/promises` in tests (enforced by `no-restricted-imports` in `eslint.tests.config.mjs`).
 - Tests should be fast, deterministic, and runnable anywhere without leaving artifacts.
 
 ## 2. Mock `FileService` for file I/O

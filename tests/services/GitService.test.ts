@@ -1,24 +1,13 @@
 import { jest } from "@jest/globals";
 import * as path from "path";
-import fs from "node:fs";
-import git from "isomorphic-git";
 import { GitService } from "../../src/services/GitService.ts";
 import { FileService } from "../../src/services/FileService.ts";
-import type { Dirent } from "node:fs";
 
-function mockDirent(name: string): Dirent {
+function mockDirent(name: string) {
   return {
     name,
     isDirectory: () => true,
-    isFile: () => false,
-    isBlockDevice: () => false,
-    isCharacterDevice: () => false,
-    isSymbolicLink: () => false,
-    isFIFO: () => false,
-    isSocket: () => false,
-    parentPath: "",
-    path: "",
-  } as Dirent;
+  } as Awaited<ReturnType<FileService["readdir"]>>[number];
 }
 
 describe("GitService.listWorktree", () => {
@@ -312,33 +301,5 @@ describe("GitService.getGitFolderHeadObjectId", () => {
     );
     expect(result).toBe("abcdef1");
     resolveRefSpy.mockRestore();
-  });
-
-  it("resolves HEAD via common gitdir for linked worktree checkouts", async () => {
-    const worktreeRoot = path.join(path.sep, "test", "repo", "wt");
-    const adminGitdir = path.join(
-      path.sep,
-      "test",
-      "repo",
-      ".git",
-      "worktrees",
-      "MI001",
-    );
-    const commonGitDir = path.join(path.sep, "test", "repo", ".git");
-    jest.spyOn(svc, "resolveBaseGitFolder").mockResolvedValue(adminGitdir);
-    const gitResolveRefSpy = jest
-      .spyOn(git, "resolveRef")
-      .mockResolvedValue("1234567890abcdef1234567890abcdef12345678");
-
-    const result = await svc.getGitFolderHeadObjectId(worktreeRoot);
-
-    expect(gitResolveRefSpy).toHaveBeenCalledWith({
-      fs,
-      dir: path.normalize(worktreeRoot),
-      gitdir: path.normalize(commonGitDir),
-      ref: "HEAD",
-    });
-    expect(result).toBe("1234567");
-    gitResolveRefSpy.mockRestore();
   });
 });

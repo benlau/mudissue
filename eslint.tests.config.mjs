@@ -14,6 +14,33 @@ export default [
     plugins: { mudissue },
     rules: {
       "mudissue/test-filename-convention": "error",
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "fs",
+              message:
+                "Do not import fs in tests. Mock FileService instead. See .claude/skills/unittests/SKILL.md.",
+            },
+            {
+              name: "node:fs",
+              message:
+                "Do not import fs in tests. Mock FileService instead. See .claude/skills/unittests/SKILL.md.",
+            },
+            {
+              name: "fs/promises",
+              message:
+                "Do not import fs in tests. Mock FileService instead. See .claude/skills/unittests/SKILL.md.",
+            },
+            {
+              name: "node:fs/promises",
+              message:
+                "Do not import fs in tests. Mock FileService instead. See .claude/skills/unittests/SKILL.md.",
+            },
+          ],
+        },
+      ],
     },
   },
   {
