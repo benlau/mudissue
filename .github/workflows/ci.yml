@@ -45,6 +45,7 @@ jobs:
             package.json
             dist/index.js
             README.md
+            docs/images
       - name: Publish
         if: github.event_name == 'workflow_dispatch'
         run: npm publish --provenance --access public

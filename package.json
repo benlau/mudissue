@@ -84,6 +84,8 @@
   },
   "files": [
     "dist/index.js",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "docs/images"
   ]
 }
