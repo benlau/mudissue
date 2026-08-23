@@ -1,6 +1,6 @@
 {
   "name": "mudissue",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "mudissue",
   "type": "module",
   "main": "dist/index.js",
