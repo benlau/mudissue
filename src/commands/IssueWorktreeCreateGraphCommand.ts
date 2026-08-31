@@ -2,13 +2,13 @@ import type { Argv } from "yargs";
 import * as path from "path";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { MermaidService } from "../services/MermaidService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
 import { GitFolderValidator } from "../utils/validators/GitFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { WorktreeHelper } from "../helpers/WorktreeHelper.ts";
 import { MermaidGitGraphGenerator } from "../utils/generators/MermaidGitGraphGenerator.ts";
+import { MermaidService } from "../services/MermaidService.ts";
 import type {
   ErrorResponse,
   IssueWorktreeCreateGraphCommandSuccessResult,
@@ -54,6 +54,10 @@ const msg = defineMessages({
     id: "cli.worktree.graph.option.output",
     defaultMessage:
       "Output file path (default: temp file; .mmd with --text, .png otherwise)",
+  },
+  worktreeGraphNoIssueWorktrees: {
+    id: "cli.worktree.graph.error.noIssueWorktrees",
+    defaultMessage: "No worktrees found for this repository.",
   },
 });
 
@@ -155,7 +159,7 @@ export class IssueWorktreeCreateGraphCommand extends Command {
     if (mudissuePaths.length === 0) {
       this.throwException(
         "WORKTREE_GRAPH_NO_ISSUE_WORKTREES",
-        "No worktrees found for this repository.",
+        intl.formatMessage(msg.worktreeGraphNoIssueWorktrees),
       );
     }
 

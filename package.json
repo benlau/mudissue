@@ -30,9 +30,7 @@
     "better-sqlite3": "^12.11.1",
     "gray-matter": "^4.0.3",
     "isomorphic-git": "^1.37.6",
-    "mermaid": "^11.14.0",
     "sharp": "^0.35.3",
-    "svgdom": "^0.1.19",
     "which": "^6.0.1"
   },
   "devDependencies": {

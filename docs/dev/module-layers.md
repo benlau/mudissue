@@ -130,6 +130,20 @@ The set of directories under `src/` is frozen in the `allowedSrcDirectories` set
 - **Store** must not import Ink UI (`views`) or yargs handlers (`commands`).
 - When parsing config or registry JSON, prefer Zod schemas and `safeParse` over ad-hoc checks.
 
+## Testing by layer
+
+Test files mirror `src/` under `tests/`, with one test file per production module (see `.claude/skills/unittests/SKILL.md`). Layer-specific rules:
+
+| Layer | Test under `tests/`? | How to cover behavior |
+| ----- | -------------------- | --------------------- |
+| L0 (`types/`, `foundation/`) | Yes | Direct unit tests |
+| L1 (`services/`, `db/`) | **No** | Do not add `tests/services/*Service.test.ts`. Services are thin I/O wrappers; test callers (L2–L4) and stub services with `Service.setInstance(mock)` or `jest.spyOn` at the call site. |
+| L2 (`utils/`) | Yes | Direct unit tests; mock L1 via `Service.setInstance` |
+| L3 (`store/`) | Yes | Direct unit tests |
+| L4 (`commands/`, `views/`, …) | Yes | Direct unit tests; mock L1 services, not raw `fs` or external libraries |
+
+Example: `MermaidService` optional-dependency errors are asserted in `tests/commands/IssueWorktreeCreateGraphCommand.test.ts` by stubbing `MermaidService.writeMermaidToPng`, not in a dedicated service test.
+
 See also [AGENTS.md](../../AGENTS.md) for project-wide architecture notes.
 
 ## Examples

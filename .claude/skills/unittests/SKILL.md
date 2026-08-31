@@ -68,6 +68,7 @@ expect(ZodErrorFormatter.format(parsed.error)).toEqual(
 ## 6. One test file per module
 
 - Mirror `src/` under `tests/` with a **single** test file per production module: `ModuleName.test.ts` or `ModuleName.test.tsx`.
+- **Exception (L1 services):** do not add tests under `tests/services/` for `src/services/*Service.ts`. Cover service behavior through L2–L4 tests and stub services at the caller (see **Testing by layer** in `docs/dev/module-layers.md`).
 - Do **not** create multiple test files for the same module split by purpose (e.g. unit vs render, logic vs UI).
 - **Exception:** component Ink snapshot tests live in the single shared file `tests/views/components/snapshots/components.snapshot.test.tsx` — not per-component `*.snapshot.test.tsx` files.
 

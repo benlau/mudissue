@@ -87,6 +87,7 @@ describe("IssueWorktreeCreateGraphCommand", () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     ShellService.setInstance(null);
     MermaidService.setInstance(null);
     resetGlobalConfigStore();
@@ -103,6 +104,23 @@ describe("IssueWorktreeCreateGraphCommand", () => {
     expect(result).toMatchObject({
       status: "error",
       error: { code: "WORKTREE_GRAPH_NO_ISSUE_WORKTREES" },
+    });
+  });
+
+  it("returns MERMAID_LEGACY_DEPS_MISSING when PNG path and optional packages missing", async () => {
+    jest.spyOn(MermaidService.prototype, "writeMermaidToPng").mockRejectedValue({
+      status: "error",
+      error: { code: "MERMAID_LEGACY_DEPS_MISSING", message: "ignored" },
+    });
+
+    const cmd = new IssueWorktreeCreateGraphCommand();
+    const result = await cmd.runCommand({ outputJson: true }, {
+      outputJson: true,
+    });
+
+    expect(result).toMatchObject({
+      status: "error",
+      error: { code: "MERMAID_LEGACY_DEPS_MISSING" },
     });
   });
 
@@ -167,7 +185,6 @@ describe("IssueWorktreeCreateGraphCommand", () => {
     expect((result as { result: { path: string } }).result.path).toMatch(
       /^\/tmp\/mudissue-graph-[0-9a-z]+\.mmd$/,
     );
-    pngSpy.mockRestore();
   });
 
   it("writes Mermaid source to explicit path when text and output set", async () => {
@@ -190,6 +207,5 @@ describe("IssueWorktreeCreateGraphCommand", () => {
     expect((result as { result: { path: string } }).result.path).toBe(
       path.resolve("/cwd", "custom.mmd"),
     );
-    pngSpy.mockRestore();
   });
 });

@@ -66,7 +66,7 @@ For issue folder naming rules and examples, read `docs/concept/issue-folder.md`.
 
 ### Testing Conventions
 
-- Test files mirror `src/` structure under `tests/`.
+- Test files mirror `src/` structure under `tests/`. **Do not** add dedicated tests for L1 services (`src/services/`); see `docs/dev/module-layers.md` (**Testing by layer**).
 - **Logger:** You may assert that a logger method was called (e.g. `expect(mockLogger.info).toHaveBeenCalled()`). Do **not** assert on the exact message or arguments passed—that couples tests to copy and makes refactors costly.
 
 ### Code Conventions
