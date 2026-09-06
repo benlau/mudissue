@@ -17,6 +17,7 @@ import { switchRecentProjectPaletteCommand } from "./SwitchRecentProjectPaletteC
 import { touchPaletteCommand } from "./TouchPaletteCommand.ts";
 import { extractContentIntoNewIssuePaletteCommand } from "./ExtractContentIntoNewIssuePaletteCommand.ts";
 import { changeLabelPaletteCommand } from "./ChangeLabelPaletteCommand.ts";
+import { mergeSelectedIssuesPaletteCommand } from "./MergeSelectedIssuesPaletteCommand.ts";
 
 export enum PaletteCommandRegistryScope {
   IssueTable = "issueTable",
@@ -55,6 +56,10 @@ PaletteCommandRegistry.registerPaletteCommand(
 PaletteCommandRegistry.registerPaletteCommand(
   [PaletteCommandRegistryScope.IssueTable],
   new RefreshPaletteCommand(),
+);
+PaletteCommandRegistry.registerPaletteCommand(
+  [PaletteCommandRegistryScope.IssueTable],
+  mergeSelectedIssuesPaletteCommand,
 );
 PaletteCommandRegistry.registerPaletteCommand(
   [
