@@ -192,7 +192,7 @@ describe("MergeSelectedIssuesPaletteCommand", () => {
     expect(textInputOpenMock).not.toHaveBeenCalled();
   });
 
-  it("creates a merged issue and skips remove when remove is cancelled", async () => {
+  it("creates a merged issue and removes originals without a second confirmation", async () => {
     const issueA = buildIssue("0001");
     const issueB = buildIssue("0002");
     useAppStore.setState({
@@ -205,43 +205,6 @@ describe("MergeSelectedIssuesPaletteCommand", () => {
     useCurrentTrackerRepoStore.setState({
       findTrackerRepoForIssueFolder: jest.fn().mockResolvedValue(mockRepo),
     });
-    confirmationOpenMock
-      .mockResolvedValueOnce({ type: "accepted" as const })
-      .mockResolvedValueOnce({ type: "cancelled" as const });
-
-    const removeSpy = jest.spyOn(IssueFolderStorage.prototype, "remove");
-
-    await new MergeSelectedIssuesPaletteCommand().callback();
-
-    expect(renderMergedContentMock).toHaveBeenCalledWith([issueA, issueB]);
-    expect(createIssueMock).toHaveBeenCalledWith(
-      "Merged Title",
-      undefined,
-      "merged-body",
-    );
-    expect(removeSpy).not.toHaveBeenCalled();
-    expect(toastInfoMock).toHaveBeenCalled();
-    expect(
-      useAppStore.getState().tableRangeSelectionAnchorIssueId,
-    ).toBeNull();
-  });
-
-  it("removes original issues when remove is confirmed", async () => {
-    const issueA = buildIssue("0001");
-    const issueB = buildIssue("0002");
-    useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
-      selectedIssueId: issueB.issueId,
-      tableRangeSelectionAnchorIssueId: issueA.issueId,
-      navigationStack: INITIAL_NAVIGATION_STACK,
-    });
-
-    useCurrentTrackerRepoStore.setState({
-      findTrackerRepoForIssueFolder: jest.fn().mockResolvedValue(mockRepo),
-    });
-    confirmationOpenMock
-      .mockResolvedValueOnce({ type: "accepted" as const })
-      .mockResolvedValueOnce({ type: "accepted" as const });
 
     const removeSpy = jest
       .spyOn(IssueFolderStorage.prototype, "remove")
@@ -251,7 +214,13 @@ describe("MergeSelectedIssuesPaletteCommand", () => {
 
     await new MergeSelectedIssuesPaletteCommand().callback();
 
-    expect(createIssueMock).toHaveBeenCalled();
+    expect(renderMergedContentMock).toHaveBeenCalledWith([issueA, issueB]);
+    expect(createIssueMock).toHaveBeenCalledWith(
+      "Merged Title",
+      undefined,
+      "merged-body",
+    );
+    expect(confirmationOpenMock).toHaveBeenCalledTimes(1);
     expect(removeSpy).toHaveBeenCalledTimes(2);
     expect(refreshMock).toHaveBeenCalled();
     expect(toastInfoMock).toHaveBeenCalled();

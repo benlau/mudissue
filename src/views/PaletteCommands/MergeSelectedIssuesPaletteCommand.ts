@@ -49,26 +49,10 @@ const messages = defineMessages({
     id: "views.paletteCommands.mergeSelectedIssues.titleDialogPrompt",
     defaultMessage: "Title: ",
   },
-  confirmRemoveTitle: {
-    id: "views.paletteCommands.mergeSelectedIssues.confirmRemoveTitle",
-    defaultMessage: "Remove original issues?",
-  },
-  confirmRemoveMessage: {
-    id: "views.paletteCommands.mergeSelectedIssues.confirmRemoveMessage",
-    defaultMessage: "Do you want to remove the original issue?",
-  },
-  confirmRemoveLabel: {
-    id: "views.paletteCommands.mergeSelectedIssues.confirmRemoveLabel",
-    defaultMessage: "Remove",
-  },
   removeFailedAlert: {
     id: "views.paletteCommands.mergeSelectedIssues.removeFailedAlert",
     defaultMessage:
       "Cannot remove issue folder: it must be empty or contain only the issue markdown file (and optional files/ attachments).",
-  },
-  successToast: {
-    id: "views.paletteCommands.mergeSelectedIssues.successToast",
-    defaultMessage: "Merged into {issue}",
   },
   successToastWithRemove: {
     id: "views.paletteCommands.mergeSelectedIssues.successToastWithRemove",
@@ -142,25 +126,6 @@ export class MergeSelectedIssuesPaletteCommand implements PaletteCommand {
           ? err.message
           : String(err);
       await useToastStore.getState().error(detail);
-      return;
-    }
-
-    const confirmRemoveResult = await useConfirmationDialogStore
-      .getState()
-      .open({
-        title: intl.formatMessage(messages.confirmRemoveTitle),
-        message: intl.formatMessage(messages.confirmRemoveMessage),
-        confirmLabel: intl.formatMessage(messages.confirmRemoveLabel),
-        variant: "destructive",
-      });
-
-    if (confirmRemoveResult.type !== "accepted") {
-      useAppStore.getState().clearTableRangeSelection();
-      await useToastStore.getState().info(
-        intl.formatMessage(messages.successToast, {
-          issue: createdIssueId,
-        }),
-      );
       return;
     }
 
