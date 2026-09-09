@@ -50,6 +50,8 @@ import { RegistrySetCwdCommand } from "./commands/RegistrySetCwdCommand.ts";
 import { RegistrySetProjectCommand } from "./commands/RegistrySetProjectCommand.ts";
 import { ConfigEditCommand } from "./commands/ConfigEditCommand.ts";
 import { ConfigLocateCommand } from "./commands/ConfigLocateCommand.ts";
+import { ConfigSetPropertyCommand } from "./commands/ConfigSetPropertyCommand.ts";
+import { ConfigGetPropertyCommand } from "./commands/ConfigGetPropertyCommand.ts";
 import { ScriptSelectIssueCommand } from "./commands/ScriptSelectIssueCommand.tsx";
 import { ScriptUniqCommand } from "./commands/ScriptUniqCommand.ts";
 import { useIssueMetadataChangedPostHookStore } from "./store/IssueMetadataChangedPostHookStore.ts";
@@ -144,7 +146,8 @@ const msg = defineMessages({
   },
   demandConfig: {
     id: "cli.demand.config",
-    defaultMessage: "Specify 'edit' or 'locate'",
+    defaultMessage:
+      "Specify 'edit', 'locate', 'set-property', or 'get-property'",
   },
   demandScript: {
     id: "cli.demand.script",
@@ -214,7 +217,12 @@ const REGISTRY_COMMANDS = [
   RegistrySetProjectCommand,
 ] as const;
 
-const CONFIG_COMMANDS = [ConfigEditCommand, ConfigLocateCommand] as const;
+const CONFIG_COMMANDS = [
+  ConfigEditCommand,
+  ConfigLocateCommand,
+  ConfigSetPropertyCommand,
+  ConfigGetPropertyCommand,
+] as const;
 
 let yargsInstance: Argv = yargs(hideBin(process.argv))
   .option("json", {

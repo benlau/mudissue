@@ -26,6 +26,9 @@ export type ErrorCode =
   | "EDIT_ISSUE_NO_ISSUE_FILE"
   | "SET_ISSUE_INVALID_PROPERTY"
   | "GET_ISSUE_PROPERTY_NOT_FOUND"
+  | "SET_CONFIG_INVALID_PROPERTY"
+  | "GET_CONFIG_INVALID_PROPERTY"
+  | "GET_CONFIG_PROPERTY_NOT_FOUND"
   | "LOCATE_ISSUE_MULTIPLE_MATCHES"
   | "LOCATE_ISSUE_NO_ISSUE_FILE"
   | "MUD_CONFIG_NOT_FOUND"
@@ -97,6 +100,12 @@ export type GetIssuePropertyNotFound = {
   property: string;
   issueFilePath: string;
 };
+export type SetConfigInvalidProperty = { property: string };
+export type GetConfigInvalidProperty = { property: string };
+export type GetConfigPropertyNotFound = {
+  property: string;
+  configFilePath: string;
+};
 
 export type ErrorPayloadCodeMap =
   | { code: "COMMAND_INVALID_ARG"; details: CommandInvalidArg }
@@ -122,6 +131,18 @@ export type ErrorPayloadCodeMap =
   | {
       code: "GET_ISSUE_PROPERTY_NOT_FOUND";
       details: GetIssuePropertyNotFound;
+    }
+  | {
+      code: "SET_CONFIG_INVALID_PROPERTY";
+      details: SetConfigInvalidProperty;
+    }
+  | {
+      code: "GET_CONFIG_INVALID_PROPERTY";
+      details: GetConfigInvalidProperty;
+    }
+  | {
+      code: "GET_CONFIG_PROPERTY_NOT_FOUND";
+      details: GetConfigPropertyNotFound;
     }
   | { code: "INIT_GIT_NOT_DIRECTORY"; details?: undefined };
 

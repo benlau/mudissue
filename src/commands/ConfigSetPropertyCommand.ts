@@ -1,39 +1,35 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../utils/storage/IssueMarkdownFileStorage.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
-import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
-import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
-import { IssueMetadataChangedPostHookContext } from "../store/IssueMetadataChangedPostHookStore.ts";
+import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
+import { MudConfigFileStorage } from "../utils/storage/MudConfigFileStorage.ts";
 import { FrontmatterValidator } from "../utils/validators/FrontmatterValidator.ts";
 import {
   FrontmatterValueValidator,
   type FrontmatterValueType,
 } from "../utils/validators/FrontmatterValueValidator.ts";
+import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
+  ConfigSetPropertyCommandSuccessResult,
   ErrorResponse,
-  IssueSetPropertyCommandSuccessResult,
   SuccessResponse,
 } from "../types/Response.ts";
+import type { MudConfigNotFound } from "../types/errors.ts";
 
-export type IssueSetPropertyCommandSuccessResponse =
-  SuccessResponse<IssueSetPropertyCommandSuccessResult>;
+export type ConfigSetPropertyCommandSuccessResponse =
+  SuccessResponse<ConfigSetPropertyCommandSuccessResult>;
 
-export type IssueSetPropertyCommandOptions = {
-  skipUpdatedAt?: boolean;
+export type ConfigSetPropertyCommandOptions = {
   type?: string;
   skipIfPresent?: boolean;
 };
 
 const msg = defineMessages({
-  issueSetPropertyDescribe: {
-    id: "cli.issue.setProperty.describe",
-    defaultMessage: "Set a frontmatter property in an issue's issue.md",
+  configSetPropertyDescribe: {
+    id: "cli.config.setProperty.describe",
+    defaultMessage: "Set a property in mud.conf",
   },
   optionProject: {
     id: "cli.common.option.project",
@@ -47,72 +43,51 @@ const msg = defineMessages({
     id: "cli.common.option.value",
     defaultMessage: "Value to set",
   },
-  optionIssueSelector: {
-    id: "cli.common.option.issueSelector",
-    defaultMessage: "Issue ID, folder name, or suffix",
-  },
-  optionSkipUpdatedAt: {
-    id: "cli.issue.setProperty.option.skipUpdatedAt",
-    defaultMessage: "Do not update frontmatter updated_at",
-  },
   optionType: {
-    id: "cli.issue.setProperty.option.type",
+    id: "cli.config.setProperty.option.type",
     defaultMessage: "Value type: string, boolean, or number",
   },
   optionSkipIfPresent: {
-    id: "cli.issue.setProperty.option.skipIfPresent",
+    id: "cli.config.setProperty.option.skipIfPresent",
     defaultMessage: "Do not modify the property if it is already present",
   },
   typeInvalid: {
-    id: "cli.issue.setProperty.error.typeInvalid",
+    id: "cli.config.setProperty.error.typeInvalid",
     defaultMessage: 'Invalid type "{value}". Use string, boolean, or number.',
   },
   booleanInvalid: {
-    id: "cli.issue.setProperty.error.booleanInvalid",
+    id: "cli.config.setProperty.error.booleanInvalid",
     defaultMessage:
       'Invalid boolean value "{value}". Use yes/no/true/false/1/0.',
   },
   numberInvalid: {
-    id: "cli.issue.setProperty.error.numberInvalid",
+    id: "cli.config.setProperty.error.numberInvalid",
     defaultMessage: 'Invalid number value "{value}".',
   },
   invalidProperty: {
-    id: "cli.issue.setProperty.error.invalidProperty",
+    id: "cli.config.setProperty.error.invalidProperty",
     defaultMessage:
       "Invalid property key. Use only letters, numbers, underscores, and hyphens.",
   },
-  issueMdMissing: {
-    id: "cli.issue.setProperty.error.issueMdMissing",
-    defaultMessage: "No issue file found in {path}.",
-  },
-  fileBinary: {
-    id: "cli.issue.setProperty.error.fileBinary",
-    defaultMessage: 'File "{path}" appears to be a binary file.',
-  },
 });
 
-export class IssueSetPropertyCommand extends Command {
-  name = "issue set-property";
+export class ConfigSetPropertyCommand extends Command {
+  name = "config set-property";
 
   constructor() {
     super();
   }
 
   static register(yargs: Argv): Argv {
-    const cmd = new IssueSetPropertyCommand();
+    const cmd = new ConfigSetPropertyCommand();
     return yargs.command(
-      "set-property <issue_selector> <property> <value>",
-      intl.formatMessage(msg.issueSetPropertyDescribe),
+      "set-property <property> <value>",
+      intl.formatMessage(msg.configSetPropertyDescribe),
       (builder) =>
         builder
           .option("project", {
             type: "string",
             describe: intl.formatMessage(msg.optionProject),
-          })
-          .option("skip-updated-at", {
-            type: "boolean",
-            describe: intl.formatMessage(msg.optionSkipUpdatedAt),
-            default: false,
           })
           .option("type", {
             type: "string",
@@ -124,10 +99,6 @@ export class IssueSetPropertyCommand extends Command {
             type: "boolean",
             describe: intl.formatMessage(msg.optionSkipIfPresent),
             default: false,
-          })
-          .positional("issue_selector", {
-            describe: intl.formatMessage(msg.optionIssueSelector),
-            type: "string",
           })
           .positional("property", {
             describe: intl.formatMessage(msg.optionPropertyName),
@@ -146,12 +117,10 @@ export class IssueSetPropertyCommand extends Command {
         });
         await cmd.runCommand(
           { outputJson },
-          argv.issue_selector ?? "",
           argv.property ?? "",
           argv.value ?? "",
           argv.project,
           {
-            skipUpdatedAt: argv["skip-updated-at"] === true,
             type: argv.type as FrontmatterValueType,
             skipIfPresent: argv["skip-if-present"] === true,
           },
@@ -161,20 +130,18 @@ export class IssueSetPropertyCommand extends Command {
   }
 
   async command(
-    issueSelector: string,
     property: string,
     value: string,
     project?: string,
-    options: IssueSetPropertyCommandOptions = {},
-  ): Promise<IssueSetPropertyCommandSuccessResponse | ErrorResponse> {
-    const fileService = FileService.getInstance();
+    options: ConfigSetPropertyCommandOptions = {},
+  ): Promise<ConfigSetPropertyCommandSuccessResponse | ErrorResponse> {
     const loggerService = LoggerService.getInstance();
 
     if (!FrontmatterValidator.isValidPropertyKey(property)) {
       return {
         status: "error",
         error: {
-          code: "SET_ISSUE_INVALID_PROPERTY",
+          code: "SET_CONFIG_INVALID_PROPERTY",
           message: intl.formatMessage(msg.invalidProperty),
           details: { property },
         },
@@ -190,49 +157,36 @@ export class IssueSetPropertyCommand extends Command {
       );
     }
 
-    const { repo, issue } =
-      await IssueSelectorArgumentHelper.processIssueSelectorArgument(
-        issueSelector,
-        project,
-      );
-    const globalConfig = await useGlobalConfigStore
-      .getState()
-      .ensureGlobalConfig();
-    const folderStorage = new IssueFolderStorage(issue);
-    const issueFilePath = await folderStorage.findIssueFile();
+    let repo;
+    if (project) {
+      repo = new TrackerRepoValidator()
+        .set(
+          await useCurrentTrackerRepoStore
+            .getState()
+            .getTrackerRepoByProjectName(project),
+        )
+        .validateProjectNotNone(project)
+        .first();
+    } else {
+      repo = await useCurrentTrackerRepoStore
+        .getState()
+        .getCurrentTrackerRepo();
+    }
 
-    if (issueFilePath === undefined) {
+    if (repo.configFilePath === undefined) {
+      const details: MudConfigNotFound = { path: repo.projectPath };
       return {
         status: "error",
         error: {
-          code: "ISSUE_MD_MISSING",
-          message: intl.formatMessage(msg.issueMdMissing, {
-            path: issue.path,
-          }),
-          details: { path: issue.path },
+          code: "MUD_CONFIG_NOT_FOUND",
+          message: "No repository config file path available.",
+          details,
         },
       };
     }
 
-    if (await fileService.isBinaryFile(issueFilePath)) {
-      return {
-        status: "error",
-        error: {
-          code: "SET_FILE_BINARY",
-          message: intl.formatMessage(msg.fileBinary, {
-            path: issueFilePath,
-          }),
-          details: { path: issueFilePath },
-        },
-      };
-    }
-
-    const resolvedIssueFile = new TrackerRepoStorage(
-      repo,
-      globalConfig,
-    ).resolveFilePath(issueFilePath);
-
-    const storage = new IssueMarkdownFileStorage(issueFilePath);
+    const configFilePath = repo.configFilePath;
+    const storage = new MudConfigFileStorage(configFilePath);
     await storage.load();
 
     if (options.skipIfPresent === true) {
@@ -241,7 +195,7 @@ export class IssueSetPropertyCommand extends Command {
         return {
           status: "ok",
           result: {
-            issueFilePath: resolvedIssueFile.absPath,
+            configFilePath,
             property,
             value: existing,
             skipped: true,
@@ -270,25 +224,16 @@ export class IssueSetPropertyCommand extends Command {
       });
     }
 
-    const postHookContext = new IssueMetadataChangedPostHookContext();
-    await postHookContext.readOldMetadata(issue, project);
-
     storage.setProperty(property, coerced.value);
     await storage.save();
     loggerService.info(
-      `Set property "${property}" to "${coerced.value}" in ${issueFilePath}`,
+      `Set property "${property}" to "${coerced.value}" in ${configFilePath}`,
     );
-
-    if (options.skipUpdatedAt !== true) {
-      await folderStorage.touchUpdatedAt();
-    }
-
-    await postHookContext.notifyMetadataChanged();
 
     return {
       status: "ok",
       result: {
-        issueFilePath: resolvedIssueFile.absPath,
+        configFilePath,
         property,
         value: coerced.value,
       },

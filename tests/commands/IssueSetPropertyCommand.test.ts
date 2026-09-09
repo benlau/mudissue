@@ -179,7 +179,6 @@ title: An issue
     expect(result.status).toBe("ok");
     expect(result.result.property).toBe("status");
     expect(result.result.value).toBe("open");
-    expect(result.result.updatedAt).toEqual(expect.any(String));
     const expectedPath = path.join("/dummy", "0001-rename", "issue.md");
     expect(result.result.issueFilePath).toBe(expectedPath);
     expect(fileService.readFile).toHaveBeenCalledWith(expectedPath, "utf-8");
@@ -224,7 +223,6 @@ title: An issue
     });
 
     expect(result.status).toBe("ok");
-    expect(result.result.updatedAt).toBeUndefined();
     expect(touchUpdatedAtSpy).not.toHaveBeenCalled();
     expect(fileService.writeFile).toHaveBeenCalledTimes(1);
     expect(fileService.writeFile).toHaveBeenCalledWith(

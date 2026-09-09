@@ -31,7 +31,8 @@
     "gray-matter": "^4.0.3",
     "isomorphic-git": "^1.37.6",
     "sharp": "^0.35.3",
-    "which": "^6.0.1"
+    "which": "^6.0.1",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",

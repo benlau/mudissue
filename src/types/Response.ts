@@ -176,6 +176,19 @@ export type ConfigLocateCommandSuccessResult = {
   path: string;
 };
 
+export type ConfigSetPropertyCommandSuccessResult = {
+  configFilePath: string;
+  property: string;
+  value: unknown;
+  skipped?: boolean;
+};
+
+export type ConfigGetPropertyCommandSuccessResult = {
+  configFilePath: string;
+  property: string;
+  value: unknown;
+};
+
 export type IssueLocateCommandSuccessResult = {
   paths: string[];
 };
@@ -226,7 +239,6 @@ export type IssueSetPropertyCommandSuccessResult = {
   issueFilePath: string;
   property: string;
   value: unknown;
-  updatedAt?: string;
   skipped?: boolean;
 };
 
