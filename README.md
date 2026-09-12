@@ -40,7 +40,13 @@ mud init
 
 Initialize the issue repository by creating a mudissue config file (`mud.conf`). Run this from the root of your project (or the directory you want to track issues in).
 
-This creates `mud.conf` in the current directory. The config defines where issues are stored and optional settings like `issue_prefix` 
+This creates `mud.conf` in the current directory. The config defines where issues are stored and optional settings like `issue_prefix`.
+
+To keep `mud.conf` out of version control without changing `.gitignore`, add it to Git’s local exclude list:
+
+```bash
+echo mud.conf >> .git/info/exclude
+```
 
 **Using `init --inside-git`**
 
@@ -50,7 +56,23 @@ If you prefer not to add a `mud.conf` file to your project root (for example, to
 mud init --inside-git
 ```
 
-This creates `.git/mudissue/mud.conf`, which is located in a directory not typically tracked by VCS and avoids the need to modify your `.gitignore`.    
+This creates `.git/mudissue/mud.conf`, which is located in a directory not typically tracked by VCS and avoids the need to modify your `.gitignore`.
+
+# Configuration
+
+After initialization, configure `mud.conf` with properties that fit your project:
+
+```bash
+mud config set-property issue_prefix "YOUR_ISSUE_PREFIX"
+```
+
+Newly created issues use this prefix. For example, if `issue_prefix` is `MZ`, issues are labeled `MZ0001`, `MZ0002`, and so on.
+
+```bash
+mud config set-property tracker_path "YOUR_TRACKER_PATH"
+```
+
+Set the tracker path that holds the `issues` folder. By default it is `.`, so issues are stored in `./issues`. Change it when you want issues elsewhere (for example, an Obsidian vault path).
 
 ## Working from Any Subdirectory including worktree
 
@@ -88,13 +110,13 @@ These single-key shortcuts allow you to navigate and manipulate issues instantly
 
 ### **The Command Palette**
 
-Press : to trigger the **Command Palette**. This opens an exhaustive list of available advanced actions and commands for managing your tracker and issues.
+Press : to trigger the **Command Palette**. This opens an exhaustive list of available advanced actions and commands for managing your tracker and issues. See [Palette Commands](./docs/palette-commands.md) for the full list and descriptions.
 
 ![Command Palette](./docs/images/palette-command-001.jpeg)
 
 ### **Managing Relationships**
 
-Complex issue relationships are managed through bidirectional linkages stored in frontmatter, accessed directly via the Command Palette (:):
+Complex issue relationships are managed through bidirectional linkages stored in frontmatter, accessed directly via the [Command Palette](./docs/palette-commands.md) (`:`):
 
 * **Linking/Blocking**:  
   1. Select one or more issues -> press : to open the Command Palette ->select Link Issue.  
