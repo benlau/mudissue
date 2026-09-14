@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { ChangeIssueLabelHelper } from "../../../src/helpers/ChangeIssueLabelHelper.ts";
+import { ChangeIssueIdHelper } from "../../../src/helpers/ChangeIssueIdHelper.ts";
 import { useAlertDialogStore } from "../../../src/store/AlertDialogStore.ts";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import {
@@ -14,7 +14,7 @@ import { useTextInputDialogStore } from "../../../src/store/TextInputDialogStore
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
-import { ChangeLabelPaletteCommand } from "../../../src/views/PaletteCommands/ChangeLabelPaletteCommand.ts";
+import { ChangeIssueIdPaletteCommand } from "../../../src/views/PaletteCommands/ChangeIssueIdPaletteCommand.ts";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 import {
   INITIAL_NAVIGATION_STACK,
@@ -61,7 +61,7 @@ function resetTextInputDialogStore(): void {
   });
 }
 
-describe("ChangeLabelPaletteCommand", () => {
+describe("ChangeIssueIdPaletteCommand", () => {
   let toastInfoMock: jest.Mock<
     ReturnType<typeof useToastStore.getState>["info"]
   >;
@@ -74,8 +74,8 @@ describe("ChangeLabelPaletteCommand", () => {
   let refreshIssueListsMock: jest.Mock<
     ReturnType<typeof useAppStore.getState>["refreshIssueLists"]
   >;
-  let changeIssueLabelMock: jest.Mock<
-    ReturnType<ChangeIssueLabelHelper["changeIssueLabel"]>
+  let changeIssueIdMock: jest.Mock<
+    ReturnType<ChangeIssueIdHelper["changeIssueId"]>
   >;
   let stopAllWatchersMock: jest.Mock;
   let resumeWatchersMock: jest.Mock;
@@ -98,13 +98,13 @@ describe("ChangeLabelPaletteCommand", () => {
     refreshIssueListsMock = jest.fn().mockResolvedValue([]);
     useAppStore.setState({ refreshIssueLists: refreshIssueListsMock });
 
-    changeIssueLabelMock = jest.fn().mockResolvedValue({
+    changeIssueIdMock = jest.fn().mockResolvedValue({
       oldIssueFolderName: "0001-test",
       newIssueFolderName: "MI042-test",
     });
     jest
-      .spyOn(ChangeIssueLabelHelper.prototype, "changeIssueLabel")
-      .mockImplementation(changeIssueLabelMock);
+      .spyOn(ChangeIssueIdHelper.prototype, "changeIssueId")
+      .mockImplementation(changeIssueIdMock);
 
     stopAllWatchersMock = jest.fn();
     resumeWatchersMock = jest.fn();
@@ -134,10 +134,10 @@ describe("ChangeLabelPaletteCommand", () => {
     const openMock = jest.fn().mockResolvedValue({ type: "cancelled" });
     useTextInputDialogStore.setState({ open: openMock });
 
-    await new ChangeLabelPaletteCommand().callback();
+    await new ChangeIssueIdPaletteCommand().callback();
 
     expect(openMock).not.toHaveBeenCalled();
-    expect(changeIssueLabelMock).not.toHaveBeenCalled();
+    expect(changeIssueIdMock).not.toHaveBeenCalled();
     expect(stopAllWatchersMock).not.toHaveBeenCalled();
   });
 
@@ -155,7 +155,7 @@ describe("ChangeLabelPaletteCommand", () => {
     const openMock = jest.fn().mockResolvedValue({ type: "cancelled" });
     useTextInputDialogStore.setState({ open: openMock });
 
-    await new ChangeLabelPaletteCommand().callback();
+    await new ChangeIssueIdPaletteCommand().callback();
 
     expect(openMock).toHaveBeenCalled();
     const openArgs = openMock.mock.calls[0]![0] as {
@@ -165,11 +165,11 @@ describe("ChangeLabelPaletteCommand", () => {
     expect(openArgs.initialValue).toBe("0001");
     expect(openArgs.validate("not valid")).not.toBeNull();
     expect(openArgs.validate("MI042")).toBeNull();
-    expect(changeIssueLabelMock).not.toHaveBeenCalled();
+    expect(changeIssueIdMock).not.toHaveBeenCalled();
     expect(stopAllWatchersMock).not.toHaveBeenCalled();
   });
 
-  it("changes the issue label, refreshes the list, and shows a toast", async () => {
+  it("changes the issue id, refreshes the list, and shows a toast", async () => {
     const issue = buildIssue("0001");
     const updated = buildIssue("MI042");
     useAppStore.setState({
@@ -189,12 +189,12 @@ describe("ChangeLabelPaletteCommand", () => {
       }),
     });
 
-    await new ChangeLabelPaletteCommand().callback();
+    await new ChangeIssueIdPaletteCommand().callback();
 
     expect(stopAllWatchersMock).toHaveBeenCalled();
-    expect(changeIssueLabelMock).toHaveBeenCalledWith(mockRepo, issue, "MI042");
+    expect(changeIssueIdMock).toHaveBeenCalledWith(mockRepo, issue, "MI042");
     expect(stopAllWatchersMock.mock.invocationCallOrder[0]).toBeLessThan(
-      changeIssueLabelMock.mock.invocationCallOrder[0]!,
+      changeIssueIdMock.mock.invocationCallOrder[0]!,
     );
     expect(refreshIssueListsMock).toHaveBeenCalled();
     expect(useAppStore.getState().selectedIssueId).toBe("MI042-test");
@@ -225,7 +225,7 @@ describe("ChangeLabelPaletteCommand", () => {
       }),
     });
 
-    await new ChangeLabelPaletteCommand().callback();
+    await new ChangeIssueIdPaletteCommand().callback();
 
     expect(stopAllWatchersMock).toHaveBeenCalled();
     expect(resumeWatchersMock).toHaveBeenCalledTimes(1);
@@ -255,13 +255,13 @@ describe("ChangeLabelPaletteCommand", () => {
       }),
     });
 
-    await new ChangeLabelPaletteCommand().callback();
+    await new ChangeIssueIdPaletteCommand().callback();
 
     expect(useAppStore.getState().getCurrentPage().name).toBe("ISSUE_TABLE");
     expect(resumeWatchersMock).toHaveBeenCalledTimes(1);
   });
 
-  it("shows a red error toast when the target issue label already exists", async () => {
+  it("shows a red error toast when the target issue id already exists", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
@@ -277,15 +277,15 @@ describe("ChangeLabelPaletteCommand", () => {
         value: "MI042",
       }),
     });
-    changeIssueLabelMock.mockRejectedValue({
+    changeIssueIdMock.mockRejectedValue({
       status: "error",
       error: {
-        code: "CHANGE_ISSUE_LABEL_TARGET_EXISTS",
-        message: "Another issue folder matches issue label \"MI042\".",
+        code: "CHANGE_ISSUE_ID_TARGET_EXISTS",
+        message: 'Another issue folder matches issue ID "MI042".',
       },
     });
 
-    await new ChangeLabelPaletteCommand().callback();
+    await new ChangeIssueIdPaletteCommand().callback();
 
     expect(stopAllWatchersMock).toHaveBeenCalled();
     expect(resumeWatchersMock).toHaveBeenCalledTimes(1);
@@ -295,7 +295,7 @@ describe("ChangeLabelPaletteCommand", () => {
     expect(toastInfoMock).not.toHaveBeenCalled();
   });
 
-  it("resumes watchers when an unexpected label change error is thrown", async () => {
+  it("resumes watchers when an unexpected id change error is thrown", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
       mainIssueLists: [issue],
@@ -311,10 +311,10 @@ describe("ChangeLabelPaletteCommand", () => {
         value: "MI042",
       }),
     });
-    changeIssueLabelMock.mockRejectedValue(new Error("rename failed"));
+    changeIssueIdMock.mockRejectedValue(new Error("rename failed"));
 
     await expect(
-      new ChangeLabelPaletteCommand().callback(),
+      new ChangeIssueIdPaletteCommand().callback(),
     ).rejects.toThrow();
 
     expect(stopAllWatchersMock).toHaveBeenCalledTimes(1);

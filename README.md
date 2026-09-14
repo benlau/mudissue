@@ -66,7 +66,7 @@ After initialization, configure `mud.conf` with properties that fit your project
 mud config set-property issue_prefix "YOUR_ISSUE_PREFIX"
 ```
 
-Newly created issues use this prefix. For example, if `issue_prefix` is `MZ`, issues are labeled `MZ0001`, `MZ0002`, and so on.
+Newly created issues use this prefix. For example, if `issue_prefix` is `MZ`, issue IDs look like `MZ0001`, `MZ0002`, and so on.
 
 ```bash
 mud config set-property tracker_path "YOUR_TRACKER_PATH"

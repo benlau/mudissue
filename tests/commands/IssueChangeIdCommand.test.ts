@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
-import { IssueChangeLabelCommand } from "../../src/commands/IssueChangeLabelCommand.ts";
-import type { IssueChangeLabelCommandSuccessResult } from "../../src/types/Response.ts";
+import { IssueChangeIdCommand } from "../../src/commands/IssueChangeIdCommand.ts";
+import type { IssueChangeIdCommandSuccessResult } from "../../src/types/Response.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
@@ -25,7 +25,7 @@ const mockRepo: TrackerRepo = {
 
 const issueMdFixture = "---\ntitle: Summary\n---\n\nBody\n";
 
-describe("IssueChangeLabelCommand", () => {
+describe("IssueChangeIdCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let issueFinderService: ReturnType<typeof createMockSystemContext>["issueFinderService"];
   let trackerRepoStore: ReturnType<typeof createMockSystemContext>["trackerRepoStore"];
@@ -53,7 +53,7 @@ describe("IssueChangeLabelCommand", () => {
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
   });
 
-  const buildCommand = () => new IssueChangeLabelCommand();
+  const buildCommand = () => new IssueChangeIdCommand();
 
   it("throws ISSUE_NOT_FOUND when 0 matches", async () => {
     (issueFinderService.find as jest.Mock).mockResolvedValue([]);
@@ -81,7 +81,7 @@ describe("IssueChangeLabelCommand", () => {
     expect(fileService.rename).not.toHaveBeenCalled();
   });
 
-  it("throws CHANGE_ISSUE_LABEL_UNCHANGED when new label matches current label", async () => {
+  it("throws CHANGE_ISSUE_ID_UNCHANGED when new id matches current id", async () => {
     (issueFinderService.find as jest.Mock).mockResolvedValue([
       buildIssueFolder("43-summary", "43"),
     ]);
@@ -89,12 +89,12 @@ describe("IssueChangeLabelCommand", () => {
     const command = buildCommand();
     await expect(command.command("43", "43")).rejects.toMatchObject({
       status: "error",
-      error: { code: "CHANGE_ISSUE_LABEL_UNCHANGED" },
+      error: { code: "CHANGE_ISSUE_ID_UNCHANGED" },
     });
     expect(fileService.rename).not.toHaveBeenCalled();
   });
 
-  it("throws CHANGE_ISSUE_LABEL_TARGET_EXISTS when target folder exists", async () => {
+  it("throws CHANGE_ISSUE_ID_TARGET_EXISTS when target folder exists", async () => {
     (issueFinderService.find as jest.Mock).mockImplementation(
       (selector: string) =>
         Promise.resolve(
@@ -108,12 +108,12 @@ describe("IssueChangeLabelCommand", () => {
     const command = buildCommand();
     await expect(command.command("43", "PR45")).rejects.toMatchObject({
       status: "error",
-      error: { code: "CHANGE_ISSUE_LABEL_TARGET_EXISTS" },
+      error: { code: "CHANGE_ISSUE_ID_TARGET_EXISTS" },
     });
     expect(fileService.rename).not.toHaveBeenCalled();
   });
 
-  it("changes issue label and returns success result", async () => {
+  it("changes issue id and returns success result", async () => {
     const folder = buildIssueFolder("43-summary", "43");
     (issueFinderService.find as jest.Mock).mockImplementation(
       (selector: string) =>
@@ -128,7 +128,7 @@ describe("IssueChangeLabelCommand", () => {
 
     expect(result?.status).toBe("ok");
     expect(
-      (result as { result: IssueChangeLabelCommandSuccessResult }).result,
+      (result as { result: IssueChangeIdCommandSuccessResult }).result,
     ).toEqual({
       oldIssueFolderName: "43-summary",
       newIssueFolderName: "PR45-summary",

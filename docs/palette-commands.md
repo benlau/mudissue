@@ -35,5 +35,5 @@ Custom scripts defined in `mud.conf` also appear in the palette when configured;
 | Create Sub-issue | Create a sub-issue linked to the selected issue |
 | Copy to Clipboard | Copy issue information to the clipboard |
 | Touch Issue | Set `updated_at` to the current time for the selected issue |
-| Change Label | Change the label of the first selected issue |
+| Change Issue ID | Change the issue ID of the first selected issue |
 | Run Custom Script | Run a predefined script from `mud.conf` on selected issues |

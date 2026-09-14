@@ -9,21 +9,21 @@ import { RegistryService } from "../services/RegistryService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
-import type { IssueChangeLabelCommandSuccessResult } from "../types/Response.ts";
+import type { IssueChangeIdCommandSuccessResult } from "../types/Response.ts";
 import type { ErrorCode } from "../types/errors.ts";
 import type { TrackerRepo } from "../types/Tracker.ts";
 import { IssueResource } from "../utils/resources/IssueResource.ts";
 import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
 
 const messages = defineMessages({
-  invalidIssueLabel: {
-    id: "helpers.changeIssueLabel.invalidIssueLabel",
+  invalidIssueId: {
+    id: "helpers.changeIssueId.invalidIssueId",
     defaultMessage:
-      'Invalid issue label: "{label}". An issue label is an optional prefix followed by a number (e.g. 001, MI001, MI-001).',
+      'Invalid issue ID: "{id}". An issue ID is an optional prefix followed by a number (e.g. 001, MI001, MI-001).',
   },
 });
 
-function throwChangeIssueLabelError(
+function throwChangeIssueIdError(
   code: ErrorCode,
   message: string,
   details?: Record<string, unknown>,
@@ -38,60 +38,60 @@ function throwChangeIssueLabelError(
   };
 }
 
-function computeFolderNameForLabelChange(
+function computeFolderNameForIdChange(
   currentFolderName: string,
-  newLabel: string,
+  newId: string,
 ): string {
   const suffix = IssueSelectorMatcher.extractIssueSuffix(currentFolderName);
   const folderName =
-    suffix == null ? newLabel : IssueResource.withSlug(newLabel, suffix);
+    suffix == null ? newId : IssueResource.withSlug(newId, suffix);
   return BasicLayouter.truncatePathSegment(
     folderName,
     ISSUE_FOLDER_NAME_MAX_LENGTH,
   );
 }
 
-export class ChangeIssueLabelHelper {
-  async changeIssueLabel(
+export class ChangeIssueIdHelper {
+  async changeIssueId(
     repo: TrackerRepo,
     issue: IssueFolder,
-    newLabel: string,
-  ): Promise<IssueChangeLabelCommandSuccessResult> {
-    const trimmedNewLabel = newLabel.trim();
-    if (trimmedNewLabel === "") {
-      throwChangeIssueLabelError(
-        "CHANGE_ISSUE_LABEL_INVALID",
-        "New issue label is required.",
-        { new_label: newLabel },
+    newId: string,
+  ): Promise<IssueChangeIdCommandSuccessResult> {
+    const trimmedNewId = newId.trim();
+    if (trimmedNewId === "") {
+      throwChangeIssueIdError(
+        "CHANGE_ISSUE_ID_INVALID",
+        "New issue ID is required.",
+        { new_id: newId },
       );
     }
 
-    if (!IssueSelectorMatcher.isIssueLabel(trimmedNewLabel)) {
-      throwChangeIssueLabelError(
-        "CHANGE_ISSUE_LABEL_INVALID",
-        intl.formatMessage(messages.invalidIssueLabel, {
-          label: trimmedNewLabel,
+    if (!IssueSelectorMatcher.isIssueLabel(trimmedNewId)) {
+      throwChangeIssueIdError(
+        "CHANGE_ISSUE_ID_INVALID",
+        intl.formatMessage(messages.invalidIssueId, {
+          id: trimmedNewId,
         }),
-        { new_label: trimmedNewLabel },
+        { new_id: trimmedNewId },
       );
     }
 
-    if (trimmedNewLabel === issue.label) {
-      throwChangeIssueLabelError(
-        "CHANGE_ISSUE_LABEL_UNCHANGED",
-        `Issue label is already "${trimmedNewLabel}".`,
-        { new_label: trimmedNewLabel },
+    if (trimmedNewId === issue.label) {
+      throwChangeIssueIdError(
+        "CHANGE_ISSUE_ID_UNCHANGED",
+        `Issue ID is already "${trimmedNewId}".`,
+        { new_id: trimmedNewId },
       );
     }
 
-    const newFolderName = computeFolderNameForLabelChange(
+    const newFolderName = computeFolderNameForIdChange(
       issue.issueId,
-      trimmedNewLabel,
+      trimmedNewId,
     );
 
     if (!IssueSelectorMatcher.isValidateFolderName(newFolderName)) {
-      throwChangeIssueLabelError(
-        "CHANGE_ISSUE_LABEL_INVALID_NEW_FOLDER",
+      throwChangeIssueIdError(
+        "CHANGE_ISSUE_ID_INVALID_NEW_FOLDER",
         `Invalid computed issue folder name: "${newFolderName}".`,
         { new_issue_folder: newFolderName },
       );
@@ -99,15 +99,15 @@ export class ChangeIssueLabelHelper {
 
     const existingMatches = await useCurrentTrackerRepoStore
       .getState()
-      .findIssue(trimmedNewLabel, { project: repo.name });
+      .findIssue(trimmedNewId, { project: repo.name });
     const conflicting = existingMatches.find(
       (match) => match.path !== issue.path,
     );
     if (conflicting) {
-      throwChangeIssueLabelError(
-        "CHANGE_ISSUE_LABEL_TARGET_EXISTS",
-        `Another issue folder matches issue label "${trimmedNewLabel}".`,
-        { path: trimmedNewLabel },
+      throwChangeIssueIdError(
+        "CHANGE_ISSUE_ID_TARGET_EXISTS",
+        `Another issue folder matches issue ID "${trimmedNewId}".`,
+        { path: trimmedNewId },
       );
     }
 
@@ -122,8 +122,8 @@ export class ChangeIssueLabelHelper {
 
     if (targetPath !== currentPath) {
       if (await fileService.exists(targetPath)) {
-        throwChangeIssueLabelError(
-          "CHANGE_ISSUE_LABEL_TARGET_EXISTS",
+        throwChangeIssueIdError(
+          "CHANGE_ISSUE_ID_TARGET_EXISTS",
           `Target folder already exists: ${targetPath}.`,
           { path: targetPath },
         );

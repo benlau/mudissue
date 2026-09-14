@@ -25,13 +25,13 @@ Instead of using generic sequential numbers, assign a specific prefix based on t
 
 By segregating the ID namespace, you ensure that new issues created on different devices will never overlap. For more details on how prefixes work, see [Issue folder naming rules](../concept/issue-folder.md).
 
-### Handling Collisions: The Change Label Feature
+### Handling Collisions: The Change Issue ID Feature
 
-In the event that a duplicate ID is accidentally created and synchronized, it is important to note that **duplicated IDs/Labels will not damage the system**; the tracker remains functional. However, for organizational clarity and to avoid confusion, we recommend reassigning the ID. 
+In the event that a duplicate ID is accidentally created and synchronized, it is important to note that **duplicated issue IDs will not damage the system**; the tracker remains functional. However, for organizational clarity and to avoid confusion, we recommend reassigning the ID.
 
 MudIssue provides a dedicated command for this purpose:
 ```bash
-mud issue change-label
+mud issue change-id
 ```
 
-This allows you to manually update an issue number, resolving the conflict and maintaining the integrity of your tracking system.
+This allows you to manually update an issue ID (prefix and number; the suffix is preserved), resolving the conflict and maintaining the integrity of your tracking system.

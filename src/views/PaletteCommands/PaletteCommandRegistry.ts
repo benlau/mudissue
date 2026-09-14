@@ -16,7 +16,7 @@ import { runCustomScriptPaletteCommand } from "./RunCustomScriptPaletteCommand.t
 import { switchRecentProjectPaletteCommand } from "./SwitchRecentProjectPaletteCommand.ts";
 import { touchPaletteCommand } from "./TouchPaletteCommand.ts";
 import { extractContentIntoNewIssuePaletteCommand } from "./ExtractContentIntoNewIssuePaletteCommand.ts";
-import { changeLabelPaletteCommand } from "./ChangeLabelPaletteCommand.ts";
+import { changeIssueIdPaletteCommand } from "./ChangeIssueIdPaletteCommand.ts";
 import { mergeSelectedIssuesPaletteCommand } from "./MergeSelectedIssuesPaletteCommand.ts";
 
 export enum PaletteCommandRegistryScope {
@@ -151,7 +151,7 @@ PaletteCommandRegistry.registerPaletteCommand(
     PaletteCommandRegistryScope.IssueTable,
     PaletteCommandRegistryScope.IssueViewer,
   ],
-  changeLabelPaletteCommand,
+  changeIssueIdPaletteCommand,
 );
 PaletteCommandRegistry.registerPaletteCommand(
   [
