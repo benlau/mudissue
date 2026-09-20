@@ -11,6 +11,7 @@ import { createElement } from "react";
 import { InlineMultilineTextInput } from "../views/components/InlineMultilineTextInput.tsx";
 import { InlineConfirmation } from "../views/components/InlineConfirmation.tsx";
 import { InlineIssuePicker } from "../views/components/InlineIssuePicker.tsx";
+import { ScriptPickItemView } from "../views/components/ScriptPickItemView.tsx";
 import type { IssueFolder } from "../types/Issue.ts";
 import { ShellService } from "../services/ShellService.ts";
 import {
@@ -189,6 +190,29 @@ export abstract class Command {
               process.exitCode = 1;
             }
             resolve(issue);
+          },
+        }),
+        { stdout: process.stderr },
+      );
+    });
+  }
+
+  protected async askUserPickItem(
+    items: string[],
+    options: { title: string; defaultItem?: string },
+  ): Promise<string | null> {
+    return await new Promise((resolve) => {
+      const { unmount } = render(
+        createElement(ScriptPickItemView, {
+          title: options.title,
+          items,
+          defaultItem: options.defaultItem,
+          onSelect: (selected: string | null) => {
+            unmount();
+            if (selected == null) {
+              process.exitCode = 1;
+            }
+            resolve(selected);
           },
         }),
         { stdout: process.stderr },

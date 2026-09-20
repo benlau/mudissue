@@ -53,6 +53,7 @@ import { ConfigLocateCommand } from "./commands/ConfigLocateCommand.ts";
 import { ConfigSetPropertyCommand } from "./commands/ConfigSetPropertyCommand.ts";
 import { ConfigGetPropertyCommand } from "./commands/ConfigGetPropertyCommand.ts";
 import { ScriptSelectIssueCommand } from "./commands/ScriptSelectIssueCommand.tsx";
+import { ScriptSelectItemCommand } from "./commands/ScriptSelectItemCommand.tsx";
 import { ScriptUniqCommand } from "./commands/ScriptUniqCommand.ts";
 import { useIssueMetadataChangedPostHookStore } from "./store/IssueMetadataChangedPostHookStore.ts";
 import { SystemRuleKey } from "./types/rules.ts";
@@ -151,7 +152,7 @@ const msg = defineMessages({
   },
   demandScript: {
     id: "cli.demand.script",
-    defaultMessage: "Specify 'select-issue' or 'uniq'",
+    defaultMessage: "Specify 'select-issue', 'select-item', or 'uniq'",
   },
   demandRoot: {
     id: "cli.demand.root",
@@ -324,6 +325,7 @@ yargsInstance = yargsInstance.command(
   intl.formatMessage(msg.scriptDescribe),
   (scriptYargs) => {
     let y: Argv = ScriptSelectIssueCommand.register(scriptYargs);
+    y = ScriptSelectItemCommand.register(y);
     y = ScriptUniqCommand.register(y);
     return y.demandCommand(1, intl.formatMessage(msg.demandScript));
   },

@@ -270,6 +270,10 @@ export type ScriptSelectIssueCommandSuccessResult = {
   issueFolderName: string;
 };
 
+export type ScriptSelectItemCommandSuccessResult = {
+  selectedItem: string;
+};
+
 export type ScriptUniqCommandSuccessResult = {
   issueFolderName: string;
 };
