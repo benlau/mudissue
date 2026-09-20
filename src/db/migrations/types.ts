@@ -1,4 +1,4 @@
-import type Database from "better-sqlite3";
+import type { DatabaseSync } from "node:sqlite";
 
 /**
  * A migration runs SQL or logic against the raw SQLite database.
@@ -6,6 +6,6 @@ import type Database from "better-sqlite3";
  */
 export type Migration = {
   name: string;
-  up: (db: InstanceType<typeof Database>) => void;
-  down?: (db: InstanceType<typeof Database>) => void;
+  up: (db: DatabaseSync) => void;
+  down?: (db: DatabaseSync) => void;
 };

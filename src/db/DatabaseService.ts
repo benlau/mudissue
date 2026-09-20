@@ -1,8 +1,9 @@
 import * as path from "path";
 import * as os from "os";
-import Database from "better-sqlite3";
-import { Kysely, SqliteDialect } from "kysely";
+import { DatabaseSync } from "node:sqlite";
+import { Kysely } from "kysely";
 import type { Database as DatabaseType } from "./types.ts";
+import { NodeSqliteDialect } from "./KyselySqlite.ts";
 import { GLOBAL_CONFIG_DIR, SYSTEM_DB_FILENAME } from "../constants.ts";
 import { FileService } from "../services/FileService.ts";
 import { migrations } from "./migrations/index.ts";
@@ -22,7 +23,7 @@ export class DatabaseService {
   private fileService: FileService;
   private dbPath: string;
   private kysely: Kysely<DatabaseType> | null = null;
-  private nativeDb: InstanceType<typeof Database> | null = null;
+  private nativeDb: DatabaseSync | null = null;
 
   constructor(props?: DatabaseServiceProps) {
     this.fileService = FileService.getInstance();
@@ -41,7 +42,7 @@ export class DatabaseService {
     }
   }
 
-  private runMigrations(db: InstanceType<typeof Database>): void {
+  private runMigrations(db: DatabaseSync): void {
     for (const m of migrations) {
       m.up(db);
     }
@@ -50,13 +51,11 @@ export class DatabaseService {
   async getKysely(): Promise<Kysely<DatabaseType>> {
     if (this.kysely) return this.kysely;
     await this.ensureDir();
-    const nativeDb = new Database(this.dbPath);
+    const nativeDb = new DatabaseSync(this.dbPath);
     this.nativeDb = nativeDb;
     this.runMigrations(nativeDb);
     this.kysely = new Kysely<DatabaseType>({
-      dialect: new SqliteDialect({
-        database: nativeDb,
-      }),
+      dialect: new NodeSqliteDialect(nativeDb),
     });
     return this.kysely;
   }

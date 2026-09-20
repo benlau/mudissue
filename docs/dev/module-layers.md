@@ -99,7 +99,7 @@ Class files use **CamelCase** basenames. ESLint checks the basename against the 
 | `src/helpers/` | `*Helper.ts` | — |
 | `src/rules/` | `*Rule.ts` | — |
 | `src/contexts/` | `*Context.tsx` | — |
-| `src/db/` | `DatabaseService.ts`, `types.ts` | — |
+| `src/db/` | `DatabaseService.ts`, `KyselySqlite.ts`, `types.ts` | — |
 | `src/db/migrations/` | `YYMMDD_NNN_*.ts` | `index.ts`, `types.ts` |
 | `src/types/` | PascalCase or lowercase `*.ts` | `modules.d.ts` |
 | `src/foundation/formatter/` | `*Formatter.ts` | — |

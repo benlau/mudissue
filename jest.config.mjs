@@ -12,6 +12,8 @@ export default {
     '^(\\.{1,2}/.*)\\.tsx$': '$1',
     '^node:fs/promises$': '<rootDir>/tests/__mocks__/fs-promises.cjs',
     '^fs/promises$': '<rootDir>/tests/__mocks__/fs-promises.cjs',
+    '^node:sqlite$': '<rootDir>/tests/__mocks__/node-sqlite.cjs',
+    '^sqlite$': '<rootDir>/tests/__mocks__/node-sqlite.cjs',
   },
   transform: {
     '^.+\\.md$': '<rootDir>/jest-raw-loader.cjs',

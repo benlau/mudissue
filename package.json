@@ -26,8 +26,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "dependencies": {
-    "better-sqlite3": "^12.11.1",
     "gray-matter": "^4.0.3",
     "isomorphic-git": "^1.37.6",
     "sharp": "^0.35.3",
@@ -36,7 +38,6 @@
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
-    "@types/better-sqlite3": "^7.6.11",
     "@types/ejs": "^3.1.5",
     "@types/jest": "^30.0.0",
     "@types/js-yaml": "^4.0.9",

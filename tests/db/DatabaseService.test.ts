@@ -1,9 +1,8 @@
 /**
- * DatabaseService integration test. Uses real better-sqlite3 (no mock), in-memory DB.
+ * DatabaseService integration test. Uses real node:sqlite (no mock), in-memory DB.
  * Tests: (url, catalog, key) uniqueness; migration up/down rollback.
  */
-import { jest } from "@jest/globals";
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { DatabaseService } from "../../src/db/DatabaseService.ts";
 import { migration } from "../../src/db/migrations/260228_001_registry.ts";
 
@@ -68,16 +67,30 @@ describe("DatabaseService", () => {
   });
 
   test("migration down rolls back registry table", async () => {
-    const db = new Database(":memory:");
+    const db = new DatabaseSync(":memory:");
     migration.up(db);
-    db.exec("INSERT INTO registry (url, catalog, key, value) VALUES ('u','user','k','v')");
-    const before = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='registry'").get();
+    db.exec(
+      "INSERT INTO registry (url, catalog, key, value) VALUES ('u','user','k','v')",
+    );
+    const before = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='registry'",
+      )
+      .get();
     expect(before).not.toBeUndefined();
     migration.down!(db);
-    const after = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='registry'").get();
+    const after = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='registry'",
+      )
+      .get();
     expect(after).toBeUndefined();
     migration.up(db);
-    const again = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='registry'").get();
+    const again = db
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='registry'",
+      )
+      .get();
     expect(again).not.toBeUndefined();
     db.close();
   });

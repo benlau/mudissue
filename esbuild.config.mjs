@@ -25,7 +25,6 @@ await build({
     "commander",
     "gray-matter",
     "which",
-    "better-sqlite3",
     "isomorphic-git",
     "sharp",
     "mermaid",

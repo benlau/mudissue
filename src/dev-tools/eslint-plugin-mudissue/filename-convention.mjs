@@ -44,7 +44,7 @@ const filenameConventionRules = [
   },
   {
     directory: "src/db",
-    exceptions: ["DatabaseService.ts", "types.ts"],
+    exceptions: ["DatabaseService.ts", "KyselySqlite.ts", "types.ts"],
   },
   {
     directory: "src/types",
