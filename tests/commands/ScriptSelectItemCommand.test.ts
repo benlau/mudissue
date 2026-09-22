@@ -3,6 +3,9 @@ import {
   ScriptSelectItemCommand,
   splitItems,
 } from "../../src/commands/ScriptSelectItemCommand.tsx";
+import { MUDISSUE_SCRIPT_VARIABLES_URL } from "../../src/constants.ts";
+import { DatabaseService } from "../../src/db/DatabaseService.ts";
+import { RegistryService } from "../../src/services/RegistryService.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 class TestScriptSelectItemCommand extends ScriptSelectItemCommand {
@@ -33,16 +36,25 @@ describe("splitItems", () => {
 });
 
 describe("ScriptSelectItemCommand", () => {
-  let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let loggerService: ReturnType<
     typeof createMockSystemContext
   >["loggerService"];
+  let dbService: DatabaseService;
+  let registryService: RegistryService;
 
   beforeEach(() => {
     const bundle = createMockSystemContext();
-    fileService = bundle.fileService;
     loggerService = bundle.loggerService;
+    dbService = new DatabaseService({ dbPath: ":memory:" });
+    DatabaseService.setInstance(dbService);
+    registryService = new RegistryService();
+    RegistryService.setInstance(registryService);
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    dbService.close();
+    DatabaseService.setInstance(null);
   });
 
   it("prompts with parsed items and default title", async () => {
@@ -83,7 +95,6 @@ describe("ScriptSelectItemCommand", () => {
       status: "ok",
       result: { selectedItem: "456" },
     });
-    expect(loggerService.info).toHaveBeenCalledWith("456");
   });
 
   it("splits items with a custom separator", async () => {
@@ -104,7 +115,7 @@ describe("ScriptSelectItemCommand", () => {
     expect(loggerService.info).toHaveBeenCalledWith("b");
   });
 
-  it("writes selected item to output file when --output is set", async () => {
+  it("writes selected item to a script variable when --set-var is set", async () => {
     const command = new TestScriptSelectItemCommand("456");
 
     const result = await command.command(
@@ -112,19 +123,40 @@ describe("ScriptSelectItemCommand", () => {
       ",",
       "456",
       undefined,
-      "/tmp/item-pick",
+      "picked_item",
     );
 
     expect(result).toEqual({
       status: "ok",
       result: { selectedItem: "456" },
     });
-    expect(fileService.writeFile).toHaveBeenCalledWith(
-      "/tmp/item-pick",
-      "456\n",
-      "utf-8",
+    const got = await registryService.get(
+      MUDISSUE_SCRIPT_VARIABLES_URL,
+      "system",
+      "picked_item",
     );
+    expect(got).toEqual({
+      url: MUDISSUE_SCRIPT_VARIABLES_URL,
+      value: "456",
+    });
     expect(loggerService.info).not.toHaveBeenCalled();
+  });
+
+  it("returns SCRIPT_VAR_INVALID_NAME when --set-var name is invalid", async () => {
+    const command = new TestScriptSelectItemCommand("456");
+
+    const result = await command.command(
+      "123,456,789",
+      ",",
+      undefined,
+      undefined,
+      "bad name!",
+    );
+
+    expect(result).toMatchObject({
+      status: "error",
+      error: { code: "SCRIPT_VAR_INVALID_NAME" },
+    });
   });
 
   it("returns SCRIPT_SELECT_ITEM_CANCELLED when user cancels the picker", async () => {
@@ -137,6 +169,35 @@ describe("ScriptSelectItemCommand", () => {
       error: { code: "SCRIPT_SELECT_ITEM_CANCELLED" },
     });
     expect(loggerService.info).not.toHaveBeenCalled();
+  });
+
+  it("clears the script variable when cancelled with --set-var", async () => {
+    await registryService.set(
+      "picked_item",
+      "stale",
+      MUDISSUE_SCRIPT_VARIABLES_URL,
+      "system",
+    );
+    const command = new TestScriptSelectItemCommand(null);
+
+    const result = await command.command(
+      "123,456,789",
+      ",",
+      undefined,
+      undefined,
+      "picked_item",
+    );
+
+    expect(result).toMatchObject({
+      status: "error",
+      error: { code: "SCRIPT_SELECT_ITEM_CANCELLED" },
+    });
+    const got = await registryService.get(
+      MUDISSUE_SCRIPT_VARIABLES_URL,
+      "system",
+      "picked_item",
+    );
+    expect(got).toBeNull();
   });
 
   it("throws COMMAND_INVALID_ARG when --items has no values", async () => {

@@ -106,6 +106,25 @@ export class RegistryService {
   }
 
   /**
+   * Deletes (url, catalog, key) at the given URL.
+   * @returns true if a row was deleted.
+   */
+  async delete(
+    url: string,
+    catalog: RegistryCatalog,
+    key: string,
+  ): Promise<boolean> {
+    const db = await this.databaseService.getKysely();
+    const result = await db
+      .deleteFrom("registry")
+      .where("url", "=", url)
+      .where("catalog", "=", catalog)
+      .where("key", "=", key)
+      .executeTakeFirst();
+    return Number(result.numDeletedRows) > 0;
+  }
+
+  /**
    * Upserts RECENT_PROJECTS at mudissue state URL for system catalog.
    * Existing items with non-existent paths are removed.
    */

@@ -26,6 +26,9 @@ export const REGISTRY_FILE_TRAVELER_MAX_DEPTH = 100;
 /** Registry URL for mudissue app state (e.g. RECENT_PROJECTS). */
 export const MUDISSUE_STATE_URL = "mudissue:///state";
 
+/** Registry URL for mud script variables (`mud script set-var` / `get-var`). */
+export const MUDISSUE_SCRIPT_VARIABLES_URL = "mudissue://script/variables";
+
 /** Maximum number of recent projects to retain. */
 export const MAX_RECENT_PROJECTS = 20;
 

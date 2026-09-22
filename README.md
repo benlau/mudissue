@@ -133,4 +133,5 @@ For a comprehensive guide on using MudIssue, please refer to the [User Guides](.
 
 - [Tracker Configuration](./docs/user/configuration.md) - Configure your tracker, status catalogs, and folder patterns.
 - [Property Management](./docs/user/properties.md) - Use the CLI to update YAML metadata as a database.
+- [Writing Custom Scripts](./docs/user/writing-custom-script-with-mudissue.md) - Automate workflows with `mud script` variables and pickers.
 - [Distributed Environments](./docs/user/distributed.md) - Strategies for synchronization and managing ID uniqueness across devices.

@@ -4,6 +4,9 @@ import {
   SCRIPT_SELECT_ISSUE_LATEST_LIMIT,
   ScriptSelectIssueCommand,
 } from "../../src/commands/ScriptSelectIssueCommand.tsx";
+import { MUDISSUE_SCRIPT_VARIABLES_URL } from "../../src/constants.ts";
+import { DatabaseService } from "../../src/db/DatabaseService.ts";
+import { RegistryService } from "../../src/services/RegistryService.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import {
@@ -54,7 +57,6 @@ class TestScriptSelectIssueCommand extends ScriptSelectIssueCommand {
 }
 
 describe("ScriptSelectIssueCommand", () => {
-  let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let trackerRepoStore: ReturnType<
     typeof createMockSystemContext
   >["trackerRepoStore"];
@@ -66,16 +68,21 @@ describe("ScriptSelectIssueCommand", () => {
   let loggerService: ReturnType<
     typeof createMockSystemContext
   >["loggerService"];
+  let dbService: DatabaseService;
+  let registryService: RegistryService;
 
   beforeEach(() => {
     resetIssueSearchStore(IssueSearchStoreKey.Headless);
     const bundle = createMockSystemContext();
-    fileService = bundle.fileService;
     trackerRepoStore = bundle.trackerRepoStore;
     issueFinderService = bundle.issueFinderService;
     shellService = bundle.shellService;
     gitService = bundle.gitService;
     loggerService = bundle.loggerService;
+    dbService = new DatabaseService({ dbPath: ":memory:" });
+    DatabaseService.setInstance(dbService);
+    registryService = new RegistryService();
+    RegistryService.setInstance(registryService);
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
     trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
     jest.clearAllMocks();
@@ -85,6 +92,11 @@ describe("ScriptSelectIssueCommand", () => {
       mockRepo.projectPath,
       mudissueWorktreePath,
     ]);
+  });
+
+  afterEach(() => {
+    dbService.close();
+    DatabaseService.setInstance(null);
   });
 
   it("throws ISSUE_NOT_FOUND when selector matches no issues", async () => {
@@ -113,22 +125,26 @@ describe("ScriptSelectIssueCommand", () => {
     expect(command.pickCalls).toHaveLength(0);
   });
 
-  it("writes folder name to output file when --output is set", async () => {
+  it("writes folder name to a script variable when --set-var is set", async () => {
     const folder = buildIssueFolder("0215-script-writing");
     issueFinderService.find.mockResolvedValue([folder]);
     const command = new TestScriptSelectIssueCommand(null);
 
-    const result = await command.command("0215", undefined, "/tmp/issue-pick");
+    const result = await command.command("0215", undefined, "selected_issue");
 
     expect(result).toEqual({
       status: "ok",
       result: { issueFolderName: "0215-script-writing" },
     });
-    expect(fileService.writeFile).toHaveBeenCalledWith(
-      "/tmp/issue-pick",
-      "0215-script-writing\n",
-      "utf-8",
+    const got = await registryService.get(
+      MUDISSUE_SCRIPT_VARIABLES_URL,
+      "system",
+      "selected_issue",
     );
+    expect(got).toEqual({
+      url: MUDISSUE_SCRIPT_VARIABLES_URL,
+      value: "0215-script-writing",
+    });
     expect(loggerService.info).not.toHaveBeenCalled();
   });
 
@@ -167,6 +183,34 @@ describe("ScriptSelectIssueCommand", () => {
       error: { code: "SCRIPT_SELECT_ISSUE_CANCELLED" },
     });
     expect(loggerService.info).not.toHaveBeenCalled();
+  });
+
+  it("clears the script variable when cancelled with --set-var", async () => {
+    await registryService.set(
+      "selected_issue",
+      "stale",
+      MUDISSUE_SCRIPT_VARIABLES_URL,
+      "system",
+    );
+    const folders = [
+      buildIssueFolder("0215-a", "0215"),
+      buildIssueFolder("0215-b", "0215"),
+    ];
+    issueFinderService.find.mockResolvedValue(folders);
+    const command = new TestScriptSelectIssueCommand(null);
+
+    const result = await command.command("0215", undefined, "selected_issue");
+
+    expect(result).toMatchObject({
+      status: "error",
+      error: { code: "SCRIPT_SELECT_ISSUE_CANCELLED" },
+    });
+    const got = await registryService.get(
+      MUDISSUE_SCRIPT_VARIABLES_URL,
+      "system",
+      "selected_issue",
+    );
+    expect(got).toBeNull();
   });
 
   it("prompts from latest issues when selector is omitted", async () => {

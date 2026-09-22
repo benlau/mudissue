@@ -1,8 +1,10 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
+import { MUDISSUE_SCRIPT_VARIABLES_URL } from "../constants.ts";
 import { intl } from "../intl.ts";
-import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
+import { RegistryService } from "../services/RegistryService.ts";
+import { FrontmatterValidator } from "../utils/validators/FrontmatterValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,
@@ -37,9 +39,14 @@ const msg = defineMessages({
     id: "cli.script.selectItem.option.title",
     defaultMessage: "Picker title",
   },
-  optionOutput: {
-    id: "cli.script.selectItem.option.output",
-    defaultMessage: "Write the selected item to this file",
+  optionSetVar: {
+    id: "cli.script.option.setVar",
+    defaultMessage: "Write the selected value to this script variable",
+  },
+  invalidVarName: {
+    id: "cli.script.error.invalidVarName",
+    defaultMessage:
+      "Invalid variable name. Use only letters, numbers, underscores, and hyphens.",
   },
   itemsEmpty: {
     id: "cli.script.selectItem.itemsEmpty",
@@ -83,9 +90,9 @@ export class ScriptSelectItemCommand extends Command {
             type: "string",
             describe: intl.formatMessage(msg.optionTitle),
           })
-          .option("output", {
+          .option("set-var", {
             type: "string",
-            describe: intl.formatMessage(msg.optionOutput),
+            describe: intl.formatMessage(msg.optionSetVar),
           }),
       async (argv) => {
         const outputJson = outputJsonMode(argv as HeadlessArgv);
@@ -100,7 +107,7 @@ export class ScriptSelectItemCommand extends Command {
           argv.separator,
           argv.default,
           argv.title,
-          argv.output,
+          argv["set-var"],
         );
         if (result && typeof result === "object" && result.status === "error") {
           process.exitCode = 1;
@@ -114,9 +121,8 @@ export class ScriptSelectItemCommand extends Command {
     separator: string = DEFAULT_SEPARATOR,
     defaultItem?: string,
     title?: string,
-    outputPath?: string,
+    setVar?: string,
   ): Promise<ScriptSelectItemCommandSuccessResponse | ErrorResponse> {
-    const fileService = FileService.getInstance();
     const loggerService = LoggerService.getInstance();
 
     const items = splitItems(itemsRaw, separator);
@@ -135,6 +141,17 @@ export class ScriptSelectItemCommand extends Command {
       defaultItem,
     });
     if (picked == null) {
+      if (
+        setVar !== undefined &&
+        setVar.trim() !== "" &&
+        FrontmatterValidator.isValidPropertyKey(setVar)
+      ) {
+        await RegistryService.getInstance().delete(
+          MUDISSUE_SCRIPT_VARIABLES_URL,
+          "system",
+          setVar,
+        );
+      }
       return {
         status: "error",
         error: {
@@ -144,8 +161,23 @@ export class ScriptSelectItemCommand extends Command {
       };
     }
 
-    if (outputPath !== undefined && outputPath.trim() !== "") {
-      await fileService.writeFile(outputPath, `${picked}\n`, "utf-8");
+    if (setVar !== undefined && setVar.trim() !== "") {
+      if (!FrontmatterValidator.isValidPropertyKey(setVar)) {
+        return {
+          status: "error",
+          error: {
+            code: "SCRIPT_VAR_INVALID_NAME",
+            message: intl.formatMessage(msg.invalidVarName),
+            details: { name: setVar },
+          },
+        };
+      }
+      await RegistryService.getInstance().set(
+        setVar,
+        picked,
+        MUDISSUE_SCRIPT_VARIABLES_URL,
+        "system",
+      );
     } else {
       loggerService.info(picked);
     }

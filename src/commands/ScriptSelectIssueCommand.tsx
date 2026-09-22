@@ -1,14 +1,16 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
+import { MUDISSUE_SCRIPT_VARIABLES_URL } from "../constants.ts";
 import { intl } from "../intl.ts";
 import { CurrentIssueResolverHelper } from "../helpers/CurrentIssueResolverHelper.ts";
-import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
+import { RegistryService } from "../services/RegistryService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import {
   IssueSearchStoreFactory,
   IssueSearchStoreKey,
 } from "../store/IssueSearchStore.ts";
+import { FrontmatterValidator } from "../utils/validators/FrontmatterValidator.ts";
 import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
 import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
@@ -37,9 +39,14 @@ const msg = defineMessages({
     id: "cli.common.option.issueSelector",
     defaultMessage: "Issue ID, folder name, or suffix",
   },
-  optionOutput: {
-    id: "cli.script.selectIssue.option.output",
-    defaultMessage: "Write the selected issue folder name to this file",
+  optionSetVar: {
+    id: "cli.script.option.setVar",
+    defaultMessage: "Write the selected value to this script variable",
+  },
+  invalidVarName: {
+    id: "cli.script.error.invalidVarName",
+    defaultMessage:
+      "Invalid variable name. Use only letters, numbers, underscores, and hyphens.",
   },
   pickDialogTitle: {
     id: "cli.script.selectIssue.pickDialogTitle",
@@ -69,9 +76,9 @@ export class ScriptSelectIssueCommand extends Command {
             type: "string",
             describe: intl.formatMessage(msg.optionProject),
           })
-          .option("output", {
+          .option("set-var", {
             type: "string",
-            describe: intl.formatMessage(msg.optionOutput),
+            describe: intl.formatMessage(msg.optionSetVar),
           })
           .positional("issue_selector", {
             describe: intl.formatMessage(msg.optionIssueSelector),
@@ -88,7 +95,7 @@ export class ScriptSelectIssueCommand extends Command {
           { outputJson },
           argv.issue_selector,
           argv.project,
-          argv.output,
+          argv["set-var"],
         );
         if (result && typeof result === "object" && result.status === "error") {
           process.exitCode = 1;
@@ -100,9 +107,8 @@ export class ScriptSelectIssueCommand extends Command {
   async command(
     issueSelector: string | undefined,
     project?: string,
-    outputPath?: string,
+    setVar?: string,
   ): Promise<ScriptSelectIssueCommandSuccessResponse | ErrorResponse> {
-    const fileService = FileService.getInstance();
     const loggerService = LoggerService.getInstance();
 
     if (project) {
@@ -124,12 +130,39 @@ export class ScriptSelectIssueCommand extends Command {
       issueSelector,
     );
     if (selected.status === "error") {
+      if (
+        selected.error.code === "SCRIPT_SELECT_ISSUE_CANCELLED" &&
+        setVar !== undefined &&
+        setVar.trim() !== "" &&
+        FrontmatterValidator.isValidPropertyKey(setVar)
+      ) {
+        await RegistryService.getInstance().delete(
+          MUDISSUE_SCRIPT_VARIABLES_URL,
+          "system",
+          setVar,
+        );
+      }
       return selected;
     }
 
     const issueFolderName = selected.result.issueFolderName;
-    if (outputPath !== undefined && outputPath.trim() !== "") {
-      await fileService.writeFile(outputPath, `${issueFolderName}\n`, "utf-8");
+    if (setVar !== undefined && setVar.trim() !== "") {
+      if (!FrontmatterValidator.isValidPropertyKey(setVar)) {
+        return {
+          status: "error",
+          error: {
+            code: "SCRIPT_VAR_INVALID_NAME",
+            message: intl.formatMessage(msg.invalidVarName),
+            details: { name: setVar },
+          },
+        };
+      }
+      await RegistryService.getInstance().set(
+        setVar,
+        issueFolderName,
+        MUDISSUE_SCRIPT_VARIABLES_URL,
+        "system",
+      );
     } else {
       loggerService.info(issueFolderName);
     }
@@ -168,9 +201,7 @@ export class ScriptSelectIssueCommand extends Command {
   private async resolveSelectedIssue(
     candidates: IssueFolder[],
     issueSelector: string | undefined,
-  ): Promise<
-    ScriptSelectIssueCommandSuccessResponse | ErrorResponse
-  > {
+  ): Promise<ScriptSelectIssueCommandSuccessResponse | ErrorResponse> {
     if (candidates.length === 1) {
       return {
         status: "ok",
@@ -181,9 +212,7 @@ export class ScriptSelectIssueCommand extends Command {
     const hasSelector =
       issueSelector !== undefined && issueSelector.trim() !== "";
     const title = intl.formatMessage(
-      hasSelector
-        ? msg.pickDialogTitleMultipleMatches
-        : msg.pickDialogTitle,
+      hasSelector ? msg.pickDialogTitleMultipleMatches : msg.pickDialogTitle,
     );
     const picked = await this.askUserPickIssue(candidates, title);
     if (picked == null) {

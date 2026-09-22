@@ -277,3 +277,14 @@ export type ScriptSelectItemCommandSuccessResult = {
 export type ScriptUniqCommandSuccessResult = {
   issueFolderName: string;
 };
+
+export type ScriptGetVarCommandSuccessResult = {
+  name: string;
+  value: string;
+};
+
+export type ScriptSetVarCommandSuccessResult = {
+  name: string;
+  value?: string;
+  cleared: boolean;
+};

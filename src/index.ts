@@ -55,6 +55,8 @@ import { ConfigGetPropertyCommand } from "./commands/ConfigGetPropertyCommand.ts
 import { ScriptSelectIssueCommand } from "./commands/ScriptSelectIssueCommand.tsx";
 import { ScriptSelectItemCommand } from "./commands/ScriptSelectItemCommand.tsx";
 import { ScriptUniqCommand } from "./commands/ScriptUniqCommand.ts";
+import { ScriptGetVarCommand } from "./commands/ScriptGetVarCommand.ts";
+import { ScriptSetVarCommand } from "./commands/ScriptSetVarCommand.ts";
 import { useIssueMetadataChangedPostHookStore } from "./store/IssueMetadataChangedPostHookStore.ts";
 import { SystemRuleKey } from "./types/rules.ts";
 import { BlockedStatusRule } from "./rules/BlockedStatusRule.ts";
@@ -152,7 +154,8 @@ const msg = defineMessages({
   },
   demandScript: {
     id: "cli.demand.script",
-    defaultMessage: "Specify 'select-issue', 'select-item', or 'uniq'",
+    defaultMessage:
+      "Specify 'get-var', 'set-var', 'select-issue', 'select-item', or 'uniq'",
   },
   demandRoot: {
     id: "cli.demand.root",
@@ -324,7 +327,9 @@ yargsInstance = yargsInstance.command(
   "script",
   intl.formatMessage(msg.scriptDescribe),
   (scriptYargs) => {
-    let y: Argv = ScriptSelectIssueCommand.register(scriptYargs);
+    let y: Argv = ScriptGetVarCommand.register(scriptYargs);
+    y = ScriptSetVarCommand.register(y);
+    y = ScriptSelectIssueCommand.register(y);
     y = ScriptSelectItemCommand.register(y);
     y = ScriptUniqCommand.register(y);
     return y.demandCommand(1, intl.formatMessage(msg.demandScript));
