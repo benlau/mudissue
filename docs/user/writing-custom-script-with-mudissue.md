@@ -45,12 +45,18 @@ Useful options:
 
 ### Select an issue
 
-Pick an issue folder (by selector, or from recent issues when omitted). The value stored or printed is the issue folder name.
+Pick an issue folder (by selector, or from all issues when omitted). The value stored or printed is the issue folder name.
 
 ```bash
 mud script select-issue --set-var selected_issue
 ISSUE=$(mud script get-var selected_issue)
 mud issue cat "$ISSUE"
+```
+
+The interactive picker is a full-page table (like the issue list) with columns **id**, **title**, **status**, and **priority** by default. Override the trailing property columns with `--columns` (comma-separated frontmatter keys); **id** and **title** always stay first:
+
+```bash
+mud script select-issue --columns assignee,due_date --set-var selected_issue
 ```
 
 Optional `[issue_selector]` narrows candidates. `--project` scopes lookup to a named project. With `--set-var`, a cancelled picker clears that variable.

@@ -10,8 +10,8 @@ import { render } from "ink";
 import { createElement } from "react";
 import { InlineMultilineTextInput } from "../views/components/InlineMultilineTextInput.tsx";
 import { InlineConfirmation } from "../views/components/InlineConfirmation.tsx";
-import { InlineIssuePicker } from "../views/components/InlineIssuePicker.tsx";
 import { ScriptPickItemView } from "../views/components/ScriptPickItemView.tsx";
+import { ScriptSelectIssueView } from "../views/components/ScriptSelectIssueView.tsx";
 import type { IssueFolder } from "../types/Issue.ts";
 import { ShellService } from "../services/ShellService.ts";
 import {
@@ -178,12 +178,14 @@ export abstract class Command {
   protected async askUserPickIssue(
     issues: IssueFolder[],
     title: string,
+    options?: { columns?: string },
   ): Promise<IssueFolder | null> {
     return await new Promise((resolve) => {
       const { unmount } = render(
-        createElement(InlineIssuePicker, {
+        createElement(ScriptSelectIssueView, {
           title,
           issues,
+          columns: options?.columns,
           onSelect: (issue: IssueFolder | null) => {
             unmount();
             if (issue == null) {

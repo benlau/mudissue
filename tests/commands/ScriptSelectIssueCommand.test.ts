@@ -1,7 +1,6 @@
 import { jest } from "@jest/globals";
 import * as path from "path";
 import {
-  SCRIPT_SELECT_ISSUE_LATEST_LIMIT,
   ScriptSelectIssueCommand,
 } from "../../src/commands/ScriptSelectIssueCommand.tsx";
 import { MUDISSUE_SCRIPT_VARIABLES_URL } from "../../src/constants.ts";
@@ -41,7 +40,11 @@ const mudissueWorktreePath = path.join(
 );
 
 class TestScriptSelectIssueCommand extends ScriptSelectIssueCommand {
-  pickCalls: Array<{ issues: IssueFolder[]; title: string }> = [];
+  pickCalls: Array<{
+    issues: IssueFolder[];
+    title: string;
+    options?: { columns?: string };
+  }> = [];
 
   constructor(private readonly pickedIssue: IssueFolder | null) {
     super();
@@ -50,8 +53,9 @@ class TestScriptSelectIssueCommand extends ScriptSelectIssueCommand {
   protected override async askUserPickIssue(
     issues: IssueFolder[],
     title: string,
+    options?: { columns?: string },
   ): Promise<IssueFolder | null> {
-    this.pickCalls.push({ issues, title });
+    this.pickCalls.push({ issues, title, options });
     return this.pickedIssue;
   }
 }
@@ -154,12 +158,17 @@ describe("ScriptSelectIssueCommand", () => {
       buildIssueFolder("0215-b", "0215"),
     ];
     issueFinderService.find.mockResolvedValue(folders);
+    IssueSearchStoreFactory.createOrGet(
+      IssueSearchStoreKey.Headless,
+    ).setState({
+      searchFolders: jest.fn(async () => folders),
+    });
     const command = new TestScriptSelectIssueCommand(folders[1]!);
 
     const result = await command.command("0215");
 
     expect(command.pickCalls).toEqual([
-      { issues: folders, title: expect.any(String) },
+      { issues: folders, title: expect.any(String), options: undefined },
     ]);
     expect(result).toEqual({
       status: "ok",
@@ -168,12 +177,80 @@ describe("ScriptSelectIssueCommand", () => {
     expect(loggerService.info).toHaveBeenCalledWith("0215-b");
   });
 
+  it("passes --columns into the picker and enriches candidates before pick", async () => {
+    const bareFolders = [
+      {
+        issueId: "0215-a",
+        label: "0215",
+        path: "/repo/issues/0215-a",
+      },
+      {
+        issueId: "0215-b",
+        label: "0215",
+        path: "/repo/issues/0215-b",
+      },
+    ] satisfies IssueFolder[];
+    const enrichedFolders = [
+      {
+        ...bareFolders[0]!,
+        metadata: {
+          title: "A",
+          status: "open",
+          priority: "high",
+          frontmatter: { assignee: "alice" },
+        },
+      },
+      {
+        ...bareFolders[1]!,
+        metadata: {
+          title: "B",
+          status: "todo",
+          priority: "low",
+          frontmatter: { assignee: "bob" },
+        },
+      },
+    ];
+    issueFinderService.find.mockResolvedValue(bareFolders);
+    const searchFolders = jest.fn(async () => enrichedFolders);
+    IssueSearchStoreFactory.createOrGet(
+      IssueSearchStoreKey.Headless,
+    ).setState({
+      searchFolders,
+    });
+    const command = new TestScriptSelectIssueCommand(enrichedFolders[0]!);
+
+    const result = await command.command(
+      "0215",
+      undefined,
+      undefined,
+      "assignee",
+    );
+
+    expect(searchFolders).toHaveBeenCalledWith(bareFolders, []);
+    expect(command.pickCalls).toEqual([
+      {
+        issues: enrichedFolders,
+        title: expect.any(String),
+        options: { columns: "assignee" },
+      },
+    ]);
+    expect(result).toEqual({
+      status: "ok",
+      result: { issueFolderName: "0215-a" },
+    });
+  });
+
   it("returns SCRIPT_SELECT_ISSUE_CANCELLED when user cancels the picker", async () => {
     const folders = [
       buildIssueFolder("0215-a", "0215"),
       buildIssueFolder("0215-b", "0215"),
     ];
     issueFinderService.find.mockResolvedValue(folders);
+    IssueSearchStoreFactory.createOrGet(
+      IssueSearchStoreKey.Headless,
+    ).setState({
+      searchFolders: jest.fn(async () => folders),
+    });
     const command = new TestScriptSelectIssueCommand(null);
 
     const result = await command.command("0215");
@@ -197,6 +274,11 @@ describe("ScriptSelectIssueCommand", () => {
       buildIssueFolder("0215-b", "0215"),
     ];
     issueFinderService.find.mockResolvedValue(folders);
+    IssueSearchStoreFactory.createOrGet(
+      IssueSearchStoreKey.Headless,
+    ).setState({
+      searchFolders: jest.fn(async () => folders),
+    });
     const command = new TestScriptSelectIssueCommand(null);
 
     const result = await command.command("0215", undefined, "selected_issue");
@@ -213,23 +295,25 @@ describe("ScriptSelectIssueCommand", () => {
     expect(got).toBeNull();
   });
 
-  it("prompts from latest issues when selector is omitted", async () => {
-    const latestIssues = Array.from({ length: 12 }, (_, index) =>
+  it("prompts from all issues when selector is omitted", async () => {
+    const allIssues = Array.from({ length: 12 }, (_, index) =>
       buildIssueFolder(`issue-${index}`, `MI${index}`),
     );
     IssueSearchStoreFactory.createOrGet(
       IssueSearchStoreKey.Headless,
     ).setState({
-      searchAllFolders: jest.fn(async () => latestIssues),
+      searchAllFolders: jest.fn(async () => allIssues),
+      searchFolders: jest.fn(async () => allIssues),
     });
-    const command = new TestScriptSelectIssueCommand(latestIssues[2]!);
+    const command = new TestScriptSelectIssueCommand(allIssues[2]!);
 
     const result = await command.command(undefined);
 
     expect(command.pickCalls).toEqual([
       {
-        issues: latestIssues.slice(0, SCRIPT_SELECT_ISSUE_LATEST_LIMIT),
+        issues: allIssues,
         title: expect.any(String),
+        options: undefined,
       },
     ]);
     expect(result).toEqual({

@@ -21,8 +21,6 @@ import type {
 } from "../types/Response.ts";
 import type { IssueFolder } from "../types/Issue.ts";
 
-export const SCRIPT_SELECT_ISSUE_LATEST_LIMIT = 10;
-
 export type ScriptSelectIssueCommandSuccessResponse =
   SuccessResponse<ScriptSelectIssueCommandSuccessResult>;
 
@@ -42,6 +40,11 @@ const msg = defineMessages({
   optionSetVar: {
     id: "cli.script.option.setVar",
     defaultMessage: "Write the selected value to this script variable",
+  },
+  optionColumns: {
+    id: "cli.script.selectIssue.option.columns",
+    defaultMessage:
+      "Comma-separated issue property keys for table columns (replaces status,priority)",
   },
   invalidVarName: {
     id: "cli.script.error.invalidVarName",
@@ -80,6 +83,10 @@ export class ScriptSelectIssueCommand extends Command {
             type: "string",
             describe: intl.formatMessage(msg.optionSetVar),
           })
+          .option("columns", {
+            type: "string",
+            describe: intl.formatMessage(msg.optionColumns),
+          })
           .positional("issue_selector", {
             describe: intl.formatMessage(msg.optionIssueSelector),
             type: "string",
@@ -96,6 +103,7 @@ export class ScriptSelectIssueCommand extends Command {
           argv.issue_selector,
           argv.project,
           argv["set-var"],
+          argv.columns,
         );
         if (result && typeof result === "object" && result.status === "error") {
           process.exitCode = 1;
@@ -108,6 +116,7 @@ export class ScriptSelectIssueCommand extends Command {
     issueSelector: string | undefined,
     project?: string,
     setVar?: string,
+    columns?: string,
   ): Promise<ScriptSelectIssueCommandSuccessResponse | ErrorResponse> {
     const loggerService = LoggerService.getInstance();
 
@@ -128,6 +137,7 @@ export class ScriptSelectIssueCommand extends Command {
     const selected = await this.resolveSelectedIssue(
       candidates,
       issueSelector,
+      columns,
     );
     if (selected.status === "error") {
       if (
@@ -188,12 +198,11 @@ export class ScriptSelectIssueCommand extends Command {
       return Array.isArray(folders) ? folders : [folders];
     }
 
-    const latestIssues = await IssueSearchStoreFactory.createOrGet(
+    const candidates = await IssueSearchStoreFactory.createOrGet(
       IssueSearchStoreKey.Headless,
     )
       .getState()
       .searchAllFolders("");
-    const candidates = latestIssues.slice(0, SCRIPT_SELECT_ISSUE_LATEST_LIMIT);
     new IssueFolderValidator().set(candidates).validateIssueNotNone();
     return candidates;
   }
@@ -201,6 +210,7 @@ export class ScriptSelectIssueCommand extends Command {
   private async resolveSelectedIssue(
     candidates: IssueFolder[],
     issueSelector: string | undefined,
+    columns?: string,
   ): Promise<ScriptSelectIssueCommandSuccessResponse | ErrorResponse> {
     if (candidates.length === 1) {
       return {
@@ -209,12 +219,27 @@ export class ScriptSelectIssueCommand extends Command {
       };
     }
 
+    const enrichedById = new Map(
+      (
+        await IssueSearchStoreFactory.createOrGet(IssueSearchStoreKey.Headless)
+          .getState()
+          .searchFolders(candidates, [])
+      ).map((issue) => [issue.issueId, issue]),
+    );
+    const enriched = candidates.map(
+      (candidate) => enrichedById.get(candidate.issueId) ?? candidate,
+    );
+
     const hasSelector =
       issueSelector !== undefined && issueSelector.trim() !== "";
     const title = intl.formatMessage(
       hasSelector ? msg.pickDialogTitleMultipleMatches : msg.pickDialogTitle,
     );
-    const picked = await this.askUserPickIssue(candidates, title);
+    const picked = await this.askUserPickIssue(
+      enriched,
+      title,
+      columns !== undefined ? { columns } : undefined,
+    );
     if (picked == null) {
       return {
         status: "error",
