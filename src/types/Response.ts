@@ -280,7 +280,7 @@ export type ScriptUniqCommandSuccessResult = {
 
 export type ScriptGetVarCommandSuccessResult = {
   name: string;
-  value: string;
+  value: string | null;
 };
 
 export type ScriptSetVarCommandSuccessResult = {

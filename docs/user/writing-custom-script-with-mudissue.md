@@ -13,11 +13,14 @@ mud script set-var selected_issue MI001-example
 # Read a variable (prints the value)
 mud script get-var selected_issue
 
+# Read a variable without failing if it is unset
+mud script get-var selected_issue --no-error
+
 # Clear a variable
 mud script set-var selected_issue --clear
 ```
 
-Variable names use the same rules as issue property keys: letters, numbers, underscores, and hyphens only (`[a-zA-Z0-9_-]+`).
+Variable names use the same rules as issue property keys: letters, numbers, underscores, and hyphens only (`[a-zA-Z0-9_-]+`). With `--no-error`, a missing variable exits successfully and prints nothing (JSON result `value` is `null`).
 
 ## Interactive pickers
 

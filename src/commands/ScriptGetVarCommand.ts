@@ -15,6 +15,10 @@ import type {
 export type ScriptGetVarCommandSuccessResponse =
   SuccessResponse<ScriptGetVarCommandSuccessResult>;
 
+export type ScriptGetVarCommandOptions = {
+  noError?: boolean;
+};
+
 const msg = defineMessages({
   scriptGetVarDescribe: {
     id: "cli.script.getVar.describe",
@@ -23,6 +27,10 @@ const msg = defineMessages({
   optionVarName: {
     id: "cli.script.option.varName",
     defaultMessage: "Variable name",
+  },
+  optionNoError: {
+    id: "cli.script.getVar.option.noError",
+    defaultMessage: "Do not exit with an error if the variable is not found",
   },
   invalidVarName: {
     id: "cli.script.error.invalidVarName",
@@ -44,10 +52,19 @@ export class ScriptGetVarCommand extends Command {
       "get-var <name>",
       intl.formatMessage(msg.scriptGetVarDescribe),
       (builder) =>
-        builder.positional("name", {
-          describe: intl.formatMessage(msg.optionVarName),
-          type: "string",
-        }),
+        // yargs treats `--no-*` as boolean negation; disable that so
+        // `--no-error` is a real flag rather than unknown `--error`.
+        builder
+          .parserConfiguration({ "boolean-negation": false })
+          .option("no-error", {
+            type: "boolean",
+            describe: intl.formatMessage(msg.optionNoError),
+            default: false,
+          })
+          .positional("name", {
+            describe: intl.formatMessage(msg.optionVarName),
+            type: "string",
+          }),
       async (argv) => {
         const outputJson = outputJsonMode(argv as HeadlessArgv);
         cmd.preprocessArgument(cmd.name, {
@@ -55,13 +72,16 @@ export class ScriptGetVarCommand extends Command {
           json: outputJson,
           interactive: false,
         });
-        await cmd.runCommand({ outputJson }, argv.name ?? "");
+        await cmd.runCommand({ outputJson }, argv.name ?? "", {
+          noError: argv["no-error"] === true,
+        });
       },
     );
   }
 
   async command(
     name: string,
+    options?: ScriptGetVarCommandOptions,
   ): Promise<ScriptGetVarCommandSuccessResponse | ErrorResponse> {
     if (!FrontmatterValidator.isValidPropertyKey(name)) {
       return {
@@ -80,6 +100,15 @@ export class ScriptGetVarCommand extends Command {
       name,
     );
     if (result === null) {
+      if (options?.noError === true) {
+        return {
+          status: "ok",
+          result: {
+            name,
+            value: null,
+          },
+        };
+      }
       return {
         status: "error",
         error: {
