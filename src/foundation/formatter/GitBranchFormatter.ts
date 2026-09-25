@@ -9,6 +9,7 @@ const INVALID_GIT_REF_CHARS = new Set([
   "]",
   "\\",
   "&",
+  "#",
 ]);
 
 export class GitBranchFormatter {

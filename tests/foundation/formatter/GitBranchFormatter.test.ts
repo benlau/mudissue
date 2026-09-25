@@ -26,6 +26,12 @@ describe("GitBranchFormatter", () => {
       ).toBe("MI0010-a-b");
     });
 
+    it("replaces hash in branch material", () => {
+      expect(
+        GitBranchFormatter.normalize("MI0012-#-should-be-forbidden", "MI0012"),
+      ).toBe("MI0012-should-be-forbidden");
+    });
+
     it("normalizes invalid Git ref patterns", () => {
       expect(
         GitBranchFormatter.normalize(

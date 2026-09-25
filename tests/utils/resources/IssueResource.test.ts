@@ -57,6 +57,15 @@ describe("IssueResource", () => {
       );
     });
 
+    it("strips hash from title slug", () => {
+      expect(
+        IssueResource.issueIdForTitle(
+          "MZ0012",
+          "# should be forbidden in branch name",
+        ),
+      ).toBe("MZ0012-should-be-forbidden-in-branch-name");
+    });
+
     it("strips dots and parentheses from title slug", () => {
       expect(
         IssueResource.issueIdForTitle("MI0301", '". " should be … in issue folder'),
