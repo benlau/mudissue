@@ -1,7 +1,7 @@
 import { useAppStore } from "../store/AppStore.ts";
 import { useTextEditDialogStore } from "../store/TextEditDialogStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 
 export type EditIssueMarkdownFileOptions = {
   filePath?: string;

@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import * as path from "path";
-import { TmuxLauncher } from "../../../src/utils/launchers/TmuxLauncher.ts";
+import { TmuxLauncher } from "../../../src/async/launchers/TmuxLauncher.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import { FileService } from "../../../src/services/FileService.ts";

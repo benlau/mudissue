@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { FrontmatterValidator } from "../../../src/utils/validators/FrontmatterValidator.ts";
+import { FrontmatterValidator } from "../../../src/async/validators/FrontmatterValidator.ts";
 
 describe("FrontmatterValidator", () => {
   describe("isValidPropertyKey", () => {

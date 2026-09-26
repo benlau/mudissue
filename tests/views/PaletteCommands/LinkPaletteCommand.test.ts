@@ -18,8 +18,8 @@ import { useToastStore } from "../../../src/store/ToastStore.ts";
 import { DEFAULT_LINK_TYPES, LinkageTypesAccessor } from "../../../src/types/linkage.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../../../src/utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../../../src/async/storage/IssueMarkdownFileStorage.ts";
 import {
   PickItemDialogResponseType,
   usePickItemDialogStore,

@@ -4,7 +4,7 @@ import { MUDISSUE_SCRIPT_VARIABLES_URL } from "../constants.ts";
 import { intl } from "../intl.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { RegistryService } from "../services/RegistryService.ts";
-import { FrontmatterValidator } from "../utils/validators/FrontmatterValidator.ts";
+import { FrontmatterValidator } from "../async/validators/FrontmatterValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,

@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import { NextIssueIdHelper } from "../../src/helpers/NextIssueIdHelper.ts";
-import { TrackerRepoStorage } from "../../src/utils/storage/TrackerRepoStorage.ts";
+import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
 import { FileService } from "../../src/services/FileService.ts";
 import type { GlobalConfig } from "../../src/types/GlobalConfig.ts";
 import type { TrackerRepo, TrackerRepoConfig } from "../../src/types/Tracker.ts";

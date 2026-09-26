@@ -1,7 +1,7 @@
 import * as path from "path";
 import { FileService } from "../services/FileService.ts";
-import { IssueResource } from "../utils/resources/IssueResource.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+import { IssueResource } from "../async/resources/IssueResource.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 
 export class NextIssueIdHelper {
   constructor(

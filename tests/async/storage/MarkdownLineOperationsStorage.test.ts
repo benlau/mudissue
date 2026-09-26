@@ -3,7 +3,7 @@ import { FileService } from "../../../src/services/FileService.ts";
 import { SAVE_DEBOUNCE_MS } from "../../../src/constants.ts";
 import {
   MarkdownLineOperationsStorage,
-} from "../../../src/utils/storage/MarkdownLineOperationsStorage.ts";
+} from "../../../src/async/storage/MarkdownLineOperationsStorage.ts";
 import { createMockFileService } from "../../fixture/MockServiceContext.tsx";
 
 const ISSUE_PATH = "/repo/issues/MI0001-demo/MI0001-demo.md";

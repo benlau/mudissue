@@ -3,8 +3,8 @@ import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts"
 import type { IssueFolder } from "../types/Issue.ts";
 import type { ErrorResponse } from "../types/Response.ts";
 import type { TrackerRepo } from "../types/Tracker.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
+import { IssueFolderValidator } from "../async/validators/IssueFolderValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
 
 export type IssueSelectorArgumentResult = {
   repo: TrackerRepo;

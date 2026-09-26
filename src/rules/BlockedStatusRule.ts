@@ -5,8 +5,8 @@ import { useFileWatcherStore } from "../store/FileWatcherStore.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
 import { TrackerRepoConfigAccessor } from "../types/Tracker.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../async/storage/IssueMarkdownFileStorage.ts";
 
 function linkageFolderNames(
   metadata: Record<string, unknown>,

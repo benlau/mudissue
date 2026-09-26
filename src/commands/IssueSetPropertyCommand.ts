@@ -3,17 +3,17 @@ import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../utils/storage/IssueMarkdownFileStorage.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../async/storage/IssueMarkdownFileStorage.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
 import { IssueMetadataChangedPostHookContext } from "../store/IssueMetadataChangedPostHookStore.ts";
-import { FrontmatterValidator } from "../utils/validators/FrontmatterValidator.ts";
+import { FrontmatterValidator } from "../async/validators/FrontmatterValidator.ts";
 import {
   FrontmatterValueValidator,
   type FrontmatterValueType,
-} from "../utils/validators/FrontmatterValueValidator.ts";
+} from "../async/validators/FrontmatterValueValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,

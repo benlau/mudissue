@@ -3,7 +3,7 @@ import {
   ISSUE_BRANCH_NAME_MAX_LENGTH,
   ISSUE_WORKTREE_FOLDER_NAME_MAX_LENGTH,
 } from "../../src/constants.ts";
-import { TrackerRepoStorage } from "../../src/utils/storage/TrackerRepoStorage.ts";
+import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
 import { ShellService } from "../../src/services/ShellService.ts";
 import {
   resetGlobalConfigStore,

@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import matter from "gray-matter";
-import { IssueMarkdownFileStorage } from "../../../src/utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueMarkdownFileStorage } from "../../../src/async/storage/IssueMarkdownFileStorage.ts";
 import { FileService } from "../../../src/services/FileService.ts";
 import type { FileService as FileServiceType } from "../../../src/services/FileService.ts";
 

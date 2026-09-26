@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type { LineRange } from "../types/LineRange.ts";
 import { clamp } from "../types/maths.ts";
-import { MarkdownLineOperationsStorage } from "../utils/storage/MarkdownLineOperationsStorage.ts";
+import { MarkdownLineOperationsStorage } from "../async/storage/MarkdownLineOperationsStorage.ts";
 import { useFileWatcherStore } from "./FileWatcherStore.ts";
 
 export type MarkdownViewerSetContentOptions = {

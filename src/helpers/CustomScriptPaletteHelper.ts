@@ -8,7 +8,7 @@ import { useConfirmationDialogStore } from "../store/ConfirmationDialogStore.ts"
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import type { CustomScriptEntry } from "../types/CustomScript.ts";
 import type { PaletteCommand } from "../types/PaletteCommand.ts";
-import { CustomScriptLauncher } from "../utils/launchers/CustomScriptLauncher.ts";
+import { CustomScriptLauncher } from "../async/launchers/CustomScriptLauncher.ts";
 
 const messages = defineMessages({
   confirmTitle: {

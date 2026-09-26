@@ -19,7 +19,7 @@ const layers = [
     ],
   },
   {
-    dirs: ["./src/utils"],
+    dirs: ["./src/async"],
   },
   { dirs: ["./src/store"] },
   {

@@ -49,7 +49,7 @@ import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import { AnsiEscapeCode } from "../../../src/types/ansi.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { usePaletteCommandStore } from "../../../src/store/PaletteCommandStore.ts";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =

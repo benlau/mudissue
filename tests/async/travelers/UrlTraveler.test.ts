@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { UrlTraveler } from "../../../src/utils/travelers/UrlTraveler.ts";
+import { UrlTraveler } from "../../../src/async/travelers/UrlTraveler.ts";
 
 describe("UrlTraveler", () => {
   test("invokes callback with full URL then parent URLs until callback returns true", async () => {

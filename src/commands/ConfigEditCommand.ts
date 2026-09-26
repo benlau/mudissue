@@ -1,10 +1,10 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { EditorLauncher } from "../utils/launchers/EditorLauncher.ts";
+import { EditorLauncher } from "../async/launchers/EditorLauncher.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ConfigEditCommandSuccessResult,

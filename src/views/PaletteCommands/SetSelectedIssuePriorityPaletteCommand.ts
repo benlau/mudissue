@@ -4,7 +4,7 @@ import { intl } from "../../intl.ts";
 import { useAlertDialogStore } from "../../store/AlertDialogStore.ts";
 import { useAppStore } from "../../store/AppStore.ts";
 import { useFileWatcherStore } from "../../store/FileWatcherStore.ts";
-import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 import { useCurrentTrackerRepoStore } from "../../store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";

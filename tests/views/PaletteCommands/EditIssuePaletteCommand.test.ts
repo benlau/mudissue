@@ -3,7 +3,7 @@ import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import { useTextEditDialogStore } from "../../../src/store/TextEditDialogStore.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import { INITIAL_NAVIGATION_STACK } from "../../fixture/navigationStack.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { EditIssuePaletteCommand } from "../../../src/views/PaletteCommands/EditIssuePaletteCommand.ts";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 

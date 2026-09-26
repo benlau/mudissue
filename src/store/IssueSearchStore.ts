@@ -4,10 +4,10 @@ import { immer } from "zustand/middleware/immer";
 import {
   IssueSearcher,
   type IssueSearchOptions,
-} from "../utils/search/IssueSearcher.ts";
-import { SearchQueryParser } from "../utils/search/SearchQueryParser.ts";
-import type { ParsedSearchTerm } from "../utils/search/types.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+} from "../async/search/IssueSearcher.ts";
+import { SearchQueryParser } from "../async/search/SearchQueryParser.ts";
+import type { ParsedSearchTerm } from "../async/search/types.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 import { useCurrentTrackerRepoStore } from "./CurrentTrackerRepoStore.ts";
 import { useGlobalConfigStore } from "./GlobalConfigStore.ts";
 import { RegistryService } from "../services/RegistryService.ts";

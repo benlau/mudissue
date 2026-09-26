@@ -2,12 +2,12 @@ import type { Argv } from "yargs";
 import * as path from "path";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { IssueResource } from "../utils/resources/IssueResource.ts";
+import { IssueResource } from "../async/resources/IssueResource.ts";
 import { FileService } from "../services/FileService.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 import { IssueSelectorMatcher } from "../foundation/matchers/IssueSelectorMatcher.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {

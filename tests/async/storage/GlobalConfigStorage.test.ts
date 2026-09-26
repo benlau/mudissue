@@ -4,7 +4,7 @@ import {
   GLOBAL_CONFIG_DIR,
   GLOBAL_CONFIG_FILENAME,
 } from "../../../src/constants.ts";
-import { GlobalConfigStorage } from "../../../src/utils/storage/GlobalConfigStorage.ts";
+import { GlobalConfigStorage } from "../../../src/async/storage/GlobalConfigStorage.ts";
 import { FileService } from "../../../src/services/FileService.ts";
 
 describe("GlobalConfigStorage", () => {

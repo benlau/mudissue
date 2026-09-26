@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { GlobalConfigStorage } from "../utils/storage/GlobalConfigStorage.ts";
+import { GlobalConfigStorage } from "../async/storage/GlobalConfigStorage.ts";
 import type { GlobalConfig } from "../types/GlobalConfig.ts";
 
 function isEnoent(err: unknown): boolean {

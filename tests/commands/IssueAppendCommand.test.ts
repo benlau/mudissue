@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import { IssueAppendCommand } from "../../src/commands/IssueAppendCommand.ts";
-import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 

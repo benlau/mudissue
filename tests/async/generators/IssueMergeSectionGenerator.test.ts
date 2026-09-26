@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
-import { IssueMergeSectionGenerator } from "../../../src/utils/generators/IssueMergeSectionGenerator.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueMergeSectionGenerator } from "../../../src/async/generators/IssueMergeSectionGenerator.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
 

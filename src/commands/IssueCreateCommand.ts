@@ -2,17 +2,17 @@ import type { Argv } from "yargs";
 import * as path from "path";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { IssueResource } from "../utils/resources/IssueResource.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueResource } from "../async/resources/IssueResource.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 import { NextIssueIdHelper } from "../helpers/NextIssueIdHelper.ts";
 import { FileService } from "../services/FileService.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
+import { IssueFolderValidator } from "../async/validators/IssueFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   IssueCreateCommandSuccessResult,

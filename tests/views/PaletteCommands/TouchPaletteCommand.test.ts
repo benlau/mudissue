@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import {
   resetFileWatcherStore,

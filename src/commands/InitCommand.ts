@@ -3,7 +3,7 @@ import * as path from "path";
 import { defineMessages } from "react-intl";
 import { GIT_MUD_CONFIG_FILENAME, MUD_CONFIG_FILENAME } from "../constants.ts";
 import { intl } from "../intl.ts";
-import { TemplateGenerator } from "../utils/generators/TemplateGenerator.ts";
+import { TemplateGenerator } from "../async/generators/TemplateGenerator.ts";
 import { FileService } from "../services/FileService.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { LoggerService } from "../services/LoggerService.ts";

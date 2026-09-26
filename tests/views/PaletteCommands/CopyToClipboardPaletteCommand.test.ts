@@ -3,7 +3,7 @@ import { ClipboardService } from "../../../src/services/ClipboardService.ts";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import {
   PickItemDialogResponseType,
   usePickItemDialogStore,

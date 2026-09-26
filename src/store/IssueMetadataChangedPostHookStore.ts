@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import type { IssueFolder } from "../types/Issue.ts";
 import type { SystemRuleKey } from "../types/rules.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../async/storage/IssueMarkdownFileStorage.ts";
 
 export type MetadataChangedPostHook = (
   issueFolder: IssueFolder,

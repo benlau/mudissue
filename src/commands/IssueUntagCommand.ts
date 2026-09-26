@@ -4,8 +4,8 @@ import { intl } from "../intl.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../async/storage/IssueMarkdownFileStorage.ts";
 import type {
   ErrorResponse,
   IssueUntagCommandSuccessResult,

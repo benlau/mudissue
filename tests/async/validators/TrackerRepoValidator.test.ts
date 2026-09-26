@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { TrackerRepoValidator } from "../../../src/utils/validators/TrackerRepoValidator.ts";
+import { TrackerRepoValidator } from "../../../src/async/validators/TrackerRepoValidator.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import { LoggerService } from "../../../src/services/LoggerService.ts";
 

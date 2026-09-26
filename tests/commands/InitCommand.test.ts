@@ -4,7 +4,7 @@ import {
   MUD_CONFIG_FILENAME,
 } from "../../src/constants.ts";
 import { InitCommand } from "../../src/commands/InitCommand.ts";
-import { TemplateGenerator } from "../../src/utils/generators/TemplateGenerator.ts";
+import { TemplateGenerator } from "../../src/async/generators/TemplateGenerator.ts";
 import { LoggerService } from "../../src/services/LoggerService.ts";
 import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 

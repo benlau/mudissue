@@ -11,7 +11,7 @@ import { LoggerService } from "../../../src/services/LoggerService.ts";
 import { ShellService } from "../../../src/services/ShellService.ts";
 import type { CustomScriptEntry } from "../../../src/types/CustomScript.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
-import { CustomScriptLauncher } from "../../../src/utils/launchers/CustomScriptLauncher.ts";
+import { CustomScriptLauncher } from "../../../src/async/launchers/CustomScriptLauncher.ts";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 
 describe("CustomScriptLauncher", () => {

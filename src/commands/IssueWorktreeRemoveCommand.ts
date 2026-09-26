@@ -3,7 +3,7 @@ import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { GitFolderValidator } from "../utils/validators/GitFolderValidator.ts";
+import { GitFolderValidator } from "../async/validators/GitFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,

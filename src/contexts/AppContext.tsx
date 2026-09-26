@@ -5,7 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { EditorLauncher } from "../utils/launchers/EditorLauncher.ts";
+import { EditorLauncher } from "../async/launchers/EditorLauncher.ts";
 import { useReactSessionStore } from "../store/ReactSessionStore.ts";
 import { useAppStore } from "../store/AppStore.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";

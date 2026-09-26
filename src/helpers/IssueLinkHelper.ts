@@ -7,9 +7,9 @@ import type { IssueFolder } from "../types/Issue.ts";
 import type { ErrorResponse } from "../types/Response.ts";
 import { LinkageTypesAccessor, type LinkagePair } from "../types/linkage.ts";
 import { TrackerRepoConfigAccessor } from "../types/Tracker.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../utils/storage/IssueMarkdownFileStorage.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../async/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderValidator } from "../async/validators/IssueFolderValidator.ts";
 
 export type IssueLinkResult = {
   srcIssue: IssueFolder;

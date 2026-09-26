@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import * as path from "path";
 import type { GitService } from "../../../src/services/GitService.ts";
 import type { GitGraph, GitGraphNode } from "../../../src/types/GitGraph.ts";
-import { MermaidGitGraphGenerator } from "../../../src/utils/generators/MermaidGitGraphGenerator.ts";
+import { MermaidGitGraphGenerator } from "../../../src/async/generators/MermaidGitGraphGenerator.ts";
 
 function mapNodes(
   entries: Array<[string, { summary: string; parents: string[] }]>,

@@ -1,8 +1,8 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";

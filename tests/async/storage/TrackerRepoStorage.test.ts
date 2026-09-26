@@ -4,7 +4,7 @@ import {
   GIT_MUD_CONFIG_FILENAME,
   MUD_CONFIG_FILENAME,
 } from "../../../src/constants.ts";
-import { TrackerRepoStorage } from "../../../src/utils/storage/TrackerRepoStorage.ts";
+import { TrackerRepoStorage } from "../../../src/async/storage/TrackerRepoStorage.ts";
 import { FileService } from "../../../src/services/FileService.ts";
 import { ShellService } from "../../../src/services/ShellService.ts";
 import type { GlobalConfig } from "../../../src/types/GlobalConfig.ts";

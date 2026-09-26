@@ -5,9 +5,9 @@ import { CurrentIssueResolverHelper } from "../helpers/CurrentIssueResolverHelpe
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
+import { IssueFolderValidator } from "../async/validators/IssueFolderValidator.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,

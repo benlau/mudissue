@@ -1,5 +1,5 @@
 import { jest } from "@jest/globals";
-import { IssueFolderValidator } from "../../../src/utils/validators/IssueFolderValidator.ts";
+import { IssueFolderValidator } from "../../../src/async/validators/IssueFolderValidator.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 
 const mockIssueFolder = (issueId: string): IssueFolder => ({

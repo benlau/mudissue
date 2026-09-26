@@ -12,8 +12,8 @@ import type { IssueFolder } from "../types/Issue.ts";
 import type { IssueChangeIdCommandSuccessResult } from "../types/Response.ts";
 import type { ErrorCode } from "../types/errors.ts";
 import type { TrackerRepo } from "../types/Tracker.ts";
-import { IssueResource } from "../utils/resources/IssueResource.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+import { IssueResource } from "../async/resources/IssueResource.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 
 const messages = defineMessages({
   invalidIssueId: {

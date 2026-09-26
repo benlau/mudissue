@@ -5,7 +5,7 @@ import { useAppStore } from "../../store/AppStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { IssueFolder } from "../../types/Issue.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 import {
   PickItemDialogResponseType,
   usePickItemDialogStore,

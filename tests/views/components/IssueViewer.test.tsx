@@ -19,7 +19,7 @@ import { viewerNavigationStack } from "../../fixture/navigationStack.ts";
 import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { EditIssueMarkdownFileHelper } from "../../../src/helpers/EditIssueMarkdownFileHelper.ts";
 import {
   resetFileWatcherStore,

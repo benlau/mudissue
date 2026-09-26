@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
-import { IssueSearcher } from "../../../src/utils/search/IssueSearcher.ts";
+import { IssueSearcher } from "../../../src/async/search/IssueSearcher.ts";
 import { FileService } from "../../../src/services/FileService.ts";
-import type { ParsedSearchTerm } from "../../../src/utils/search/types.ts";
+import type { ParsedSearchTerm } from "../../../src/async/search/types.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 
 const issueRoot = "/repo/issues";

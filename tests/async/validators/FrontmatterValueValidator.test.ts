@@ -1,4 +1,4 @@
-import { FrontmatterValueValidator } from "../../../src/utils/validators/FrontmatterValueValidator.ts";
+import { FrontmatterValueValidator } from "../../../src/async/validators/FrontmatterValueValidator.ts";
 
 describe("FrontmatterValueValidator", () => {
   describe("isValidType", () => {

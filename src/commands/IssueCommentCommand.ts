@@ -2,7 +2,7 @@ import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import { CommentAuthorHelper } from "../helpers/CommentAuthorHelper.ts";
 import { DateFormatter } from "../foundation/formatter/DateFormatter.ts";

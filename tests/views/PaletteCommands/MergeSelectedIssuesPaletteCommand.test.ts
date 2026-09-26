@@ -11,8 +11,8 @@ import { useTextInputDialogStore } from "../../../src/store/TextInputDialogStore
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
-import { IssueMergeSectionGenerator } from "../../../src/utils/generators/IssueMergeSectionGenerator.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueMergeSectionGenerator } from "../../../src/async/generators/IssueMergeSectionGenerator.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { MergeSelectedIssuesPaletteCommand } from "../../../src/views/PaletteCommands/MergeSelectedIssuesPaletteCommand.ts";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 import { INITIAL_NAVIGATION_STACK } from "../../fixture/navigationStack.ts";

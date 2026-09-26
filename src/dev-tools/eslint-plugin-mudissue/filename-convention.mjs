@@ -68,36 +68,36 @@ const filenameConventionRules = [
     regexes: [/^.+Parser\.ts$/],
   },
   {
-    directory: "src/utils/storage",
+    directory: "src/async/storage",
     regexes: [/^.+Storage\.ts$/],
   },
   {
-    directory: "src/utils/resources",
+    directory: "src/async/resources",
     exceptions: ["Resource.ts", "IssueResource.ts", "index.ts"],
   },
   {
-    directory: "src/utils/validators",
+    directory: "src/async/validators",
     regexes: [/^.+Validator\.ts$/],
   },
   {
-    directory: "src/utils/search",
+    directory: "src/async/search",
     exceptions: ["IssueSearcher.ts", "SearchQueryParser.ts", "types.ts"],
   },
   {
-    directory: "src/utils/travelers",
+    directory: "src/async/travelers",
     regexes: [/^.+Traveler\.ts$/],
     exceptions: ["Traveler.ts", "TravelerFactory.ts"],
   },
   {
-    directory: "src/utils/launchers",
+    directory: "src/async/launchers",
     regexes: [/^.+Launcher\.ts$/],
   },
   {
-    directory: "src/utils/generators",
+    directory: "src/async/generators",
     regexes: [/^.+Generator\.ts$/],
   },
   {
-    directory: "src/utils",
+    directory: "src/async",
     disallowFiles: true,
   },
   {
@@ -174,7 +174,7 @@ export const filenameConventionRule = {
     schema: [],
     messages: {
       invalid: `Filename does not match project conventions. See ${MODULE_LAYERS_DOC}.`,
-      disallowFiles: `Files are not allowed directly in src/utils/. Place code in a subdirectory (storage/, resources/, validators/, search/, travelers/, launchers/, generators/). See ${MODULE_LAYERS_DOC}.`,
+      disallowFiles: `Files are not allowed directly in src/async/. Place code in a subdirectory (storage/, resources/, validators/, search/, travelers/, launchers/, generators/). See ${MODULE_LAYERS_DOC}.`,
     },
   },
   create(context) {

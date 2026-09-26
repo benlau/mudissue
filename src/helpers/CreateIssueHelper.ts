@@ -5,9 +5,9 @@ import { useAppStore } from "../store/AppStore.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
-import { IssueResource } from "../utils/resources/IssueResource.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
+import { IssueResource } from "../async/resources/IssueResource.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 import { NextIssueIdHelper } from "./NextIssueIdHelper.ts";
 
 export class CreateIssueHelper {

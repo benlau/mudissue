@@ -3,7 +3,7 @@ import { EditIssueMarkdownFileHelper } from "../../src/helpers/EditIssueMarkdown
 import { resetAppStore, useAppStore } from "../../src/store/AppStore.ts";
 import { useTextEditDialogStore } from "../../src/store/TextEditDialogStore.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
-import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 const buildIssue = (issueId: string): IssueFolder =>

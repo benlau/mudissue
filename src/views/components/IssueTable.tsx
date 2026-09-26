@@ -26,7 +26,7 @@ import { AnsiEscapeCode } from "../../types/ansi.ts";
 import { DefaultTheme } from "../../types/Theme.ts";
 import { useEditFile } from "../../contexts/AppContext.tsx";
 import { EditIssueMarkdownFileHelper } from "../../helpers/EditIssueMarkdownFileHelper.ts";
-import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 import { CustomScriptPaletteHelper } from "../../helpers/CustomScriptPaletteHelper.ts";
 const ID_WIDTH = 12;
 const STATUS_WIDTH = 12;

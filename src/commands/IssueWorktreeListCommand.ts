@@ -2,8 +2,8 @@ import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { GitFolderValidator } from "../utils/validators/GitFolderValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
+import { GitFolderValidator } from "../async/validators/GitFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { WorktreeHelper } from "../helpers/WorktreeHelper.ts";
 import type {

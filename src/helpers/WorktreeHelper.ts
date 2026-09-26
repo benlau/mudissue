@@ -8,8 +8,8 @@ import { ShellService } from "../services/ShellService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import type { IssueFolder } from "../types/Issue.ts";
 import type { TrackerRepo } from "../types/Tracker.ts";
-import { GitFolderValidator } from "../utils/validators/GitFolderValidator.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
+import { GitFolderValidator } from "../async/validators/GitFolderValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
 
 /** CLI text: `base` or an issue selector string. */
 export type WorktreeSelector = string;

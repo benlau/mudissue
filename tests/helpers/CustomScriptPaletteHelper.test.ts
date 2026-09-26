@@ -18,7 +18,7 @@ import {
   accessPaletteCommandList,
   type PaletteCommand,
 } from "../../src/types/PaletteCommand.ts";
-import { CustomScriptLauncher } from "../../src/utils/launchers/CustomScriptLauncher.ts";
+import { CustomScriptLauncher } from "../../src/async/launchers/CustomScriptLauncher.ts";
 import {
   PaletteCommandRegistry,
   PaletteCommandRegistryScope,

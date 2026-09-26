@@ -5,7 +5,7 @@ import { defineMessages, useIntl } from "react-intl";
 import { FileService } from "../../services/FileService.ts";
 import type { IssueFolder } from "../../types/Issue.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 import { useEditFile } from "../../contexts/AppContext.tsx";
 import { useAppStore } from "../../store/AppStore.ts";
 import { useConfirmationDialogStore } from "../../store/ConfirmationDialogStore.ts";

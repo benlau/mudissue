@@ -10,9 +10,9 @@ import {
   IssueSearchStoreFactory,
   IssueSearchStoreKey,
 } from "../store/IssueSearchStore.ts";
-import { FrontmatterValidator } from "../utils/validators/FrontmatterValidator.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { IssueFolderValidator } from "../utils/validators/IssueFolderValidator.ts";
+import { FrontmatterValidator } from "../async/validators/FrontmatterValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
+import { IssueFolderValidator } from "../async/validators/IssueFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,

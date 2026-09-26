@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import * as path from "path";
-import { GitFolderValidator } from "../../../src/utils/validators/GitFolderValidator.ts";
+import { GitFolderValidator } from "../../../src/async/validators/GitFolderValidator.ts";
 import { FileService } from "../../../src/services/FileService.ts";
 import { ShellService } from "../../../src/services/ShellService.ts";
 import type { FileService as FileServiceType } from "../../../src/services/FileService.ts";

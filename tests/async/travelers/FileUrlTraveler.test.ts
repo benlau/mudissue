@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { FileService } from "../../../src/services/FileService.ts";
 import { GitService } from "../../../src/services/GitService.ts";
-import { FileUrlTraveler } from "../../../src/utils/travelers/FileUrlTraveler.ts";
+import { FileUrlTraveler } from "../../../src/async/travelers/FileUrlTraveler.ts";
 import type { FileService as FileServiceType } from "../../../src/services/FileService.ts";
 
 describe("FileUrlTraveler", () => {

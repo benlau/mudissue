@@ -3,11 +3,11 @@ import * as path from "path";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
-import { GitFolderValidator } from "../utils/validators/GitFolderValidator.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
+import { GitFolderValidator } from "../async/validators/GitFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { WorktreeHelper } from "../helpers/WorktreeHelper.ts";
-import { MermaidGitGraphGenerator } from "../utils/generators/MermaidGitGraphGenerator.ts";
+import { MermaidGitGraphGenerator } from "../async/generators/MermaidGitGraphGenerator.ts";
 import { MermaidService } from "../services/MermaidService.ts";
 import type {
   ErrorResponse,

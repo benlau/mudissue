@@ -1,4 +1,4 @@
-import { SearchQueryParser } from "../../../src/utils/search/SearchQueryParser.ts";
+import { SearchQueryParser } from "../../../src/async/search/SearchQueryParser.ts";
 
 describe("SearchQueryParser", () => {
   test("parses text, phrase, and negation terms", () => {

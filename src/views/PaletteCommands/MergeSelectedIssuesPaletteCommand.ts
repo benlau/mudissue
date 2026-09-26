@@ -9,8 +9,8 @@ import { useTextInputDialogStore } from "../../store/TextInputDialogStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
 import { isErrorResponse } from "../../types/Response.ts";
-import { IssueMergeSectionGenerator } from "../../utils/generators/IssueMergeSectionGenerator.ts";
-import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
+import { IssueMergeSectionGenerator } from "../../async/generators/IssueMergeSectionGenerator.ts";
+import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 
 const messages = defineMessages({
   label: {

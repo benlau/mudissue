@@ -7,7 +7,7 @@ import { FileService } from "../services/FileService.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 import type {
   ErrorResponse,
   IssueAttachCommandSuccessResult,

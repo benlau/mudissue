@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { IssueSetPropertyCommand } from "../../../src/commands/IssueSetPropertyCommand.ts";
-import { IssueFolderStorage } from "../../../src/utils/storage/IssueFolderStorage.ts";
-import { IssueMarkdownFileStorage } from "../../../src/utils/storage/IssueMarkdownFileStorage.ts";
+import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
+import { IssueMarkdownFileStorage } from "../../../src/async/storage/IssueMarkdownFileStorage.ts";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import {
   resetFileWatcherStore,

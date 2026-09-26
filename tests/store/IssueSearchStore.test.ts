@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
-import { IssueSearcher } from "../../src/utils/search/IssueSearcher.ts";
-import { SearchQueryParser } from "../../src/utils/search/SearchQueryParser.ts";
-import type { ParsedSearchTerm } from "../../src/utils/search/types.ts";
+import { IssueSearcher } from "../../src/async/search/IssueSearcher.ts";
+import { SearchQueryParser } from "../../src/async/search/SearchQueryParser.ts";
+import type { ParsedSearchTerm } from "../../src/async/search/types.ts";
 import {
   IssueSearchStoreFactory,
   IssueSearchStoreKey,
@@ -17,7 +17,7 @@ import {
   DEFAULT_RESOLVED_STATUS_LIST,
   DEFAULT_STATUS_LIST,
 } from "../../src/types/status.ts";
-import { TrackerRepoStorage } from "../../src/utils/storage/TrackerRepoStorage.ts";
+import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 

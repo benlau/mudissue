@@ -3,7 +3,7 @@ import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   ErrorResponse,

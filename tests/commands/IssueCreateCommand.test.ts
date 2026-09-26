@@ -3,10 +3,10 @@ import {
   IssueCreateCommand,
   type IssueCreateCommandArgs,
 } from "../../src/commands/IssueCreateCommand.ts";
-import { IssueResource } from "../../src/utils/resources/IssueResource.ts";
+import { IssueResource } from "../../src/async/resources/IssueResource.ts";
 import { NextIssueIdHelper } from "../../src/helpers/NextIssueIdHelper.ts";
-import { TrackerRepoStorage } from "../../src/utils/storage/TrackerRepoStorage.ts";
-import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.ts";
+import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
+import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import { LoggerService } from "../../src/services/LoggerService.ts";
 import type { FileService } from "../../src/services/FileService.ts";
 import {

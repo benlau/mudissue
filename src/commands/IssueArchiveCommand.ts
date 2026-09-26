@@ -5,7 +5,7 @@ import { intl } from "../intl.ts";
 import { FileService } from "../services/FileService.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
-import { IssueFolderStorage } from "../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import {

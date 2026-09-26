@@ -293,12 +293,12 @@ classDiagram
 | `FileService` | `AppStore` | Filesystem I/O abstraction |
 | `ShellService` | `AppStore`, `CurrentTrackerRepoStore` | `cwd`, `which`, subprocess, open |
 | `RegistryService` | `AppStore`, `CurrentTrackerRepoStore`, `IssueSearchStore` | SQLite registry: sort order, pins, recent projects |
-| `GitService` | — | Read-only git metadata (commands/utils, not stores) |
+| `GitService` | — | Read-only git metadata (commands/async, not stores) |
 | `LoggerService` | — | Console logging (`SilentLogger`, `DebugLoggerService` variants) |
 | `ClipboardService` | — | System clipboard (views/commands) |
 | `MermaidService` | — | Mermaid → SVG/PNG rendering (commands) |
 
-Only three services are referenced directly from store modules today. The others are consumed by commands, views, and utils at L4/L2.
+Only three services are referenced directly from store modules today. The others are consumed by commands, views, and async at L4/L2.
 
 ## Test reset helpers
 

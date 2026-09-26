@@ -1,4 +1,4 @@
-import { TemplateGenerator } from "../../../src/utils/generators/TemplateGenerator.ts";
+import { TemplateGenerator } from "../../../src/async/generators/TemplateGenerator.ts";
 
 describe("TemplateGenerator", () => {
   const getTemplatesMap = (generator: TemplateGenerator) =>

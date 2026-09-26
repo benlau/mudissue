@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import { ShellService } from "../../../src/services/ShellService.ts";
-import { EditorLauncher } from "../../../src/utils/launchers/EditorLauncher.ts";
+import { EditorLauncher } from "../../../src/async/launchers/EditorLauncher.ts";
 
 describe("EditorLauncher", () => {
   let launcher: EditorLauncher;

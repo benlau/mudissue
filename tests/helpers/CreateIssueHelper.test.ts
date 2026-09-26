@@ -15,9 +15,9 @@ import {
   resetCurrentTrackerRepoStore,
   useCurrentTrackerRepoStore,
 } from "../../src/store/CurrentTrackerRepoStore.ts";
-import { IssueResource } from "../../src/utils/resources/IssueResource.ts";
-import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.ts";
-import { TrackerRepoStorage } from "../../src/utils/storage/TrackerRepoStorage.ts";
+import { IssueResource } from "../../src/async/resources/IssueResource.ts";
+import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
+import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import {
   INITIAL_NAVIGATION_STACK,

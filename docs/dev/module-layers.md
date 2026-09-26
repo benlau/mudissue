@@ -24,8 +24,8 @@ flowchart TB
   subgraph L3 [L3 Application state]
     store[store]
   end
-  subgraph L2 [L2 utils]
-    utils[utils]
+  subgraph L2 [L2 async]
+    asyncLayer[async]
   end
   subgraph L1 [L1 I/O]
     services[services]
@@ -42,7 +42,7 @@ flowchart TB
 | ----- | ---- | ---- | --------------- |
 | L0 | `src/types/`, `src/foundation/` | Types, formatting, parsing, layout | L0 only (plus `src/constants.ts`) |
 | L1 | `src/services/`, `src/db/` | I/O wrappers | L0 |
-| L2 | `src/utils/` (`storage/`, `resources/`, `validators/`, `search/`, `travelers/`, `launchers/`, `generators/`) | Repo/issue file layout, document creation, async validation, search, registry URL traversal, editor/tmux launch, mermaid graph generation | L0, L1, other L2 |
+| L2 | `src/async/` (`storage/`, `resources/`, `validators/`, `search/`, `travelers/`, `launchers/`, `generators/`) | Repo/issue file layout, document creation, async validation, search, registry URL traversal, editor/tmux launch, mermaid graph generation | L0, L1, other L2 |
 | L3 | `src/store/` | Zustand application and feature state (including `AppStore`) | L0–L2 |
 | L4 | `src/commands/`, `src/views/`, `src/contexts/`, `src/helpers/`, `src/rules/` | CLI handlers, Ink TUI, React context, cross-cutting helpers, domain reaction rules | L0–L3 |
 
@@ -55,22 +55,22 @@ flowchart TB
 - **types** — shared interfaces and accessors
 - **foundation** — pure helpers with no I/O: `formatter/` (dates, filenames, branches), `parser/` (e.g. `MarkdownParser`), `layouter/` (terminal table layout); may import `types`
 
-L0 modules must not import `services`, `utils`, or anything above.
+L0 modules must not import `services`, `async`, or anything above.
 
 ### L1 — I/O wrappers
 
 - **services** — stateless singletons: `FileService`, `ShellService`, `GitService`, etc.
 - **db** — SQLite access via `DatabaseService`
 
-### L2 — utils
+### L2 — async
 
-- **utils/storage** — filesystem layout for repos, issues, config files, and tracker repo discovery (`TrackerRepoStorage.find`, `findSubTrackerRepos`)
-- **utils/resources** — document and issue file creation (`IssueResource`)
-- **utils/validators** — async checks (e.g. git folder, tracker repo, issue folder)
-- **utils/search** — issue search over storage
-- **utils/travelers** — registry URL/path abstractions (`TravelerFactory`, `FileUrlTraveler`)
-- **utils/launchers** — editor and tmux launch (`EditorLauncher`, `TmuxLauncher`)
-- **utils/generators** — mermaid git graph output (`MermaidGitGraphGenerator`), resource templates (`TemplateGenerator`)
+- **async/storage** — filesystem layout for repos, issues, config files, and tracker repo discovery (`TrackerRepoStorage.find`, `findSubTrackerRepos`)
+- **async/resources** — document and issue file creation (`IssueResource`)
+- **async/validators** — async checks (e.g. git folder, tracker repo, issue folder)
+- **async/search** — issue search over storage
+- **async/travelers** — registry URL/path abstractions (`TravelerFactory`, `FileUrlTraveler`)
+- **async/launchers** — editor and tmux launch (`EditorLauncher`, `TmuxLauncher`)
+- **async/generators** — mermaid git graph output (`MermaidGitGraphGenerator`), resource templates (`TemplateGenerator`)
 
 ### L3 — Store
 
@@ -106,14 +106,14 @@ Class files use **CamelCase** basenames. ESLint checks the basename against the 
 | `src/foundation/layouter/` | `*Layouter.ts` | — |
 | `src/foundation/matchers/` | `*Matcher.ts` | — |
 | `src/foundation/parser/` | `*Parser.ts` | — |
-| `src/utils/` (root, no files) | — | use subdirectories below |
-| `src/utils/storage/` | `*Storage.ts` | — |
-| `src/utils/resources/` | `Resource.ts`, `IssueResource.ts`, `index.ts` | — |
-| `src/utils/validators/` | `*Validator.ts` | — |
-| `src/utils/search/` | fixed names | `IssueSearcher.ts`, `SearchQueryParser.ts`, `types.ts` |
-| `src/utils/travelers/` | `*Traveler.ts` | `Traveler.ts`, `TravelerFactory.ts` |
-| `src/utils/launchers/` | `*Launcher.ts` | — |
-| `src/utils/generators/` | `*Generator.ts` | — |
+| `src/async/` (root, no files) | — | use subdirectories below |
+| `src/async/storage/` | `*Storage.ts` | — |
+| `src/async/resources/` | `Resource.ts`, `IssueResource.ts`, `index.ts` | — |
+| `src/async/validators/` | `*Validator.ts` | — |
+| `src/async/search/` | fixed names | `IssueSearcher.ts`, `SearchQueryParser.ts`, `types.ts` |
+| `src/async/travelers/` | `*Traveler.ts` | `Traveler.ts`, `TravelerFactory.ts` |
+| `src/async/launchers/` | `*Launcher.ts` | — |
+| `src/async/generators/` | `*Generator.ts` | — |
 | `src/views/hooks/` | `use*.ts` | — |
 | `src/views/PaletteCommands/` | `*PaletteCommand.ts` | `PaletteCommandRegistry.ts` |
 | `src/views/components/` | `*Dialog.tsx`, `*View.tsx`, plus named components | `IssueTable`, `IssueViewer`, `MarkdownViewer`, `ToolBar`, `Toast`, `EmptyArea`, `InlineIssuePicker`, `InlineConfirmation`, `InteractiveTextInput` |
@@ -138,7 +138,7 @@ Test files mirror `src/` under `tests/`, with one test file per production modul
 | ----- | -------------------- | --------------------- |
 | L0 (`types/`, `foundation/`) | Yes | Direct unit tests |
 | L1 (`services/`, `db/`) | **No** | Do not add `tests/services/*Service.test.ts`. Services are thin I/O wrappers; test callers (L2–L4) and stub services with `Service.setInstance(mock)` or `jest.spyOn` at the call site. |
-| L2 (`utils/`) | Yes | Direct unit tests; mock L1 via `Service.setInstance` |
+| L2 (`async/`) | Yes | Direct unit tests; mock L1 via `Service.setInstance` |
 | L3 (`store/`) | Yes | Direct unit tests |
 | L4 (`commands/`, `views/`, …) | Yes | Direct unit tests; mock L1 services, not raw `fs` or external libraries |
 
@@ -160,7 +160,7 @@ See also [AGENTS.md](../../AGENTS.md) for project-wide architecture notes.
 
 - `types` → `services`
 - `store` (L3) → `views` (move UI orchestration to L4 `contexts` / `views`)
-- `services` → `utils/storage` (keep git path parsing in `GitService`, not `storage`)
+- `services` → `async/storage` (keep git path parsing in `GitService`, not `storage`)
 
 ## Known violations (follow-up)
 
@@ -168,4 +168,4 @@ These existing imports fail `npm run lint` until refactored:
 
 | File | Import | Fix direction |
 | ---- | ------ | ------------- |
-| `src/utils/resources/IssueResource.ts` | `store/*` | Inject config / `findIssuePath` from callers |
+| `src/async/resources/IssueResource.ts` | `store/*` | Inject config / `findIssuePath` from callers |

@@ -99,5 +99,5 @@ class SomeOtherClass {
 ## Prefer accessors over utils
 
 - Put **transform** and **query** logic on the accessor for the POJO it operates on (e.g. `IssueFolderListAccessor.sortBy`, `SortingOrderAccessor.parseJson`).
-- **Do not** add new `src/utils/` modules for behavior that belongs to a single POJO type. Keep comparators and rank-map builders as **private methods** on the accessor, or file-local helpers in the same `src/types/` file.
+- **Do not** add new `src/async/` modules for behavior that belongs to a single POJO type. Keep comparators and rank-map builders as **private methods** on the accessor, or file-local helpers in the same `src/types/` file.
 - Add a util module only when logic is genuinely **cross-cutting** and not tied to one POJO (and no accessor owns it).

@@ -1,7 +1,7 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { TmuxLauncher } from "../utils/launchers/TmuxLauncher.ts";
+import { TmuxLauncher } from "../async/launchers/TmuxLauncher.ts";
 import type { ErrorResponse, SuccessResponse } from "../types/Response.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";

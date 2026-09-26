@@ -1,6 +1,6 @@
 import { defineMessages } from "react-intl";
 import { intl } from "../../intl.ts";
-import { IssueFolderStorage } from "../../utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 import { useAlertDialogStore } from "../../store/AlertDialogStore.ts";
 import { useAppStore } from "../../store/AppStore.ts";
 import { useConfirmationDialogStore } from "../../store/ConfirmationDialogStore.ts";

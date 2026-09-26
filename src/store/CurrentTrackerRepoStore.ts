@@ -7,7 +7,7 @@ import { ShellService } from "../services/ShellService.ts";
 import {
   TrackerRepoStorage,
   type FindTrackerRepoResult,
-} from "../utils/storage/TrackerRepoStorage.ts";
+} from "../async/storage/TrackerRepoStorage.ts";
 import type { IssueFolder } from "../types/Issue.ts";
 import { IssueSelectorMatcher } from "../foundation/matchers/IssueSelectorMatcher.ts";
 import type { PriorityTable } from "../types/priority.ts";

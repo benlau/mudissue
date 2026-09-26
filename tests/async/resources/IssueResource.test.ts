@@ -3,9 +3,9 @@ import matter from "gray-matter";
 import { DateFormatter } from "../../../src/foundation/formatter/DateFormatter.ts";
 import { FileNameFormatter } from "../../../src/foundation/formatter/FileNameFormatter.ts";
 import { ISSUE_FOLDER_NAME_MAX_LENGTH } from "../../../src/constants.ts";
-import { IssueResource } from "../../../src/utils/resources/IssueResource.ts";
+import { IssueResource } from "../../../src/async/resources/IssueResource.ts";
 import { FileService } from "../../../src/services/FileService.ts";
-import { TemplateGenerator } from "../../../src/utils/generators/TemplateGenerator.ts";
+import { TemplateGenerator } from "../../../src/async/generators/TemplateGenerator.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
 
 describe("IssueResource", () => {

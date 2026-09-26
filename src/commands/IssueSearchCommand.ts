@@ -1,7 +1,7 @@
 import type { Argv } from "yargs";
 import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
-import { SearchQueryParser } from "../utils/search/SearchQueryParser.ts";
+import { SearchQueryParser } from "../async/search/SearchQueryParser.ts";
 import { LoggerService } from "../services/LoggerService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import {
@@ -9,8 +9,8 @@ import {
   IssueSearchStoreKey,
 } from "../store/IssueSearchStore.ts";
 import { useGlobalConfigStore } from "../store/GlobalConfigStore.ts";
-import { TrackerRepoStorage } from "../utils/storage/TrackerRepoStorage.ts";
-import { TrackerRepoValidator } from "../utils/validators/TrackerRepoValidator.ts";
+import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
+import { TrackerRepoValidator } from "../async/validators/TrackerRepoValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import type {
   SearchCommandSuccessResult,

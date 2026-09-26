@@ -5,7 +5,7 @@ import {
   resetIssueMetadataChangedPostHookStore,
   useIssueMetadataChangedPostHookStore,
 } from "../../src/store/IssueMetadataChangedPostHookStore.ts";
-import { IssueFolderStorage } from "../../src/utils/storage/IssueFolderStorage.ts";
+import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
 import { SystemRuleKey } from "../../src/types/rules.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
