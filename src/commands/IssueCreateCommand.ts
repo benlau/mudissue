@@ -26,7 +26,9 @@ export type IssueCreateCommandArgs = {
   id?: string;
   project?: string;
   parent?: string;
-  file?: string;
+  importFromMd?: string;
+  fromFile?: string;
+  fromEnvVar?: string;
   content?: string;
 };
 
@@ -42,9 +44,17 @@ const msg = defineMessages({
     id: "cli.issue.create.describe",
     defaultMessage: "Create a new issue",
   },
-  issueCreateFile: {
-    id: "cli.issue.create.option.file",
-    defaultMessage: "Import issue content from file",
+  issueCreateImportFromMd: {
+    id: "cli.issue.create.option.importFromMd",
+    defaultMessage: "Import full issue markdown from file",
+  },
+  issueCreateFromFile: {
+    id: "cli.issue.create.option.fromFile",
+    defaultMessage: "Issue body text from file",
+  },
+  issueCreateFromEnvVar: {
+    id: "cli.issue.create.option.fromEnvVar",
+    defaultMessage: "Issue body text from environment variable",
   },
   issueCreateId: {
     id: "cli.issue.create.option.id",
@@ -60,11 +70,21 @@ const msg = defineMessages({
   },
   issueCreateTitle: {
     id: "cli.issue.create.positional.title",
-    defaultMessage: "Issue title (required when not using --file)",
+    defaultMessage: "Issue title (required when not using --import-from-md)",
   },
   errorIssueCreateTitle: {
     id: "cli.error.issue.create.title",
-    defaultMessage: "Title is required when --file is not used.",
+    defaultMessage: "Title is required when --import-from-md is not used.",
+  },
+  errorIssueCreateBodySources: {
+    id: "cli.error.issue.create.bodySources",
+    defaultMessage:
+      "Use only one of --content, --from-file, or --from-env-var.",
+  },
+  errorIssueCreateImportWithBody: {
+    id: "cli.error.issue.create.importWithBody",
+    defaultMessage:
+      "--import-from-md cannot be combined with --content, --from-file, or --from-env-var.",
   },
   issueCreateContent: {
     id: "cli.issue.create.option.content",
@@ -76,12 +96,29 @@ const msg = defineMessages({
   },
   errorIssueCreateJsonContent: {
     id: "cli.error.issue.create.jsonContent",
-    defaultMessage: "--json requires --content",
+    defaultMessage:
+      "--json requires --import-from-md, --content, --from-file, or --from-env-var",
   },
 });
 
+function hasNonEmptyString(value: unknown): boolean {
+  return typeof value === "string" && value !== "";
+}
+
 function hasContentOption(content: unknown): boolean {
   return typeof content === "string";
+}
+
+function hasBodySource(argv: {
+  content?: unknown;
+  fromFile?: unknown;
+  fromEnvVar?: unknown;
+}): boolean {
+  return (
+    hasContentOption(argv.content) ||
+    hasNonEmptyString(argv.fromFile) ||
+    hasNonEmptyString(argv.fromEnvVar)
+  );
 }
 
 export class IssueCreateCommand extends Command {
@@ -100,9 +137,17 @@ export class IssueCreateCommand extends Command {
       intl.formatMessage(msg.issueCreateDescribe),
       (builder) =>
         builder
-          .option("file", {
+          .option("import-from-md", {
             type: "string",
-            describe: intl.formatMessage(msg.issueCreateFile),
+            describe: intl.formatMessage(msg.issueCreateImportFromMd),
+          })
+          .option("from-file", {
+            type: "string",
+            describe: intl.formatMessage(msg.issueCreateFromFile),
+          })
+          .option("from-env-var", {
+            type: "string",
+            describe: intl.formatMessage(msg.issueCreateFromEnvVar),
           })
           .option("id", {
             type: "string",
@@ -125,15 +170,32 @@ export class IssueCreateCommand extends Command {
             type: "string",
           })
           .check((argv) => {
-            const hasFile = typeof argv.file === "string" && argv.file !== "";
+            const hasImport = hasNonEmptyString(argv.importFromMd);
+            const hasFromFile = hasNonEmptyString(argv.fromFile);
+            const hasFromEnvVar = hasNonEmptyString(argv.fromEnvVar);
+            const hasContent = hasContentOption(argv.content);
+            const bodySourceCount =
+              (hasContent ? 1 : 0) +
+              (hasFromFile ? 1 : 0) +
+              (hasFromEnvVar ? 1 : 0);
+            if (bodySourceCount > 1) {
+              throw new Error(
+                intl.formatMessage(msg.errorIssueCreateBodySources),
+              );
+            }
+            if (hasImport && bodySourceCount > 0) {
+              throw new Error(
+                intl.formatMessage(msg.errorIssueCreateImportWithBody),
+              );
+            }
             const hasTitle =
               typeof argv.title === "string" && argv.title !== undefined;
-            if (!hasFile && !hasTitle) {
+            if (!hasImport && !hasTitle) {
               throw new Error(intl.formatMessage(msg.errorIssueCreateTitle));
             }
             const outputJson =
               argv.json === true || process.env.MUDISSUE_OUTPUT_JSON === "true";
-            if (outputJson && !hasFile && !hasContentOption(argv.content)) {
+            if (outputJson && !hasImport && !hasBodySource(argv)) {
               throw new Error(
                 intl.formatMessage(msg.errorIssueCreateJsonContent),
               );
@@ -142,12 +204,12 @@ export class IssueCreateCommand extends Command {
           }),
       async (argv) => {
         const outputJson = outputJsonMode(argv as HeadlessArgv);
-        const hasFile = typeof argv.file === "string" && argv.file !== "";
-        const hasContent = hasContentOption(argv.content);
+        const hasImport = hasNonEmptyString(argv.importFromMd);
+        const hasBody = hasBodySource(argv);
         cmd.preprocessArgument(cmd.name, {
           debug: argv.debug === true,
           json: outputJson,
-          interactive: !hasFile && !hasContent,
+          interactive: !hasImport && !hasBody,
         });
         await cmd.runCommand(
           { outputJson },
@@ -156,7 +218,9 @@ export class IssueCreateCommand extends Command {
             id: argv.id as string | undefined,
             project: argv.project as string | undefined,
             parent: argv.parent as string | undefined,
-            file: argv.file as string | undefined,
+            importFromMd: argv.importFromMd as string | undefined,
+            fromFile: argv.fromFile as string | undefined,
+            fromEnvVar: argv.fromEnvVar as string | undefined,
             content: argv.content as string | undefined,
           },
         );
@@ -164,12 +228,88 @@ export class IssueCreateCommand extends Command {
     );
   }
 
+  private async resolveReadableTextFilePath(filePath: string): Promise<string> {
+    const fileService = FileService.getInstance();
+    const shellService = ShellService.getInstance();
+    const loggerService = LoggerService.getInstance();
+
+    const resolvedPath = shellService.isAbsolute(filePath)
+      ? filePath
+      : path.resolve(shellService.cwd(), filePath);
+    if (!(await fileService.exists(resolvedPath))) {
+      loggerService.error(`File not found: ${resolvedPath}`);
+      this.throwException(
+        "CREATE_ISSUE_FILE_NOT_FOUND",
+        `File not found: ${resolvedPath}`,
+      );
+    }
+    const stat = await fileService.stat(resolvedPath);
+    if (!stat.isFile()) {
+      loggerService.error("A directory is not accepted.");
+      this.throwException(
+        "CREATE_ISSUE_PATH_NOT_FILE",
+        "A directory is not accepted.",
+      );
+    }
+    if (await fileService.isBinaryFile(resolvedPath)) {
+      loggerService.error("Binary files are not accepted.");
+      this.throwException(
+        "CREATE_ISSUE_FILE_BINARY",
+        "Binary files are not accepted.",
+      );
+    }
+    return resolvedPath;
+  }
+
+  private async importMarkdownPath(
+    importPath: string,
+    id: string | undefined,
+    storage: TrackerRepoStorage,
+    nextIssueIdHelper: NextIssueIdHelper,
+  ): Promise<IssueFolder> {
+    const loggerService = LoggerService.getInstance();
+    const resolvedPath = await this.resolveReadableTextFilePath(importPath);
+
+    const fileTitle = await IssueResource.deriveTitleFromFile(resolvedPath);
+    let issueId: string;
+    try {
+      issueId = await nextIssueIdHelper.resolveIssueId(id, fileTitle);
+    } catch (err) {
+      if (err instanceof Error) {
+        loggerService.error(err.message);
+      }
+      throw err;
+    }
+    const folderBasename = IssueResource.issueIdForTitle(issueId, fileTitle);
+    const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
+    const issueFolder: IssueFolder = {
+      issueId: folderBasename,
+      label: issueId,
+      path: issueDirPath,
+    };
+    const issueFilePath = await storage.resolveIssueFilePath(issueFolder);
+    return this.issueResource.createFromFile(
+      resolvedPath,
+      issueFolder,
+      issueFilePath,
+      fileTitle,
+    );
+  }
+
   async command(
     args: IssueCreateCommandArgs,
   ): Promise<IssueCreateCommandSuccessResponse> {
-    const { title, id, project, parent, file: filePath, content } = args;
+    const {
+      title,
+      id,
+      project,
+      parent,
+      importFromMd: importPath,
+      fromFile,
+      fromEnvVar,
+      content,
+    } = args;
     const fileService = FileService.getInstance();
-    const shellService = ShellService.getInstance();
     const loggerService = LoggerService.getInstance();
 
     let targetRepo: TrackerRepo;
@@ -208,61 +348,34 @@ export class IssueCreateCommand extends Command {
     const nextIssueIdHelper = new NextIssueIdHelper(storage);
 
     let result: IssueFolder;
-    if (filePath !== undefined && filePath !== "") {
-      const resolvedPath = shellService.isAbsolute(filePath)
-        ? filePath
-        : path.resolve(shellService.cwd(), filePath);
-      if (!(await fileService.exists(resolvedPath))) {
-        loggerService.error(`File not found: ${resolvedPath}`);
-        this.throwException(
-          "CREATE_ISSUE_FILE_NOT_FOUND",
-          `File not found: ${resolvedPath}`,
-        );
-      }
-      const stat = await fileService.stat(resolvedPath);
-      if (!stat.isFile()) {
-        loggerService.error("A directory is not accepted.");
-        this.throwException(
-          "CREATE_ISSUE_PATH_NOT_FILE",
-          "A directory is not accepted.",
-        );
-      }
-      if (await fileService.isBinaryFile(resolvedPath)) {
-        loggerService.error("Binary files are not accepted.");
-        this.throwException(
-          "CREATE_ISSUE_FILE_BINARY",
-          "Binary files are not accepted.",
-        );
-      }
-
-      const fileTitle = await IssueResource.deriveTitleFromFile(resolvedPath);
-      let issueId: string;
-      try {
-        issueId = await nextIssueIdHelper.resolveIssueId(id, fileTitle);
-      } catch (err) {
-        if (err instanceof Error) {
-          loggerService.error(err.message);
-        }
-        throw err;
-      }
-      const folderBasename = IssueResource.issueIdForTitle(issueId, fileTitle);
-      const issueDirPath = path.join(storage.getIssuePath(), folderBasename);
-      const issueFolder: IssueFolder = {
-        issueId: folderBasename,
-        label: issueId,
-        path: issueDirPath,
-      };
-      const issueFilePath = await storage.resolveIssueFilePath(issueFolder);
-      result = await this.issueResource.createFromFile(
-        resolvedPath,
-        issueFolder,
-        issueFilePath,
-        fileTitle,
+    if (importPath !== undefined && importPath !== "") {
+      result = await this.importMarkdownPath(
+        importPath,
+        id,
+        storage,
+        nextIssueIdHelper,
       );
     } else {
       const issueTitle = title ?? "";
-      let issueContent = content;
-      if (issueContent == null) {
+      let issueContent: string | undefined;
+      if (fromEnvVar !== undefined && fromEnvVar !== "") {
+        const envValue = process.env[fromEnvVar];
+        if (envValue == null || envValue === "") {
+          this.throwException(
+            "CREATE_ISSUE_ENV_VAR_MISSING",
+            `Environment variable not set or empty: ${fromEnvVar}`,
+          );
+        }
+        issueContent = envValue;
+      } else if (fromFile !== undefined && fromFile !== "") {
+        const resolvedPath = await this.resolveReadableTextFilePath(fromFile);
+        issueContent = (await fileService.readFile(
+          resolvedPath,
+          "utf-8",
+        )) as string;
+      } else if (content !== undefined) {
+        issueContent = content;
+      } else {
         const entered = await this.askUserTextContent(
           intl.formatMessage(msg.issueContentPrompt),
         );

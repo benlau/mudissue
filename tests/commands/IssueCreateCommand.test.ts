@@ -487,49 +487,9 @@ describe("IssueCreateCommand", () => {
       jest.restoreAllMocks();
     });
 
-    it("ignores --content when --file is used", async () => {
-      bundle.fileService.exists.mockResolvedValue(true);
-      bundle.fileService.stat.mockResolvedValue({
-        isFile: () => true,
-      } as ReturnType<FileService["stat"]>);
-      bundle.fileService.isBinaryFile.mockResolvedValue(false);
-      bundle.fileService.readFile.mockResolvedValue("---\ntitle: Plan\n---\n");
-      (mockIssueResource.createFromFile as jest.Mock).mockResolvedValue({ issueId: "0001-plan", label: "0001", path: "/repo/issues/0001-plan",
-        title: "Plan",
-       });
-      jest
-        .spyOn(NextIssueIdHelper.prototype, "resolveIssueId")
-        .mockResolvedValue("0001");
-      jest
-        .spyOn(TrackerRepoStorage.prototype, "getIssuePath")
-        .mockReturnValue("/repo/issues");
-      jest
-        .spyOn(TrackerRepoStorage.prototype, "resolveFilePath")
-        .mockImplementation((absPath: string) => ({
-          absPath,
-          relativePath: absPath.replace("/repo/", ""),
-        }));
-      jest
-        .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
-        .mockResolvedValue("/repo/issues/0001-plan/issue.md");
-
-      const command = new IssueCreateCommand({
-        issueResource: mockIssueResource as unknown as IssueResource,
-      });
-
-      await command.command({
-        title: "",
-        file: "plan.md",
-        content: "Ignored body",
-      });
-
-      expect(mockIssueResource.createFromFile).toHaveBeenCalled();
-      expect(mockIssueResource.create).not.toHaveBeenCalled();
-      jest.restoreAllMocks();
-    });
   });
 
-  describe("create from file (--file)", () => {
+  describe("create from --import-from-md", () => {
     const resolvedPath = "/cwd/plan.md";
     const successResult = { issueId: "0001-plan", label: "0001", path: "/repo/issues/0001-plan",
       title: "Plan",
@@ -567,7 +527,7 @@ describe("IssueCreateCommand", () => {
 
       const result = await command.command({
         title: "",
-        file: "plan.md",
+        importFromMd: "plan.md",
       });
 
       expect(result.status).toBe("ok");
@@ -591,7 +551,7 @@ describe("IssueCreateCommand", () => {
       jest.restoreAllMocks();
     });
 
-    it("ignores title when both file and title provided", async () => {
+    it("ignores title when both import-from-md and title provided", async () => {
       bundle.fileService.exists.mockResolvedValue(true);
       bundle.fileService.stat.mockResolvedValue({
         isFile: () => true,
@@ -623,7 +583,7 @@ describe("IssueCreateCommand", () => {
 
       await command.command({
         title: "Custom title",
-        file: "plan.md",
+        importFromMd: "plan.md",
       });
 
       expect(mockIssueResource.createFromFile).toHaveBeenCalledWith(
@@ -645,7 +605,7 @@ describe("IssueCreateCommand", () => {
       await expect(
         command.command({
           title: "",
-          file: "missing.md",
+          importFromMd: "missing.md",
         }),
       ).rejects.toMatchObject({
         status: "error",
@@ -667,7 +627,7 @@ describe("IssueCreateCommand", () => {
       await expect(
         command.command({
           title: "",
-          file: "dir/",
+          importFromMd: "dir/",
         }),
       ).rejects.toMatchObject({
         status: "error",
@@ -690,13 +650,247 @@ describe("IssueCreateCommand", () => {
       await expect(
         command.command({
           title: "",
-          file: "binary.png",
+          importFromMd: "binary.png",
         }),
       ).rejects.toMatchObject({
         status: "error",
         error: { code: "CREATE_ISSUE_FILE_BINARY" },
       });
       expect(mockIssueResource.createFromFile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("issue body from --from-file", () => {
+    function stubCreatePath(): void {
+      jest
+        .spyOn(NextIssueIdHelper.prototype, "resolveIssueId")
+        .mockResolvedValue("0001");
+      jest
+        .spyOn(TrackerRepoStorage.prototype, "getIssuePath")
+        .mockReturnValue("/repo/issues");
+      jest
+        .spyOn(TrackerRepoStorage.prototype, "resolveFilePath")
+        .mockImplementation((absPath: string) => ({
+          absPath,
+          relativePath: absPath.replace("/repo/", ""),
+        }));
+      jest
+        .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
+        .mockResolvedValue("/repo/issues/0001-my-issue/issue.md");
+      (mockIssueResource.create as jest.Mock).mockResolvedValue({
+        issueId: "0001-my-issue",
+        label: "0001",
+        path: "/repo/issues/0001-my-issue",
+        title: "My issue",
+      });
+    }
+
+    it("passes file contents to issueResource.create", async () => {
+      stubCreatePath();
+      bundle.fileService.exists.mockResolvedValue(true);
+      bundle.fileService.stat.mockResolvedValue({
+        isFile: () => true,
+      } as ReturnType<FileService["stat"]>);
+      bundle.fileService.isBinaryFile.mockResolvedValue(false);
+      bundle.fileService.readFile.mockResolvedValue("Body from file");
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await command.command({
+        title: "My issue",
+        fromFile: "body.txt",
+      });
+
+      expect(bundle.fileService.readFile).toHaveBeenCalledWith(
+        "/cwd/body.txt",
+        "utf-8",
+      );
+      expect(mockIssueResource.create).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        "My issue",
+        undefined,
+        "open",
+        "urgent",
+        "long",
+        "Body from file",
+      );
+      expect(mockIssueResource.createFromFile).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
+    });
+
+    it("throws when body file does not exist", async () => {
+      stubCreatePath();
+      bundle.fileService.exists.mockResolvedValue(false);
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await expect(
+        command.command({
+          title: "My issue",
+          fromFile: "missing.txt",
+        }),
+      ).rejects.toMatchObject({
+        status: "error",
+        error: { code: "CREATE_ISSUE_FILE_NOT_FOUND" },
+      });
+      expect(mockIssueResource.create).not.toHaveBeenCalled();
+      expect(mockIssueResource.createFromFile).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
+    });
+
+    it("throws when body path is a directory", async () => {
+      stubCreatePath();
+      bundle.fileService.exists.mockResolvedValue(true);
+      bundle.fileService.stat.mockResolvedValue({
+        isFile: () => false,
+      } as ReturnType<FileService["stat"]>);
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await expect(
+        command.command({
+          title: "My issue",
+          fromFile: "dir/",
+        }),
+      ).rejects.toMatchObject({
+        status: "error",
+        error: { code: "CREATE_ISSUE_PATH_NOT_FILE" },
+      });
+      expect(mockIssueResource.create).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
+    });
+
+    it("throws when body file is binary", async () => {
+      stubCreatePath();
+      bundle.fileService.exists.mockResolvedValue(true);
+      bundle.fileService.stat.mockResolvedValue({
+        isFile: () => true,
+      } as ReturnType<FileService["stat"]>);
+      bundle.fileService.isBinaryFile.mockResolvedValue(true);
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await expect(
+        command.command({
+          title: "My issue",
+          fromFile: "binary.png",
+        }),
+      ).rejects.toMatchObject({
+        status: "error",
+        error: { code: "CREATE_ISSUE_FILE_BINARY" },
+      });
+      expect(mockIssueResource.create).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe("issue body from --from-env-var", () => {
+    const envName = "MUDISSUE_TEST_ISSUE_BODY";
+
+    function stubCreatePath(): void {
+      jest
+        .spyOn(NextIssueIdHelper.prototype, "resolveIssueId")
+        .mockResolvedValue("0001");
+      jest
+        .spyOn(TrackerRepoStorage.prototype, "getIssuePath")
+        .mockReturnValue("/repo/issues");
+      jest
+        .spyOn(TrackerRepoStorage.prototype, "resolveFilePath")
+        .mockImplementation((absPath: string) => ({
+          absPath,
+          relativePath: absPath.replace("/repo/", ""),
+        }));
+      jest
+        .spyOn(TrackerRepoStorage.prototype, "resolveIssueFilePath")
+        .mockResolvedValue("/repo/issues/0001-my-issue/issue.md");
+      (mockIssueResource.create as jest.Mock).mockResolvedValue({
+        issueId: "0001-my-issue",
+        label: "0001",
+        path: "/repo/issues/0001-my-issue",
+        title: "My issue",
+      });
+    }
+
+    afterEach(() => {
+      delete process.env[envName];
+    });
+
+    it("passes env var value to issueResource.create", async () => {
+      stubCreatePath();
+      process.env[envName] = "Body from env";
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await command.command({
+        title: "My issue",
+        fromEnvVar: envName,
+      });
+
+      expect(mockIssueResource.create).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        "My issue",
+        undefined,
+        "open",
+        "urgent",
+        "long",
+        "Body from env",
+      );
+      expect(mockIssueResource.createFromFile).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
+    });
+
+    it("throws CREATE_ISSUE_ENV_VAR_MISSING when env var is unset", async () => {
+      stubCreatePath();
+      delete process.env[envName];
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await expect(
+        command.command({
+          title: "My issue",
+          fromEnvVar: envName,
+        }),
+      ).rejects.toMatchObject({
+        status: "error",
+        error: { code: "CREATE_ISSUE_ENV_VAR_MISSING" },
+      });
+      expect(mockIssueResource.create).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
+    });
+
+    it("throws CREATE_ISSUE_ENV_VAR_MISSING when env var is empty", async () => {
+      stubCreatePath();
+      process.env[envName] = "";
+
+      const command = new IssueCreateCommand({
+        issueResource: mockIssueResource as unknown as IssueResource,
+      });
+
+      await expect(
+        command.command({
+          title: "My issue",
+          fromEnvVar: envName,
+        }),
+      ).rejects.toMatchObject({
+        status: "error",
+        error: { code: "CREATE_ISSUE_ENV_VAR_MISSING" },
+      });
+      expect(mockIssueResource.create).not.toHaveBeenCalled();
+      jest.restoreAllMocks();
     });
   });
 });
