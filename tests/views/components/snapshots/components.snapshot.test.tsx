@@ -192,7 +192,7 @@ function resetDialogStores(): void {
     isOpen: false,
     commands: [],
     toolbarItems: [],
-    initialFilterQuery: ":",
+    initialFilterQuery: ">",
     lastUsedCommandKey: null,
   });
   usePopupStore.setState({
@@ -702,7 +702,7 @@ const snapshotCases: SnapshotCase[] = [
           callback: async () => {},
         },
         ],
-        initialFilterQuery: ":",
+        initialFilterQuery: ">",
       });
     },
     render: () => (

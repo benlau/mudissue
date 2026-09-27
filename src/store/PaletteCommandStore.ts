@@ -29,7 +29,7 @@ function closedContentSlice(): Pick<
   return {
     commands: [],
     toolbarItems: [],
-    initialFilterQuery: ":",
+    initialFilterQuery: ">",
   };
 }
 
@@ -48,7 +48,7 @@ export const usePaletteCommandStore = create<PaletteCommandStoreState>()(
         isOpen: true,
         commands: list,
         toolbarItems: [...(options.toolbarItems ?? [])],
-        initialFilterQuery: options.initialFilterQuery ?? ":",
+        initialFilterQuery: options.initialFilterQuery ?? ">",
       });
     },
 

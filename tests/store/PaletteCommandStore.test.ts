@@ -8,7 +8,7 @@ describe("usePaletteCommandStore", () => {
       isOpen: false,
       commands: [],
       toolbarItems: [],
-      initialFilterQuery: ":",
+      initialFilterQuery: ">",
       lastUsedCommandKey: null,
     });
     usePopupStore.setState({
@@ -80,6 +80,6 @@ describe("usePaletteCommandStore", () => {
     expect(usePaletteCommandStore.getState().initialFilterQuery).toBe("?");
     usePaletteCommandStore.getState().close();
     expect(usePaletteCommandStore.getState().toolbarItems).toEqual([]);
-    expect(usePaletteCommandStore.getState().initialFilterQuery).toBe(":");
+    expect(usePaletteCommandStore.getState().initialFilterQuery).toBe(">");
   });
 });

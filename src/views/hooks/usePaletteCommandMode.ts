@@ -11,7 +11,7 @@ function resolvePaletteFilterMode(filterQuery: string): PaletteFilterMode {
   if (filterQuery.startsWith("?")) {
     return { mode: "toolbar", searchQuery: filterQuery.slice(1) };
   }
-  if (filterQuery.startsWith(":")) {
+  if (filterQuery.startsWith(">")) {
     return { mode: "command", searchQuery: filterQuery.slice(1) };
   }
   return { mode: "issue", searchQuery: filterQuery };

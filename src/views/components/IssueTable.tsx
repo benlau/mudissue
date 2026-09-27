@@ -351,7 +351,7 @@ export function IssueTable({
       usePaletteCommandStore.getState().open({
         commands: buildIssueTablePaletteCommands(),
         toolbarItems: options?.toolbarItems,
-        initialFilterQuery: options?.initialFilterQuery ?? ":",
+        initialFilterQuery: options?.initialFilterQuery ?? ">",
       });
     },
     [buildIssueTablePaletteCommands],
@@ -430,7 +430,7 @@ export function IssueTable({
       label: intl.formatMessage(
         issueTableToolbarMessages.commandToolbarLabel,
       ),
-      key: ":",
+      key: ">",
       showInHelpDialog: false,
       description: intl.formatMessage(
         issueTableToolbarMessages.commandToolbarDescription,
@@ -438,7 +438,7 @@ export function IssueTable({
       callback: () => {
         openIssueTablePalette({
           toolbarItems: list.slice(),
-          initialFilterQuery: ":",
+          initialFilterQuery: ">",
         });
       },
     });

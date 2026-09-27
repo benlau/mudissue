@@ -6,13 +6,15 @@ import { renderHook } from "@testing-library/react";
 import { usePaletteCommandMode } from "../../../src/views/hooks/usePaletteCommandMode.ts";
 
 describe("usePaletteCommandMode", () => {
-  it("treats a leading colon as command mode", () => {
-    const { result: colonResult } = renderHook(() => usePaletteCommandMode(":"));
-    expect(colonResult.current.mode).toBe("command");
-    expect(colonResult.current.searchQuery).toBe("");
+  it("treats a leading greater-than as command mode", () => {
+    const { result: commandResult } = renderHook(() =>
+      usePaletteCommandMode(">"),
+    );
+    expect(commandResult.current.mode).toBe("command");
+    expect(commandResult.current.searchQuery).toBe("");
 
     const { result: prefixedResult } = renderHook(() =>
-      usePaletteCommandMode(":new"),
+      usePaletteCommandMode(">new"),
     );
     expect(prefixedResult.current.mode).toBe("command");
     expect(prefixedResult.current.searchQuery).toBe("new");
@@ -43,9 +45,9 @@ describe("usePaletteCommandMode", () => {
   });
 
   it("resolves mode for arbitrary filter queries", () => {
-    const { result } = renderHook(() => usePaletteCommandMode(":"));
+    const { result } = renderHook(() => usePaletteCommandMode(">"));
 
-    expect(result.current.forFilterQuery(":find")).toEqual({
+    expect(result.current.forFilterQuery(">find")).toEqual({
       mode: "command",
       searchQuery: "find",
     });

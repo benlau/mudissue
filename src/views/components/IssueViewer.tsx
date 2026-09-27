@@ -263,7 +263,7 @@ export function IssueViewer({
       usePaletteCommandStore.getState().open({
         commands: buildViewerPaletteCommands(),
         toolbarItems: options?.toolbarItems,
-        initialFilterQuery: options?.initialFilterQuery ?? ":",
+        initialFilterQuery: options?.initialFilterQuery ?? ">",
       });
     },
     [buildViewerPaletteCommands],
@@ -320,11 +320,11 @@ export function IssueViewer({
       },
       {
         label: "Command",
-        key: ":",
+        key: ">",
         callback: () => {
           openViewerPalette({
             toolbarItems: list.slice(),
-            initialFilterQuery: ":",
+            initialFilterQuery: ">",
           });
         },
       },

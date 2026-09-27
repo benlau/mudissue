@@ -97,7 +97,7 @@ function resetPaletteCommandStoreForTest(): void {
     isOpen: false,
     commands: [],
     toolbarItems: [],
-    initialFilterQuery: ":",
+    initialFilterQuery: ">",
     lastUsedCommandKey: null,
   });
 }
@@ -727,7 +727,7 @@ describe("IssueTable", () => {
     );
 
     await act(async () => {
-      view.stdin.write(":");
+      view.stdin.write(">");
       await Promise.resolve();
     });
 

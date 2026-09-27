@@ -168,7 +168,7 @@ exports[`views/components snapshots matches snapshot: IssueViewer 1`] = `
 
 
 
-Back<Esc> | Edit<E> | External Edit<c+e> | Prev<c+PgUp> | Next<c+PgDn> | Command<:>"
+Back<Esc> | Edit<E> | External Edit<c+e> | Prev<c+PgUp> | Next<c+PgDn> | Command<>>"
 `;
 
 exports[`views/components snapshots matches snapshot: PaletteCommandDialog 1`] = `
@@ -176,7 +176,7 @@ exports[`views/components snapshots matches snapshot: PaletteCommandDialog 1`] =
 
     ┌Palette Command───────────────┐
     │                              │
-    │:                             │
+    │>                             │
     │New<+>                   Crea…│
     │Search</>                Filt…│
     │Link<l>                  Link…│

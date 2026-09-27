@@ -1,6 +1,6 @@
 # Palette Commands
 
-Press `:` in the TUI to open the **Command Palette**. Commands below are available from the issue table, the issue viewer, or both.
+Press `>` in the TUI to open the **Command Palette**. Commands below are available from the issue table, the issue viewer, or both.
 
 Custom scripts defined in `mud.conf` also appear in the palette when configured; their labels and descriptions come from each script entry.
 

@@ -110,20 +110,20 @@ These single-key shortcuts allow you to navigate and manipulate issues instantly
 
 ### **The Command Palette**
 
-Press : to trigger the **Command Palette**. This opens an exhaustive list of available advanced actions and commands for managing your tracker and issues. See [Palette Commands](./docs/palette-commands.md) for the full list and descriptions.
+Press > to trigger the **Command Palette**. This opens an exhaustive list of available advanced actions and commands for managing your tracker and issues. See [Palette Commands](./docs/palette-commands.md) for the full list and descriptions.
 
 ![Command Palette](./docs/images/palette-command-001.jpeg)
 
 ### **Managing Relationships**
 
-Complex issue relationships are managed through bidirectional linkages stored in frontmatter, accessed directly via the [Command Palette](./docs/palette-commands.md) (`:`):
+Complex issue relationships are managed through bidirectional linkages stored in frontmatter, accessed directly via the [Command Palette](./docs/palette-commands.md) (`>`):
 
 * **Linking/Blocking**:  
-  1. Select one or more issues -> press : to open the Command Palette ->select Link Issue.  
+  1. Select one or more issues -> press > to open the Command Palette ->select Link Issue.  
   2. Choose the link type (e.g., blocking, related).  
   3. Select the target issue from the search dialog.  
 * **Sub-issues**:  
-  1. Select a parent issue -> press : to open the Command Palette ->select Create Sub-issue.  
+  1. Select a parent issue -> press > to open the Command Palette ->select Create Sub-issue.  
   2. Enter the child issue details to create it automatically linked to the parent.
 
 
