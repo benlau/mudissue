@@ -132,6 +132,7 @@ Complex issue relationships are managed through bidirectional linkages stored in
 For a comprehensive guide on using MudIssue, please refer to the [User Guides](./docs/user/).
 
 - [Tracker Configuration](./docs/user/configuration.md) - Configure your tracker, status catalogs, and folder patterns.
+- [Current issue (`current`)](./docs/user/current-issue.md) - Use `mud issue cat current` and other commands from inside an issue git worktree without typing the issue ID.
 - [Property Management](./docs/user/properties.md) - Use the CLI to update YAML metadata as a database.
 - [Writing Custom Scripts](./docs/user/writing-custom-script-with-mudissue.md) - Automate workflows with `mud script` variables and pickers.
 - [Distributed Environments](./docs/user/distributed.md) - Strategies for synchronization and managing ID uniqueness across devices.
