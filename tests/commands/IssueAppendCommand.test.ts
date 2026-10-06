@@ -6,6 +6,7 @@ import { createMockSystemContext } from "../fixture/MockSystemContext.tsx";
 
 describe("IssueAppendCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
+  let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
   let issueFinderService: ReturnType<
     typeof createMockSystemContext
   >["issueFinderService"];
@@ -26,14 +27,17 @@ describe("IssueAppendCommand", () => {
 
     const bundle = createMockSystemContext();
     fileService = bundle.fileService;
+    shellService = bundle.shellService;
     issueFinderService = bundle.issueFinderService;
     trackerRepoStore = bundle.trackerRepoStore;
+    shellService.cwd.mockReturnValue("/cwd");
     issueFinderService.find.mockResolvedValue([]);
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    delete process.env.MUDISSUE_TEST_APPEND_BODY;
   });
 
   it("throws APPEND_ARGS_INVALID when issue selector is empty", async () => {
@@ -78,10 +82,8 @@ describe("IssueAppendCommand", () => {
 
   it("throws ISSUE_MULTI_MATCHED when selector matches multiple", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a",
-       },
-      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b",
-       },
+      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a" },
+      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b" },
     ]);
     const cmd = new IssueAppendCommand();
 
@@ -98,8 +100,7 @@ describe("IssueAppendCommand", () => {
 
   it("throws ISSUE_MD_MISSING when issue file cannot be found", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
-       },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
     ]);
     fileService.exists.mockResolvedValue(false);
     fileService.readdir.mockResolvedValue([]);
@@ -118,8 +119,7 @@ describe("IssueAppendCommand", () => {
 
   it("appends raw content to issue body", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
-       },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\nExisting body\n";
@@ -168,8 +168,7 @@ describe("IssueAppendCommand", () => {
 
   it("uses askUserTextContent when --content is omitted", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
-       },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
     ]);
     fileService.exists.mockResolvedValue(true);
     let fileContent = "---\ntitle: Test\n---\n\n";
@@ -194,5 +193,99 @@ describe("IssueAppendCommand", () => {
     expect(written).toEqual(
       ["---", "title: Test", "---", "From prompt", ""].join("\n"),
     );
+  });
+
+  it("appends body text from --from-file", async () => {
+    issueFinderService.find.mockResolvedValue([
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
+    ]);
+    fileService.exists.mockResolvedValue(true);
+    fileService.stat.mockResolvedValue({
+      isFile: () => true,
+    } as ReturnType<typeof fileService.stat>);
+    fileService.isBinaryFile.mockResolvedValue(false);
+    let fileContent = "---\ntitle: Test\n---\n\nExisting body\n";
+    fileService.readFile.mockImplementation((filePath) => {
+      if (filePath === "/cwd/body.txt") {
+        return Promise.resolve("Appended from file");
+      }
+      return Promise.resolve(fileContent);
+    });
+    fileService.writeFile.mockImplementation((_path, content) => {
+      fileContent = content as string;
+      return Promise.resolve();
+    });
+
+    const cmd = new IssueAppendCommand();
+    const result = await cmd.command({
+      issueSelector: "0001",
+      fromFile: "body.txt",
+    });
+
+    expect(result.status).toBe("ok");
+    expect(fileService.readFile).toHaveBeenCalledWith("/cwd/body.txt", "utf-8");
+    const written = fileService.writeFile.mock.calls[0][1] as string;
+    expect(written).toEqual(
+      [
+        "---",
+        "title: Test",
+        "---",
+        "",
+        "Existing body",
+        "",
+        "Appended from file",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  it("appends body text from --from-env-var", async () => {
+    process.env.MUDISSUE_TEST_APPEND_BODY = "Appended from env";
+    issueFinderService.find.mockResolvedValue([
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
+    ]);
+    fileService.exists.mockResolvedValue(true);
+    let fileContent = "---\ntitle: Test\n---\n\nExisting body\n";
+    fileService.readFile.mockImplementation(() => Promise.resolve(fileContent));
+    fileService.writeFile.mockImplementation((_path, content) => {
+      fileContent = content as string;
+      return Promise.resolve();
+    });
+
+    const cmd = new IssueAppendCommand();
+    const result = await cmd.command({
+      issueSelector: "0001",
+      fromEnvVar: "MUDISSUE_TEST_APPEND_BODY",
+    });
+
+    expect(result.status).toBe("ok");
+    const written = fileService.writeFile.mock.calls[0][1] as string;
+    expect(written).toEqual(
+      [
+        "---",
+        "title: Test",
+        "---",
+        "",
+        "Existing body",
+        "",
+        "Appended from env",
+        "",
+      ].join("\n"),
+    );
+  });
+
+  it("throws APPEND_FILE_NOT_FOUND when --from-file is missing", async () => {
+    fileService.exists.mockResolvedValue(false);
+    const cmd = new IssueAppendCommand();
+
+    await expect(
+      cmd.command({
+        issueSelector: "0001",
+        fromFile: "missing.txt",
+      }),
+    ).rejects.toMatchObject({
+      status: "error",
+      error: { code: "APPEND_FILE_NOT_FOUND" },
+    });
   });
 });

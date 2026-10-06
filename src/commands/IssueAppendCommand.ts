@@ -3,6 +3,10 @@ import { defineMessages } from "react-intl";
 import { intl } from "../intl.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { IssueFolderStorage } from "../async/storage/IssueFolderStorage.ts";
+import {
+  IssueBodyContentHelper,
+  type IssueBodyMutateErrorCodes,
+} from "../helpers/IssueBodyContentHelper.ts";
 import { IssueSelectorArgumentHelper } from "../helpers/IssueSelectorArgumentHelper.ts";
 import type {
   ErrorResponse,
@@ -13,6 +17,8 @@ import type {
 export type IssueAppendCommandArgs = {
   issueSelector: string;
   content?: string;
+  fromFile?: string;
+  fromEnvVar?: string;
   project?: string;
 };
 
@@ -36,22 +42,35 @@ const msg = defineMessages({
     id: "cli.issue.append.option.content",
     defaultMessage: "Text to append to the issue body",
   },
+  optionFromFile: {
+    id: "cli.issue.append.option.fromFile",
+    defaultMessage: "Issue body text from file",
+  },
+  optionFromEnvVar: {
+    id: "cli.issue.append.option.fromEnvVar",
+    defaultMessage: "Issue body text from environment variable",
+  },
   appendContentPrompt: {
     id: "cli.issue.append.prompt.content",
     defaultMessage: "Type content to append (Ctrl+D to confirm):",
   },
   errorIssueAppendJsonContent: {
     id: "cli.error.issue.append.jsonContent",
-    defaultMessage: "--json requires --content",
+    defaultMessage: "--json requires --content, --from-file, or --from-env-var",
   },
 });
 
-function hasContentFlag(content: unknown): boolean {
-  return typeof content === "string" && content !== "";
-}
+const appendBodyErrorCodes: IssueBodyMutateErrorCodes = {
+  fileNotFound: "APPEND_FILE_NOT_FOUND",
+  pathNotFile: "APPEND_PATH_NOT_FILE",
+  fileBinary: "APPEND_FILE_BINARY",
+  envVarMissing: "APPEND_ENV_VAR_MISSING",
+  contentEmpty: "APPEND_CONTENT_EMPTY",
+};
 
 export class IssueAppendCommand extends Command {
   name = "issue append";
+  private bodyContentHelper = new IssueBodyContentHelper();
 
   constructor() {
     super();
@@ -72,15 +91,27 @@ export class IssueAppendCommand extends Command {
             type: "string",
             describe: intl.formatMessage(msg.optionContent),
           })
+          .option("from-file", {
+            type: "string",
+            describe: intl.formatMessage(msg.optionFromFile),
+          })
+          .option("from-env-var", {
+            type: "string",
+            describe: intl.formatMessage(msg.optionFromEnvVar),
+          })
           .positional("issue_selector", {
             describe: intl.formatMessage(msg.optionIssueSelector),
             type: "string",
             demandOption: true,
           })
           .check((argv) => {
+            IssueBodyContentHelper.assertAtMostOneBodySource(argv);
             const outputJson =
               argv.json === true || process.env.MUDISSUE_OUTPUT_JSON === "true";
-            if (outputJson && !hasContentFlag(argv.content)) {
+            if (
+              outputJson &&
+              !IssueBodyContentHelper.hasHeadlessBodySource(argv)
+            ) {
               throw new Error(
                 intl.formatMessage(msg.errorIssueAppendJsonContent),
               );
@@ -89,17 +120,19 @@ export class IssueAppendCommand extends Command {
           }),
       async (argv) => {
         const outputJson = outputJsonMode(argv as HeadlessArgv);
-        const hasContent = hasContentFlag(argv.content);
+        const hasBody = IssueBodyContentHelper.hasHeadlessBodySource(argv);
         cmd.preprocessArgument(cmd.name, {
           debug: argv.debug === true,
           json: outputJson,
-          interactive: !hasContent,
+          interactive: !hasBody,
         });
         await cmd.runCommand(
           { outputJson },
           {
             issueSelector: argv.issue_selector as string,
             content: argv.content as string | undefined,
+            fromFile: argv.fromFile as string | undefined,
+            fromEnvVar: argv.fromEnvVar as string | undefined,
             project: argv.project as string | undefined,
           },
         );
@@ -114,23 +147,24 @@ export class IssueAppendCommand extends Command {
     if (!issueSelector) {
       this.throwException(
         "APPEND_ARGS_INVALID",
-        "Usage: mud issue append <issue_selector> [--content <text>]",
+        "Usage: mud issue append <issue_selector> [--content <text>] [--from-file <path>] [--from-env-var <name>]",
       );
     }
 
-    let content = input.content;
-    if (content == null || content === "") {
-      const entered = await this.askUserTextContent(
-        intl.formatMessage(msg.appendContentPrompt),
-      );
-      if (entered == null) {
-        this.throwException(
-          "APPEND_CONTENT_EMPTY",
-          "Append content was not provided.",
-        );
-      }
-      content = entered;
-    }
+    const content = await this.bodyContentHelper.resolveMutateBodyContent(
+      {
+        content: input.content,
+        fromFile: input.fromFile,
+        fromEnvVar: input.fromEnvVar,
+      },
+      {
+        errorCodes: appendBodyErrorCodes,
+        prompt: intl.formatMessage(msg.appendContentPrompt),
+        contentNotProvidedMessage: "Append content was not provided.",
+        throwException: (code, message) => this.throwException(code, message),
+        askUserTextContent: (prompt) => this.askUserTextContent(prompt),
+      },
+    );
 
     if (content.trim() === "") {
       this.throwException(
