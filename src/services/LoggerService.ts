@@ -42,8 +42,28 @@ export class SilentLogger extends LoggerService {
   public override debug(): void {}
 }
 
+function formatArg(arg: unknown): string {
+  if (typeof arg === "string") {
+    return arg;
+  }
+  if (arg === null) {
+    return "null";
+  }
+  if (arg === undefined) {
+    return "undefined";
+  }
+  if (typeof arg === "object") {
+    try {
+      return JSON.stringify(arg);
+    } catch {
+      return String(arg);
+    }
+  }
+  return String(arg);
+}
+
 function formatArgs(args: unknown[]): string {
-  return args.map((a) => (typeof a === "string" ? a : String(a))).join(" ");
+  return args.map(formatArg).join(" ");
 }
 
 export class DebugLoggerService extends LoggerService {

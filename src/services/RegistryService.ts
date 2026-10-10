@@ -13,6 +13,7 @@ import {
 } from "../types/SortingOrder.ts";
 import { MudissueStateKey, ProjectStateKey } from "../types/registry.ts";
 import { FileService } from "./FileService.ts";
+import { debug } from "./LoggerService.ts";
 
 const PinnedIssueFolderNamesSchema = z.array(z.string());
 
@@ -173,6 +174,11 @@ export class RegistryService {
       );
       const unchanged =
         JSON.stringify(capped) === JSON.stringify(wouldHaveWritten);
+      const savedProject: RecentProjectItem = {
+        name: project.name,
+        projectPath: currentProjectPath,
+      };
+      debug("Upsert recent project:", savedProject);
       if (!unchanged) {
         await this.set(
           MudissueStateKey.RecentProjectKey,
@@ -181,8 +187,10 @@ export class RegistryService {
           "system",
         );
       }
-    } catch {
-      // fail silently
+      debug("Saved recent projects:", capped);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      debug("Failed to save recent projects:", message);
     }
   }
 
@@ -256,7 +264,10 @@ export class RegistryService {
         "system",
         MudissueStateKey.RecentProjectKey,
       );
-      if (!row?.value) return [];
+      if (!row?.value) {
+        debug("Loaded recent projects:", []);
+        return [];
+      }
       const parsed = JSON.parse(row.value) as unknown;
       const parsedList = RecentProjectListSchema.safeParse(parsed);
       const list = parsedList.success ? parsedList.data : [];
@@ -267,6 +278,7 @@ export class RegistryService {
           result.push({ name: item.name, projectPath: resolved });
         }
       }
+      debug("Loaded recent projects:", result);
       return result;
     } catch {
       return [];

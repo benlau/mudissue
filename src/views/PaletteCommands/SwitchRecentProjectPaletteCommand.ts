@@ -1,6 +1,7 @@
 import * as path from "path";
 import { defineMessages } from "react-intl";
 import { intl } from "../../intl.ts";
+import { debug } from "../../services/LoggerService.ts";
 import { RegistryService } from "../../services/RegistryService.ts";
 import { useAppStore } from "../../store/AppStore.ts";
 import { useAlertDialogStore } from "../../store/AlertDialogStore.ts";
@@ -79,6 +80,16 @@ export class SwitchRecentProjectPaletteCommand implements PaletteCommand {
     }
 
     const selected = response.acceptedValue;
+    debug("Switching project:", {
+      from: {
+        name: currentRepo.name,
+        projectPath: currentProjectPath,
+      },
+      to: {
+        name: selected.name,
+        projectPath: path.resolve(selected.projectPath),
+      },
+    });
     useAppStore.setState({ isLoadingIssueList: true });
     const start = Date.now();
     try {
