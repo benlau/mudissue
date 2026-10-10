@@ -25,9 +25,15 @@ describe("IssueFileAttachCommand", () => {
   let fileService: ReturnType<typeof createMockSystemContext>["fileService"];
   let shellService: ReturnType<typeof createMockSystemContext>["shellService"];
   let gitService: ReturnType<typeof createMockSystemContext>["gitService"];
-  let trackerRepoStore: ReturnType<typeof createMockSystemContext>["trackerRepoStore"];
-  let issueFinderService: ReturnType<typeof createMockSystemContext>["issueFinderService"];
-  let loggerService: ReturnType<typeof createMockSystemContext>["loggerService"];
+  let trackerRepoStore: ReturnType<
+    typeof createMockSystemContext
+  >["trackerRepoStore"];
+  let issueFinderService: ReturnType<
+    typeof createMockSystemContext
+  >["issueFinderService"];
+  let loggerService: ReturnType<
+    typeof createMockSystemContext
+  >["loggerService"];
 
   beforeEach(() => {
     const bundle = createMockSystemContext();
@@ -69,10 +75,8 @@ describe("IssueFileAttachCommand", () => {
 
   it("throws ISSUE_MULTI_MATCHED when selector matches multiple", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a",
-       },
-      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b",
-       },
+      { issueId: "0001-a", label: "0001", path: "/repo/issues/0001-a" },
+      { issueId: "0001-b", label: "0001", path: "/repo/issues/0001-b" },
     ]);
     const cmd = new IssueFileAttachCommand();
 
@@ -84,10 +88,9 @@ describe("IssueFileAttachCommand", () => {
     });
   });
 
-    it("throws ISSUE_MD_MISSING when issue file cannot be found", async () => {
+  it("throws ISSUE_MD_MISSING when issue file cannot be found", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
-       },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
     ]);
     fileService.exists.mockResolvedValue(false);
     fileService.readdir.mockResolvedValue([]);
@@ -103,8 +106,7 @@ describe("IssueFileAttachCommand", () => {
 
   it("throws ATTACH_FILE_NOT_FOUND when source file does not exist", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
-       },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
     ]);
     fileService.exists.mockImplementation(async (p: string) => {
       if (p === "/repo/issues/0001-test/issue.md") return true;
@@ -123,8 +125,7 @@ describe("IssueFileAttachCommand", () => {
 
   it("copies files to issue files/ folder and appends wikilinks to frontmatter", async () => {
     issueFinderService.find.mockResolvedValue([
-      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test",
-       },
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
     ]);
 
     fileService.exists.mockImplementation(async (p: string) => {
@@ -299,5 +300,170 @@ describe("IssueFileAttachCommand", () => {
     const written = fileService.writeFile.mock.calls[0][1] as string;
     const parsed = matter(written);
     expect(parsed.data.files).toEqual(["[[FN004-a-1]]"]);
+  });
+
+  it("writes prompted content using the first line as a markdown filename", async () => {
+    issueFinderService.find.mockResolvedValue([
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
+    ]);
+    fileService.exists.mockImplementation(async (p: string) => {
+      if (p === "/repo/issues/0001-test/issue.md") return true;
+      if (p === "/repo/issues/0001-test/files/My note.md") return false;
+      return false;
+    });
+    fileService.mkdir.mockResolvedValue(undefined);
+    fileService.readFile.mockResolvedValue(
+      "---\ntitle: Prompt Attach\n---\n\nBody\n",
+    );
+
+    class TestCommand extends IssueFileAttachCommand {
+      protected override async askUserTextContent(): Promise<string | null> {
+        return "My note\n\nBody text";
+      }
+    }
+    const cmd = new TestCommand();
+    const result = await cmd.command({
+      issueSelector: "0001",
+      files: [],
+    });
+
+    expect(result).toEqual({
+      status: "ok",
+      result: {
+        issueFolder: {
+          absPath: "/repo/issues/0001-test",
+          folderName: "0001-test",
+        },
+        attached: [
+          {
+            sourcePath: "",
+            destPath: "/repo/issues/0001-test/files/My note.md",
+            filename: "My note.md",
+          },
+        ],
+      },
+    });
+    expect(fileService.writeFile).toHaveBeenCalledWith(
+      "/repo/issues/0001-test/files/My note.md",
+      "\nBody text",
+      "utf-8",
+    );
+    const issueWrite = fileService.writeFile.mock.calls.find(
+      (call) => call[0] === "/repo/issues/0001-test/issue.md",
+    );
+    const parsed = matter(issueWrite?.[1] as string);
+    expect(parsed.data.files).toEqual(["[[My note]]"]);
+    expect(fileService.copyFile).not.toHaveBeenCalled();
+  });
+
+  it("writes --content without prompting and keeps an explicit extension", async () => {
+    issueFinderService.find.mockResolvedValue([
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
+    ]);
+    fileService.exists.mockImplementation(async (p: string) => {
+      if (p === "/repo/issues/0001-test/issue.md") return true;
+      if (p === "/repo/issues/0001-test/files/notes.txt") return false;
+      return false;
+    });
+    fileService.mkdir.mockResolvedValue(undefined);
+    fileService.readFile.mockResolvedValue(
+      "---\ntitle: Content Attach\n---\n\nBody\n",
+    );
+
+    const cmd = new IssueFileAttachCommand();
+    const result = await cmd.command({
+      issueSelector: "0001",
+      files: [],
+      content: "notes.txt\nhello",
+    });
+
+    expect(result.status).toBe("ok");
+    expect(fileService.writeFile).toHaveBeenCalledWith(
+      "/repo/issues/0001-test/files/notes.txt",
+      "hello",
+      "utf-8",
+    );
+    const issueWrite = fileService.writeFile.mock.calls.find(
+      (call) => call[0] === "/repo/issues/0001-test/issue.md",
+    );
+    const parsed = matter(issueWrite?.[1] as string);
+    expect(parsed.data.files).toEqual(["[[notes]]"]);
+  });
+
+  it("prefixes an inline attachment when --add-label is set", async () => {
+    issueFinderService.find.mockResolvedValue([
+      {
+        issueId: "FN004-test",
+        label: "FN004",
+        path: "/repo/issues/FN004-test",
+      },
+    ]);
+    fileService.exists.mockImplementation(async (p: string) => {
+      if (p === "/repo/issues/FN004-test/issue.md") return true;
+      if (p === "/repo/issues/FN004-test/files/FN004-My note.md") return false;
+      return false;
+    });
+    fileService.mkdir.mockResolvedValue(undefined);
+    fileService.readFile.mockResolvedValue(
+      "---\ntitle: Label Inline Attach\n---\n\nBody\n",
+    );
+
+    const cmd = new IssueFileAttachCommand();
+    const result = await cmd.command({
+      issueSelector: "FN004",
+      files: [],
+      content: "My note\nbody",
+      addLabel: true,
+    });
+
+    expect(result.status).toBe("ok");
+    expect(fileService.writeFile).toHaveBeenCalledWith(
+      "/repo/issues/FN004-test/files/FN004-My note.md",
+      "body",
+      "utf-8",
+    );
+  });
+
+  it("throws ATTACH_CONTENT_EMPTY when the prompt is cancelled", async () => {
+    issueFinderService.find.mockResolvedValue([
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
+    ]);
+    fileService.exists.mockImplementation(async (p: string) => {
+      return p === "/repo/issues/0001-test/issue.md";
+    });
+
+    class TestCommand extends IssueFileAttachCommand {
+      protected override async askUserTextContent(): Promise<string | null> {
+        return null;
+      }
+    }
+    const cmd = new TestCommand();
+    await expect(
+      cmd.command({ issueSelector: "0001", files: [] }),
+    ).rejects.toMatchObject({
+      status: "error",
+      error: { code: "ATTACH_CONTENT_EMPTY" },
+    });
+  });
+
+  it("throws ATTACH_CONTENT_EMPTY when inline content has no filename line", async () => {
+    issueFinderService.find.mockResolvedValue([
+      { issueId: "0001-test", label: "0001", path: "/repo/issues/0001-test" },
+    ]);
+    fileService.exists.mockImplementation(async (p: string) => {
+      return p === "/repo/issues/0001-test/issue.md";
+    });
+
+    const cmd = new IssueFileAttachCommand();
+    await expect(
+      cmd.command({
+        issueSelector: "0001",
+        files: [],
+        content: "\n  \n",
+      }),
+    ).rejects.toMatchObject({
+      status: "error",
+      error: { code: "ATTACH_CONTENT_EMPTY" },
+    });
   });
 });

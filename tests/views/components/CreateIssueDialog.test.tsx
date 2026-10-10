@@ -9,8 +9,6 @@ import { renderHook } from "@testing-library/react";
 import {
   CreateIssueDialog,
   createIssueDialogInputHeight,
-  deriveIssueTitleFromText,
-  splitIssueText,
   useCreateIssueDialogState,
 } from "../../../src/views/components/CreateIssueDialog.tsx";
 import { ConfirmationDialog } from "../../../src/views/components/ConfirmationDialog.tsx";
@@ -234,29 +232,6 @@ describe("useDialogLayout with bigDialogLayout", () => {
     });
     expect(createIssueDialogInputHeight(layout.height)).toBe(16);
     expect(Math.max(4, layout.width - 4)).toBe(60);
-  });
-});
-
-describe("deriveIssueTitleFromText", () => {
-  it("returns the first non-empty line trimmed", () => {
-    expect(deriveIssueTitleFromText("\n  My title \nbody")).toBe("My title");
-  });
-
-  it("returns empty string when all lines are blank", () => {
-    expect(deriveIssueTitleFromText("\n \n")).toBe("");
-  });
-});
-
-describe("splitIssueText", () => {
-  it("splits title and body after the first non-empty line", () => {
-    expect(splitIssueText("Title\n\nBody line")).toEqual({
-      title: "Title",
-      body: "\nBody line",
-    });
-  });
-
-  it("returns title only when there is no body", () => {
-    expect(splitIssueText("Only title")).toEqual({ title: "Only title" });
   });
 });
 

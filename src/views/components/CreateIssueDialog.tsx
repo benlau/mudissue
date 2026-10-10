@@ -1,24 +1,21 @@
-import {
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import stringWidth from "string-width";
 import { useInput, Box, Text } from "ink";
 import {
   MultilineInteractiveTextInput,
   useMultilineInteractiveTextInputHandle,
 } from "./MultilineInteractiveTextInput.tsx";
-import { EmptyArea, EMPTY_AREA_EXTRA, EMPTY_AREA_SIDE_MARGIN } from "./EmptyArea.tsx";
 import {
-  bigDialogLayout,
-  useDialogLayout,
-} from "../hooks/useDialogLayout.ts";
+  EmptyArea,
+  EMPTY_AREA_EXTRA,
+  EMPTY_AREA_SIDE_MARGIN,
+} from "./EmptyArea.tsx";
+import { bigDialogLayout, useDialogLayout } from "../hooks/useDialogLayout.ts";
 import { useConfirmationDialogStore } from "../../store/ConfirmationDialogStore.ts";
 import { useCreateIssueDialogStore } from "../../store/CreateIssueDialogStore.ts";
 import { PopupNames, usePopupStore } from "../../store/PopupStore.ts";
 import { CreateIssueHelper } from "../../helpers/CreateIssueHelper.ts";
+import { IssueContentTextHelper } from "../../helpers/IssueContentTextHelper.ts";
 import { ISSUE_FOLDER_NAME_MAX_LENGTH } from "../../constants.ts";
 import { BasicLayouter } from "../../foundation/layouter/BasicLayouter.ts";
 import { DefaultTheme, DialogConfirmColor } from "../../types/Theme.ts";
@@ -43,30 +40,7 @@ export function createIssueDialogInputHeight(dialogHeight: number): number {
   );
 }
 
-export function deriveIssueTitleFromText(text: string): string {
-  for (const line of text.split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed !== "") return trimmed;
-  }
-  return "";
-}
-
-export function splitIssueText(text: string): { title: string; body?: string } {
-  const lines = text.split("\n");
-  const titleLineIndex = lines.findIndex((line) => line.trim() !== "");
-  if (titleLineIndex < 0) {
-    return { title: "" };
-  }
-  const title = lines[titleLineIndex]!.trim();
-  const bodyLines = lines.slice(titleLineIndex + 1);
-  const body = bodyLines.join("\n");
-  return body.trim() === "" ? { title } : { title, body };
-}
-
-function truncateTitleForDialogLabel(
-  title: string,
-  maxWidth: number,
-): string {
+function truncateTitleForDialogLabel(title: string, maxWidth: number): string {
   if (title === "") return "";
   const capped =
     title.length <= ISSUE_TITLE_MAX_LENGTH
@@ -150,7 +124,7 @@ export function useCreateIssueDialogState({
       if (submittingRef.current) return;
 
       setError(null);
-      const { title, body } = splitIssueText(val);
+      const { title, body } = IssueContentTextHelper.splitIssueText(val);
       if (title === "") return;
 
       submittingRef.current = true;
@@ -160,8 +134,7 @@ export function useCreateIssueDialogState({
         setText("");
         onSuccess?.();
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : String(err);
+        const message = err instanceof Error ? err.message : String(err);
         setError(message);
         submittingRef.current = false;
         setIsSubmitting(false);
@@ -198,23 +171,18 @@ export function CreateIssueDialog() {
     [parentIssue, createIssueHelper],
   );
 
-  const {
-    text,
-    setText,
-    error,
-    isSubmitting,
-    handleSubmit,
-  } = useCreateIssueDialogState({
-    isOpen,
-    onCreate,
-    onSuccess: close,
-  });
+  const { text, setText, error, isSubmitting, handleSubmit } =
+    useCreateIssueDialogState({
+      isOpen,
+      onCreate,
+      onSuccess: close,
+    });
   const { width, height, left, top } = useDialogLayout(bigDialogLayout);
   const inputHeight = createIssueDialogInputHeight(height);
   const inputWidth = Math.max(4, width - CREATE_ISSUE_DIALOG_CONTENT_INSET);
   const latestPopup = usePopupStore((s) => s.latestPopup);
   const isLatestPopup = latestPopup === PopupNames.CreateIssueDialog;
-  const derivedTitle = deriveIssueTitleFromText(text);
+  const derivedTitle = IssueContentTextHelper.deriveIssueTitleFromText(text);
   const borderLabel = createIssueBorderLabel(derivedTitle, width);
   const hasTitle = derivedTitle !== "";
 

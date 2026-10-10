@@ -14,6 +14,7 @@ export default [
     plugins: { mudissue },
     rules: {
       "mudissue/test-filename-convention": "error",
+      "mudissue/no-test-folder": "error",
       "no-restricted-imports": [
         "error",
         {

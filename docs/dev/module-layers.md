@@ -1,6 +1,6 @@
 # Module layers
 
-mudissue organizes `src/` into dependency layers. A module may import from the same layer or any lower layer, but never from a higher one. ESLint enforces import direction via `import/no-restricted-paths`, filename conventions via `mudissue/filename-convention`, and the frozen `src/` directory tree via `mudissue/no-new-src-directory` in `eslint.config.mjs` (rules live in `src/dev-tools/eslint-plugin-mudissue/`).
+mudissue organizes `src/` into dependency layers. A module may import from the same layer or any lower layer, but never from a higher one. ESLint enforces import direction via `import/no-restricted-paths`, filename conventions via `mudissue/filename-convention`, the frozen `src/` directory tree via `mudissue/no-new-src-directory`, and class-based exports in `src/helpers/` via `mudissue/no-export-function` (functions named `access*` are allowed) in `eslint.config.mjs`. Test files must not live under folders that mirror untested source, such as `tests/dev-tools`, via `mudissue/no-test-folder` in `eslint.tests.config.mjs` (rules live in `src/dev-tools/eslint-plugin-mudissue/`).
 
 ## Why layers
 
@@ -122,7 +122,7 @@ Class files use **CamelCase** basenames. ESLint checks the basename against the 
 
 The set of directories under `src/` is frozen in the `allowedSrcDirectories` set in `src/dev-tools/eslint-plugin-mudissue/no-new-src-directory.mjs`. The `mudissue/no-new-src-directory` rule walks the full `src/` tree once per ESLint run, so new folders are reported even when they contain no `.ts`/`.tsx` files. To add a directory, get human approval with an explanation, then update that allowlist and this document.
 
-`src/dev-tools/` holds development-only tooling (e.g. the local ESLint plugin). It is excluded from `mudissue/filename-convention` and is not part of the layer import matrix.
+`src/dev-tools/` holds development-only tooling (e.g. the local ESLint plugin). It is excluded from `mudissue/filename-convention` and is not part of the layer import matrix. Do not add `tests/dev-tools/`; `mudissue/no-test-folder` rejects that folder.
 
 ## Conventions
 

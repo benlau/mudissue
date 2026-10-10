@@ -103,6 +103,7 @@ export default [
     rules: {
       "mudissue/filename-convention": "error",
       "mudissue/no-new-src-directory": "error",
+      "mudissue/no-export-function": "error",
     },
   },
   {
