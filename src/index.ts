@@ -157,10 +157,6 @@ const msg = defineMessages({
     defaultMessage:
       "Specify 'get-var', 'set-var', 'select-issue', 'select-item', or 'uniq'",
   },
-  demandRoot: {
-    id: "cli.demand.root",
-    defaultMessage: "Specify a command. Use --help for usage.",
-  },
 });
 
 const ISSUE_LEAF_COMMANDS = [
@@ -243,7 +239,11 @@ let yargsInstance: Argv = yargs(hideBin(process.argv))
   });
 
 yargsInstance = InitCommand.register(yargsInstance);
-yargsInstance = ViewCommand.register(yargsInstance);
+yargsInstance = ViewCommand.register(yargsInstance, {
+  onLaunchFailure: () => {
+    yargsInstance.showHelp("log");
+  },
+});
 yargsInstance = VersionCommand.register(yargsInstance);
 
 yargsInstance = yargsInstance.command(
@@ -336,10 +336,4 @@ yargsInstance = yargsInstance.command(
   },
 );
 
-yargsInstance
-  .completion()
-  .help()
-  .version()
-  .strict()
-  .demandCommand(1, intl.formatMessage(msg.demandRoot))
-  .parse();
+yargsInstance.completion().help().version().strict().parse();

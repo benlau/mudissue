@@ -87,8 +87,10 @@ MudIssue provides an interactive TUI for efficient issue management, allowing yo
 To launch the TUI environment, run:
 
 ```bash
-mud view
+mud
 ```
+
+If the terminal cannot run the TUI (for example, output is not a terminal, or the tracker cannot be opened), `mud` prints the help message instead.
 
 ![Issue Table](./docs/images/issue-table-001.jpeg)
 

@@ -18,26 +18,70 @@ const msg = defineMessages({
   },
 });
 
+export type ViewCommandRegisterOptions = {
+  /** Called when the default command (`mud` with no subcommand) cannot launch the TUI. */
+  onLaunchFailure?: () => void;
+};
+
+function canLaunchInteractiveTui(): boolean {
+  return process.stdout.isTTY === true;
+}
+
 export class ViewCommand extends Command {
   name = "view";
 
-  static register(yargs: Argv): Argv {
+  static register(yargs: Argv, options?: ViewCommandRegisterOptions): Argv {
     const cmd = new ViewCommand();
     return yargs.command(
-      "view",
+      ["view", "$0"],
       intl.formatMessage(msg.viewDescribe),
       () => {},
       async (argv) => {
-        const outputJson = outputJsonMode(argv as HeadlessArgv);
-        cmd.preprocessArgument(cmd.name, {
-          debug: argv.debug === true,
-          json: outputJson,
-          interactive: true,
+        const isDefaultCommand = !argv._.map(String).includes("view");
+        await ViewCommand.runInteractiveFromArgv(cmd, argv as HeadlessArgv, {
+          onLaunchFailure: isDefaultCommand
+            ? options?.onLaunchFailure
+            : undefined,
         });
-        useAppStore.getState().setDebug(argv.debug === true);
-        await cmd.runCommand({ outputJson });
       },
     );
+  }
+
+  static async runInteractiveFromArgv(
+    cmd: ViewCommand,
+    argv: HeadlessArgv,
+    options?: ViewCommandRegisterOptions,
+  ): Promise<void> {
+    const reportLaunchFailure = options?.onLaunchFailure;
+    if (reportLaunchFailure && !canLaunchInteractiveTui()) {
+      process.exitCode = 1;
+      reportLaunchFailure();
+      return;
+    }
+
+    const outputJson = outputJsonMode(argv);
+    try {
+      cmd.preprocessArgument(cmd.name, {
+        debug: argv.debug === true,
+        json: outputJson,
+        interactive: true,
+      });
+    } catch (err) {
+      if (!reportLaunchFailure) {
+        throw err;
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      process.stderr.write(message + "\n");
+      process.exitCode = 1;
+      reportLaunchFailure();
+      return;
+    }
+
+    useAppStore.getState().setDebug(argv.debug === true);
+    await cmd.runCommand({ outputJson });
+    if (reportLaunchFailure && process.exitCode === 1) {
+      reportLaunchFailure();
+    }
   }
 
   async command(): Promise<void> {

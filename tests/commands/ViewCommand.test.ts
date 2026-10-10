@@ -37,10 +37,7 @@ const mockRepo: TrackerRepo = {
 
 import { buildIssueFolder as buildIssueFolderFixture } from "../fixture/buildIssueFolder.ts";
 
-const buildIssueFolder = (
-  issueId: string,
-  label = issueId,
-): IssueFolder =>
+const buildIssueFolder = (issueId: string, label = issueId): IssueFolder =>
   buildIssueFolderFixture(issueId, {
     label,
     path: path.join(mockRepo.projectPath, "issues", issueId),
@@ -89,7 +86,9 @@ describe("ViewCommand", () => {
     jest.clearAllMocks();
     ShellService.setInstance(bundle.shellService as unknown as ShellService);
     GitService.setInstance(bundle.gitService as unknown as GitService);
-    shellService.isAbsolute.mockImplementation((p: string) => path.isAbsolute(p));
+    shellService.isAbsolute.mockImplementation((p: string) =>
+      path.isAbsolute(p),
+    );
     setMockCurrentTrackerRepo(mockRepo);
     trackerRepoStore.ensureCurrentTrackerRepoFound.mockResolvedValue(undefined);
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
@@ -165,11 +164,81 @@ describe("ViewCommand", () => {
       configFilePath: path.join(mockRepo.projectPath, "mud.conf"),
       config: { issue_path: absoluteIssue },
     });
-    shellService.isAbsolute.mockImplementation((p: string) => path.isAbsolute(p));
+    shellService.isAbsolute.mockImplementation((p: string) =>
+      path.isAbsolute(p),
+    );
 
     await expect(buildCommand().command()).rejects.toThrow(
       /issue_path must be relative/,
     );
     expect(renderMock).not.toHaveBeenCalled();
+  });
+
+  describe("runInteractiveFromArgv", () => {
+    const originalIsTTY = process.stdout.isTTY;
+
+    afterEach(() => {
+      Object.defineProperty(process.stdout, "isTTY", {
+        value: originalIsTTY,
+        configurable: true,
+      });
+      process.exitCode = undefined;
+    });
+
+    const setStdoutIsTTY = (value: boolean) => {
+      Object.defineProperty(process.stdout, "isTTY", {
+        value,
+        configurable: true,
+      });
+    };
+
+    it("does not report launch failure when the TUI starts on a TTY", async () => {
+      setStdoutIsTTY(true);
+      const onLaunchFailure = jest.fn();
+      shellService.cwd.mockReturnValue(path.join(mockRepo.projectPath, "src"));
+
+      await ViewCommand.runInteractiveFromArgv(
+        buildCommand(),
+        {},
+        { onLaunchFailure },
+      );
+
+      expect(onLaunchFailure).not.toHaveBeenCalled();
+      expect(renderMock).toHaveBeenCalledTimes(1);
+      expect(process.exitCode).not.toBe(1);
+    });
+
+    it("reports launch failure without rendering when stdout is not a TTY", async () => {
+      setStdoutIsTTY(false);
+      const onLaunchFailure = jest.fn();
+
+      await ViewCommand.runInteractiveFromArgv(
+        buildCommand(),
+        {},
+        { onLaunchFailure },
+      );
+
+      expect(onLaunchFailure).toHaveBeenCalledTimes(1);
+      expect(renderMock).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("reports launch failure when the view command fails on a TTY", async () => {
+      setStdoutIsTTY(true);
+      const onLaunchFailure = jest.fn();
+      trackerRepoStore.ensureCurrentTrackerRepoFound.mockRejectedValue(
+        new Error("missing tracker"),
+      );
+
+      await ViewCommand.runInteractiveFromArgv(
+        buildCommand(),
+        {},
+        { onLaunchFailure },
+      );
+
+      expect(onLaunchFailure).toHaveBeenCalledTimes(1);
+      expect(renderMock).not.toHaveBeenCalled();
+      expect(process.exitCode).toBe(1);
+    });
   });
 });
