@@ -8,8 +8,8 @@ import { useCurrentTrackerRepoStore } from "../../store/CurrentTrackerRepoStore.
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { IssueFolder } from "../../types/Issue.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { isErrorResponse } from "../../types/Response.ts";
-import { clamp } from "../../types/maths.ts";
+import { ErrorResponseAccessor } from "../../types/Response.ts";
+import { Maths } from "../../types/maths.ts";
 
 const messages = defineMessages({
   label: {
@@ -138,7 +138,7 @@ export class RemoveSelectedIssuePaletteCommand implements PaletteCommand {
           return;
         }
       } catch (err) {
-        const detail = isErrorResponse(err)
+        const detail = ErrorResponseAccessor.is(err)
           ? err.error.message
           : err instanceof Error
             ? err.message
@@ -162,7 +162,7 @@ export class RemoveSelectedIssuePaletteCommand implements PaletteCommand {
     const nextIndex =
       refreshedList.length === 0
         ? -1
-        : clamp(oldIndex, 0, refreshedList.length - 1);
+        : Maths.clamp(oldIndex, 0, refreshedList.length - 1);
     useAppStore
       .getState()
       .setSelectedIssueId(

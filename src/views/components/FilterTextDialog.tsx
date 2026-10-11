@@ -9,7 +9,7 @@ import { ToolBar, type ToolbarConfigItem } from "./ToolBar.tsx";
 import { useDialogLayout, type DialogLayoutInput } from "../hooks/useDialogLayout.ts";
 import { useTerminalSize } from "../hooks/useTerminal.ts";
 import { BasicLayouter } from "../../foundation/layouter/BasicLayouter.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 import { DefaultTheme, DialogConfirmColor } from "../../types/Theme.ts";
 
 const FILTER_TEXT_DIALOG_MIN_WIDTH = 62;
@@ -82,7 +82,7 @@ function ensureListScrollShowsSelection(
   maxLineIndex: number,
 ): number {
   if (maxLineIndex < 0) return 0;
-  const idx = clamp(selectedIndex, 0, maxLineIndex);
+  const idx = Maths.clamp(selectedIndex, 0, maxLineIndex);
   if (idx < scrollOffset) return idx;
   if (idx >= scrollOffset + pageSize) {
     return Math.max(0, idx - pageSize + 1);
@@ -187,7 +187,7 @@ export function createFilterTextDialogStore(): FilterTextDialogStore {
           ? 0
           : choices.findIndex((choice) => choice.key === selectedKey);
       const baseIndex = currentIndex < 0 ? 0 : currentIndex;
-      const nextIndex = clamp(baseIndex + delta, 0, choices.length - 1);
+      const nextIndex = Maths.clamp(baseIndex + delta, 0, choices.length - 1);
       set({ selectedKey: choices[nextIndex]?.key ?? null });
     },
 

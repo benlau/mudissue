@@ -3,7 +3,7 @@ import { Box, Text, useInput } from "ink";
 import type { Key } from "ink";
 import type { ToolbarConfigItem } from "../../types/Toolbar.ts";
 import { DefaultTheme } from "../../types/Theme.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 import { KeyMatcher } from "../../foundation/matchers/KeyMatcher.ts";
 
 export type { ToolbarConfigItem };
@@ -59,7 +59,7 @@ export function ToolBar({
   const [startIndex, setStartIndex] = useState(0);
 
   const safeStartIndex =
-    totalItems === 0 ? 0 : clamp(startIndex, 0, totalItems - 1);
+    totalItems === 0 ? 0 : Maths.clamp(startIndex, 0, totalItems - 1);
 
   const { visibleItems, canScrollLeft, canScrollRight } = useMemo(() => {
     if (totalItems === 0 || width <= 0) {

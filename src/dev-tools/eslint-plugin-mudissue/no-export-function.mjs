@@ -7,12 +7,19 @@ const FUNCTION_NODE_TYPES = new Set([
   "TSDeclareFunction",
 ]);
 
-function isHelpersFile(filename, cwd) {
+const NO_EXPORT_FUNCTION_PREFIXES = ["src/helpers/", "src/types/"];
+
+function isNoExportFunctionFile(filename, cwd) {
+  if (filename.endsWith(".d.ts")) {
+    return false;
+  }
   const relative = path.relative(cwd, filename).split(path.sep).join("/");
   if (relative.startsWith("..")) {
     return false;
   }
-  return relative === "src/helpers" || relative.startsWith("src/helpers/");
+  return NO_EXPORT_FUNCTION_PREFIXES.some(
+    (prefix) => relative === prefix.slice(0, -1) || relative.startsWith(prefix),
+  );
 }
 
 function isAccessName(name) {
@@ -64,17 +71,17 @@ export const noExportFunctionRule = {
     type: "problem",
     docs: {
       description:
-        "Disallow exported functions in src/helpers except functions named access*",
+        "Disallow exported functions in src/helpers and src/types except functions named access*",
     },
     schema: [],
     messages: {
       noExportFunction:
-        "Do not export functions from src/helpers. This folder maintains class-based functions only. Functions named access* are allowed.",
+        "Do not export functions from src/helpers or src/types. Use class-based static methods instead. Functions named access* are allowed.",
     },
   },
   create(context) {
     const cwd = context.cwd ?? process.cwd();
-    if (!isHelpersFile(context.filename, cwd)) {
+    if (!isNoExportFunctionFile(context.filename, cwd)) {
       return {};
     }
 

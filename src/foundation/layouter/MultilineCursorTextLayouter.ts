@@ -1,4 +1,4 @@
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 import { TextLayouter } from "./TextLayouter.ts";
 
 export type DisplayRowSegment = {
@@ -163,7 +163,7 @@ export class MultilineCursorTextLayouter {
     const displayRows = this.buildDisplayRows();
     const page = Math.max(1, pageSize);
     this.scrollRowOffset = Math.max(0, this.scrollRowOffset - page);
-    this.scrollRowOffset = clamp(
+    this.scrollRowOffset = Maths.clamp(
       this.scrollRowOffset,
       0,
       Math.max(0, displayRows.length - this.height),
@@ -286,7 +286,7 @@ export class MultilineCursorTextLayouter {
     const cursorPos = this.mapCursorToDisplayRow(displayRows);
     const viewportHeight = Math.max(1, this.height);
     const maxOffset = Math.max(0, displayRows.length - viewportHeight);
-    this.scrollRowOffset = clamp(this.scrollRowOffset, 0, maxOffset);
+    this.scrollRowOffset = Maths.clamp(this.scrollRowOffset, 0, maxOffset);
     this.scrollRowOffset = this.ensureCursorRowVisible(
       displayRows,
       cursorPos.displayRow,
@@ -353,12 +353,16 @@ export class MultilineCursorTextLayouter {
   }
 
   private clampCursor(): void {
-    this.lineIndex = clamp(
+    this.lineIndex = Maths.clamp(
       this.lineIndex,
       0,
       Math.max(0, this.lines.length - 1),
     );
-    this.cursorIndex = clamp(this.cursorIndex, 0, this.currentLine().length);
+    this.cursorIndex = Maths.clamp(
+      this.cursorIndex,
+      0,
+      this.currentLine().length,
+    );
   }
 
   private reconcileScrollToCursor(): void {
@@ -366,7 +370,7 @@ export class MultilineCursorTextLayouter {
     const cursorPos = this.mapCursorToDisplayRow(displayRows);
     const viewportHeight = Math.max(1, this.height);
     const maxOffset = Math.max(0, displayRows.length - viewportHeight);
-    this.scrollRowOffset = clamp(this.scrollRowOffset, 0, maxOffset);
+    this.scrollRowOffset = Maths.clamp(this.scrollRowOffset, 0, maxOffset);
     this.scrollRowOffset = this.ensureCursorRowVisible(
       displayRows,
       cursorPos.displayRow,
@@ -378,7 +382,7 @@ export class MultilineCursorTextLayouter {
   private moveCursorVertical(delta: number): void {
     const displayRows = this.buildDisplayRows();
     const { displayRow } = this.mapCursorToDisplayRow(displayRows);
-    const targetRow = clamp(
+    const targetRow = Maths.clamp(
       displayRow + delta,
       0,
       Math.max(0, displayRows.length - 1),
@@ -394,7 +398,7 @@ export class MultilineCursorTextLayouter {
     const { displayCol } = this.mapCursorToDisplayRow(displayRows);
     const seg = displayRows[targetDisplayRow]!;
     const sourceSeg = displayRows[sourceDisplayRow]!;
-    let targetCol = clamp(displayCol, 0, seg.text.length);
+    let targetCol = Maths.clamp(displayCol, 0, seg.text.length);
     if (
       targetDisplayRow === sourceDisplayRow + 1 &&
       seg.logicalLineIndex === sourceSeg.logicalLineIndex &&

@@ -1,5 +1,5 @@
 import stringWidth from "string-width";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 
 export type TextLayoutResult = {
   newCursorRowIndex: number;
@@ -25,7 +25,7 @@ export class TextLayouter {
 
   getLogicalLineIndex(displayRowIndex: number): number {
     if (this.logicalLineIndices.length === 0) return 0;
-    const idx = clamp(
+    const idx = Maths.clamp(
       displayRowIndex,
       0,
       Math.max(0, this.logicalLineIndices.length - 1),
@@ -128,6 +128,6 @@ export class TextLayouter {
   }
 
   private clampRowIndex(rowIndex: number, totalLines: number): number {
-    return clamp(rowIndex, 0, Math.max(0, totalLines - 1));
+    return Maths.clamp(rowIndex, 0, Math.max(0, totalLines - 1));
   }
 }

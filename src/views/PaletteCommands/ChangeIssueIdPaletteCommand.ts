@@ -9,7 +9,7 @@ import { useFileWatcherStore } from "../../store/FileWatcherStore.ts";
 import { useTextInputDialogStore } from "../../store/TextInputDialogStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { isErrorResponse } from "../../types/Response.ts";
+import { ErrorResponseAccessor } from "../../types/Response.ts";
 
 const messages = defineMessages({
   label: {
@@ -118,7 +118,7 @@ export class ChangeIssueIdPaletteCommand implements PaletteCommand {
         { position: "center" },
       );
     } catch (err) {
-      if (isErrorResponse(err)) {
+      if (ErrorResponseAccessor.is(err)) {
         if (err.error.code === "CHANGE_ISSUE_ID_TARGET_EXISTS") {
           await useToastStore.getState().error(
             intl.formatMessage(messages.idAlreadyExistsToast, {

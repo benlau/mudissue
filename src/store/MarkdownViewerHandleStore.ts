@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import type { LineRange } from "../types/LineRange.ts";
-import { clamp } from "../types/maths.ts";
+import { Maths } from "../types/maths.ts";
 import { MarkdownLineOperationsStorage } from "../async/storage/MarkdownLineOperationsStorage.ts";
 import { useFileWatcherStore } from "./FileWatcherStore.ts";
 
@@ -74,7 +74,7 @@ export function createMarkdownViewerHandleStore(): MarkdownViewerHandleStore {
         return;
       }
 
-      const nextLogical = clamp(
+      const nextLogical = Maths.clamp(
         logicalLineIndex,
         0,
         Math.max(0, lines.length - 1),

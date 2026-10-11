@@ -8,7 +8,7 @@ import { IssueFolderStorage } from "../../async/storage/IssueFolderStorage.ts";
 import { useCurrentTrackerRepoStore } from "../../store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { isErrorResponse } from "../../types/Response.ts";
+import { ErrorResponseAccessor } from "../../types/Response.ts";
 import {
   PickItemDialogResponseType,
   usePickItemDialogStore,
@@ -127,7 +127,7 @@ export class SetSelectedIssuePriorityPaletteCommand implements PaletteCommand {
           selected,
           issueRepo.name,
         );
-        if (result != null && isErrorResponse(result)) {
+        if (result != null && ErrorResponseAccessor.is(result)) {
           await useAlertDialogStore.getState().open(result.error.message);
           return;
         }
@@ -145,7 +145,7 @@ export class SetSelectedIssuePriorityPaletteCommand implements PaletteCommand {
             .requestReload(result.result.issueFilePath);
         }
       } catch (err) {
-        if (isErrorResponse(err)) {
+        if (ErrorResponseAccessor.is(err)) {
           await useAlertDialogStore.getState().open(err.error.message);
           return;
         }

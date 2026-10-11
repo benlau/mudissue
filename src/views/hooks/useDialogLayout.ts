@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 import { useTerminalSize } from "./useTerminal.ts";
 
 export type DialogDimension = number | ((screen: TerminalDimensions) => number);
@@ -74,7 +74,7 @@ function computeDialogLayout(
       ? input.minWidth
       : Math.min(
           screen.cols,
-          clamp(
+          Maths.clamp(
             screen.cols,
             input.minWidth,
             Math.max(input.minWidth, resolvedMaxWidth),
@@ -87,7 +87,7 @@ function computeDialogLayout(
       ? input.minHeight
       : Math.min(
           screen.rows,
-          clamp(
+          Maths.clamp(
             screen.rows,
             input.minHeight,
             Math.max(input.minHeight, resolvedMaxHeight),

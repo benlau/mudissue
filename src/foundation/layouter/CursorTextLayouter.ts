@@ -1,5 +1,5 @@
 import stringWidth from "string-width";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 
 export type CursorTextLayouterInput = {
   width: number;
@@ -37,7 +37,11 @@ export class CursorTextLayouter {
   }
 
   moveCursorOffset(delta: number): CursorTextLayoutResult {
-    this.cursorIndex = clamp(this.cursorIndex + delta, 0, this.text.length);
+    this.cursorIndex = Maths.clamp(
+      this.cursorIndex + delta,
+      0,
+      this.text.length,
+    );
     return this.layout();
   }
 
@@ -98,8 +102,8 @@ export class CursorTextLayouter {
   }
 
   private computeCursorTextLayout(): CursorTextLayoutResult {
-    const cursor = clamp(this.cursorIndex, 0, this.text.length);
-    let offset = clamp(this.scrollOffset, 0, this.text.length);
+    const cursor = Maths.clamp(this.cursorIndex, 0, this.text.length);
+    let offset = Maths.clamp(this.scrollOffset, 0, this.text.length);
     if (cursor < offset) offset = cursor;
 
     if (this.width <= 0) {

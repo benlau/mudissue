@@ -9,7 +9,7 @@ import {
   type VisibleRow,
 } from "../../foundation/layouter/MultilineCursorTextLayouter.ts";
 import { useClipboardStore } from "../../store/ClipboardStore.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 
 export type MultilineInteractiveTextInputState = {
   layouter: MultilineCursorTextLayouter;
@@ -260,10 +260,10 @@ export function createMultilineInteractiveTextInputStore(
         let lineIndex = 0;
         let cursorIndex = options?.cursorIndex ?? 0;
         if (options?.preserveCursorRow) {
-          lineIndex = clamp(current.layouter.getLineIndex(), 0, maxLine);
+          lineIndex = Maths.clamp(current.layouter.getLineIndex(), 0, maxLine);
           cursorIndex = 0;
         } else if (options?.lineIndex !== undefined) {
-          lineIndex = clamp(options.lineIndex, 0, maxLine);
+          lineIndex = Maths.clamp(options.lineIndex, 0, maxLine);
         }
         current.layouter.replaceLines(lines, lineIndex, cursorIndex);
         set({ layouter: current.layouter, revision: get().revision + 1 });

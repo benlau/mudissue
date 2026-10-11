@@ -1,6 +1,5 @@
 import * as path from "path";
 import {
-  isErrorResponse,
   ErrorResponseAccessor,
   type SuccessResponse,
   type ErrorResponse,
@@ -106,7 +105,7 @@ export abstract class Command {
     try {
       result = await this.command(...args);
     } catch (err) {
-      if (isErrorResponse(err)) {
+      if (ErrorResponseAccessor.is(err)) {
         result = err;
       } else {
         const error = err instanceof Error ? err : new Error(String(err));
@@ -114,7 +113,7 @@ export abstract class Command {
       }
     }
 
-    if (!option.outputJson && result && isErrorResponse(result)) {
+    if (!option.outputJson && result && ErrorResponseAccessor.is(result)) {
       process.stderr.write(result.error.message + "\n");
       process.exitCode = 1;
     }

@@ -41,9 +41,9 @@ import type {
   LineOperation,
   LineOperationInfo,
 } from "../../types/LineOperation.ts";
-import { isErrorResponse } from "../../types/Response.ts";
+import { ErrorResponseAccessor } from "../../types/Response.ts";
 import { DefaultTheme } from "../../types/Theme.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 import { setSelectedIssuePriorityPaletteCommand } from "../PaletteCommands/SetSelectedIssuePriorityPaletteCommand.ts";
 import { setSelectedIssueStatusPaletteCommand } from "../PaletteCommands/SetSelectedIssueStatusPaletteCommand.ts";
 import { useFileWatcher } from "../hooks/useFileWatcher.ts";
@@ -67,7 +67,7 @@ export function rescaleScrollOffset(
     (prevOffset / prevTotalLines) * newTotalLines,
   );
   const maxStart = Math.max(0, newTotalLines - pageSize);
-  return clamp(proportional, 0, maxStart);
+  return Maths.clamp(proportional, 0, maxStart);
 }
 
 export function ensureScrollShowsSelection(
@@ -76,7 +76,7 @@ export function ensureScrollShowsSelection(
   pageSize: number,
   maxLineIndex: number,
 ): number {
-  const idx = clamp(selectedIndex, 0, maxLineIndex);
+  const idx = Maths.clamp(selectedIndex, 0, maxLineIndex);
   if (idx < scrollOffset) return idx;
   if (idx >= scrollOffset + pageSize) {
     return Math.max(0, idx - pageSize + 1);
@@ -270,10 +270,10 @@ function displayIndexForLogicalLine(
 ): number {
   const displayRows = textLayouter.getDisplayRowsForLogicalLine(logicalLineIndex);
   if (displayRows.length === 0) {
-    return clamp(logicalLineIndex, 0, maxDisplayIndex);
+    return Maths.clamp(logicalLineIndex, 0, maxDisplayIndex);
   }
-  const subRow = clamp(displaySubRow, 0, displayRows.length - 1);
-  return clamp(displayRows[subRow]!, 0, maxDisplayIndex);
+  const subRow = Maths.clamp(displaySubRow, 0, displayRows.length - 1);
+  return Maths.clamp(displayRows[subRow]!, 0, maxDisplayIndex);
 }
 
 const CHECKBOX_SYMBOL = "X";
@@ -530,7 +530,7 @@ function getLineOperations(
               );
             }
           } catch (err) {
-            if (isErrorResponse(err)) {
+            if (ErrorResponseAccessor.is(err)) {
               await useAlertDialogStore.getState().open(err.error.message);
               return;
             }
@@ -822,7 +822,7 @@ export function MarkdownViewer({
 
   const maxIndex = Math.max(0, displayLines.length - 1);
   const maxLogicalIndex = Math.max(0, lines.length - 1);
-  const clampedLogicalLineIndex = clamp(
+  const clampedLogicalLineIndex = Maths.clamp(
     selectedLogicalLineIndex,
     0,
     maxLogicalIndex,
@@ -902,7 +902,7 @@ export function MarkdownViewer({
 
   const setIndex = useCallback(
     (next: number) => {
-      const displayIdx = clamp(next, 0, maxIndex);
+      const displayIdx = Maths.clamp(next, 0, maxIndex);
       const logicalIdx = textLayouter.getLogicalLineIndex(displayIdx);
       const displayRows = textLayouter.getDisplayRowsForLogicalLine(logicalIdx);
       const subRow = Math.max(0, displayRows.indexOf(displayIdx));

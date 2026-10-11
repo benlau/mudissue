@@ -1,6 +1,6 @@
 # Module layers
 
-mudissue organizes `src/` into dependency layers. A module may import from the same layer or any lower layer, but never from a higher one. ESLint enforces import direction via `import/no-restricted-paths`, filename conventions via `mudissue/filename-convention`, the frozen `src/` directory tree via `mudissue/no-new-src-directory`, and class-based exports in `src/helpers/` via `mudissue/no-export-function` (functions named `access*` are allowed) in `eslint.config.mjs`. Test files must not live under folders that mirror untested source, such as `tests/dev-tools`, via `mudissue/no-test-folder` in `eslint.tests.config.mjs` (rules live in `src/dev-tools/eslint-plugin-mudissue/`).
+mudissue organizes `src/` into dependency layers. A module may import from the same layer or any lower layer, but never from a higher one. ESLint enforces import direction via `import/no-restricted-paths`, filename conventions via `mudissue/filename-convention`, the frozen `src/` directory tree via `mudissue/no-new-src-directory`, and class-based exports in `src/helpers/` and `src/types/` via `mudissue/no-export-function` (functions named `access*` are allowed) in `eslint.config.mjs`. Test files must not live under folders that mirror untested source, such as `tests/dev-tools`, via `mudissue/no-test-folder` in `eslint.tests.config.mjs` (rules live in `src/dev-tools/eslint-plugin-mudissue/`).
 
 ## Why layers
 

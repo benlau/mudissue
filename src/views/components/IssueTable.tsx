@@ -12,7 +12,7 @@ import {
 import { usePopupStore } from "../../store/PopupStore.ts";
 import { usePaletteCommandStore } from "../../store/PaletteCommandStore.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 import {
   SearchingDialog,
   useSearchingDialogHandle,
@@ -222,7 +222,7 @@ export function IssueTable({
   const tableLayouter = tableLayouterRef.current;
   tableLayouter.layout(innerCols);
   const maxIndex = Math.max(0, issues.length - 1);
-  const clampedIndex = clamp(selectedIndex, 0, maxIndex);
+  const clampedIndex = Maths.clamp(selectedIndex, 0, maxIndex);
   const rangeBounds = useMemo(() => {
     if (tableRangeSelectionAnchorIssueId == null || issues.length === 0) {
       return null;
@@ -246,7 +246,7 @@ export function IssueTable({
 
   const setIndex = useCallback(
     (next: number) => {
-      const idx = clamp(next, 0, maxIndex);
+      const idx = Maths.clamp(next, 0, maxIndex);
       setSelectedIssueId(issues[idx]?.issueId ?? null);
     },
     [issues, maxIndex, setSelectedIssueId],
@@ -287,7 +287,7 @@ export function IssueTable({
   useEffect(() => {
     setScrollOffset((prev) => {
       if (maxIndex < 0) return 0;
-      const idx = clamp(selectedIndex, 0, maxIndex);
+      const idx = Maths.clamp(selectedIndex, 0, maxIndex);
       if (idx < prev) return idx;
       if (idx >= prev + pageSize) {
         return Math.max(0, idx - pageSize + 1);

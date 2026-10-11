@@ -25,16 +25,6 @@ export interface SuccessResponse<T = unknown> {
   result: T;
 }
 
-/** Type guard for thrown value that is already an ErrorResponse. */
-export function isErrorResponse(x: unknown): x is ErrorResponse {
-  return (
-    typeof x === "object" &&
-    x !== null &&
-    "status" in x &&
-    (x as ErrorResponse).status === "error"
-  );
-}
-
 /**
  * Monad accessor to build an ErrorResponse from a caught Error (e.g. unexpected exceptions).
  * Use fromError(error).get() to obtain the ErrorResponse POJO.
@@ -44,6 +34,16 @@ export class ErrorResponseAccessor {
 
   private constructor(data: ErrorResponse) {
     this.data = data;
+  }
+
+  /** Type guard for thrown value that is already an ErrorResponse. */
+  static is(x: unknown): x is ErrorResponse {
+    return (
+      typeof x === "object" &&
+      x !== null &&
+      "status" in x &&
+      (x as ErrorResponse).status === "error"
+    );
   }
 
   static fromError(error: Error): ErrorResponseAccessor {

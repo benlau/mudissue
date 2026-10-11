@@ -3,7 +3,7 @@ import { MarkdownParser } from "../../foundation/parser/MarkdownParser.ts";
 import { SAVE_DEBOUNCE_MS } from "../../constants.ts";
 import { FileService } from "../../services/FileService.ts";
 import type { LineRange } from "../../types/LineRange.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 
 export const RELOAD_SUPPRESS_AFTER_SAVE_MS = 500;
 
@@ -91,8 +91,8 @@ export class MarkdownLineOperationsStorage {
     }
 
     const maxIndex = this.lines.length - 1;
-    const start = clamp(Math.min(range.start, range.end), 0, maxIndex);
-    const end = clamp(Math.max(range.start, range.end), 0, maxIndex);
+    const start = Maths.clamp(Math.min(range.start, range.end), 0, maxIndex);
+    const end = Maths.clamp(Math.max(range.start, range.end), 0, maxIndex);
     const replacedLines = this.lines.slice(start, end + 1);
     const nextLines = [
       ...this.lines.slice(0, start),

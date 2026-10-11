@@ -13,7 +13,7 @@ import {
 import { useToastStore } from "../../store/ToastStore.ts";
 import { LinkageTypesAccessor } from "../../types/linkage.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
-import { isErrorResponse } from "../../types/Response.ts";
+import { ErrorResponseAccessor } from "../../types/Response.ts";
 import { TrackerRepoConfigAccessor } from "../../types/Tracker.ts";
 import {
   PickItemDialogResponseType,
@@ -135,7 +135,7 @@ export class LinkPaletteCommand implements PaletteCommand {
         await srcPostHookContext.notifyMetadataChanged();
         await dstPostHookContext.notifyMetadataChanged();
       } catch (err) {
-        if (isErrorResponse(err)) {
+        if (ErrorResponseAccessor.is(err)) {
           await useAlertDialogStore.getState().open(err.error.message);
           return;
         }

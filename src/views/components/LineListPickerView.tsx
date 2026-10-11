@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useInput, Box, Text } from "ink";
 import { BasicLayouter } from "../../foundation/layouter/BasicLayouter.ts";
-import { clamp } from "../../types/maths.ts";
+import { Maths } from "../../types/maths.ts";
 
 function clampLineListIndex(index: number, lineCount: number): number {
   if (lineCount <= 0) return 0;
-  return clamp(index, 0, lineCount - 1);
+  return Maths.clamp(index, 0, lineCount - 1);
 }
 
 function ensureScrollShowsSelection(
@@ -15,7 +15,7 @@ function ensureScrollShowsSelection(
   maxLineIndex: number,
 ): number {
   if (maxLineIndex < 0 || pageSize <= 0) return 0;
-  const idx = clamp(selectedIndex, 0, maxLineIndex);
+  const idx = Maths.clamp(selectedIndex, 0, maxLineIndex);
   if (idx < scrollOffset) return idx;
   if (idx >= scrollOffset + pageSize) {
     return Math.max(0, idx - pageSize + 1);
