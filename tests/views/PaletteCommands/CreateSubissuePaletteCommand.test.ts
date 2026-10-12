@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import { useCreateIssueDialogStore } from "../../../src/store/CreateIssueDialogStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { INITIAL_NAVIGATION_STACK } from "../../fixture/navigationStack.ts";
 import { CreateSubissuePaletteCommand } from "../../../src/views/PaletteCommands/CreateSubissuePaletteCommand.ts";
 
@@ -45,7 +45,7 @@ describe("CreateSubissuePaletteCommand", () => {
   it("opens the create issue dialog with the displaying issue as parent", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });

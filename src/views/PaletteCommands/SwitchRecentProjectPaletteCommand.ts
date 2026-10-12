@@ -100,7 +100,7 @@ export class SwitchRecentProjectPaletteCommand implements PaletteCommand {
       const refreshedList = await useAppStore.getState().refreshIssueLists();
       useAppStore
         .getState()
-        .setSelectedIssueId(refreshedList[0]?.issueId ?? null);
+        .setSelectedIssueId(refreshedList[0]?.issueFolder.issueId ?? null);
       const elapsed = Date.now() - start;
       if (elapsed < MIN_LOADING_MS) {
         await new Promise((r) =>

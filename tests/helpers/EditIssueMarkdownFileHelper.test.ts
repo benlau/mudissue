@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { EditIssueMarkdownFileHelper } from "../../src/helpers/EditIssueMarkdownFileHelper.ts";
 import { resetAppStore, useAppStore } from "../../src/store/AppStore.ts";
 import { useTextEditDialogStore } from "../../src/store/TextEditDialogStore.ts";
-import type { IssueFolder } from "../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../src/types/Issue.ts";
 import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
@@ -62,7 +62,7 @@ describe("EditIssueMarkdownFileHelper", () => {
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -91,7 +91,7 @@ describe("EditIssueMarkdownFileHelper", () => {
     expect(
       IssueFolderStorage.prototype.touchUpdatedAtIfNotSuperseded,
     ).toHaveBeenCalledWith(lastUpdatedTimestamp);
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.updatedAt).toEqual(
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.updatedAt).toEqual(
       updatedAt,
     );
   });

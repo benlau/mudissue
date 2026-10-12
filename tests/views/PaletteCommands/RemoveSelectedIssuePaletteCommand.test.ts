@@ -7,7 +7,7 @@ import {
   useCurrentTrackerRepoStore,
 } from "../../../src/store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import {
   INITIAL_NAVIGATION_STACK,
@@ -90,7 +90,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issueA = buildIssue("0001");
     const issueB = buildIssue("0002");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueA.issueId,
       navigationStack: viewerNavigationStack(issueA),
     });
@@ -102,7 +102,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
       .spyOn(IssueFolderStorage.prototype, "remove")
       .mockResolvedValue([]);
     const refreshMock = jest.fn().mockImplementation(async () => {
-      useAppStore.setState({ mainIssueLists: [issueB] });
+      useAppStore.setState({ mainIssueLists: [issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()) });
       return [issueB];
     });
     const originalCloseIssue = useAppStore.getState().closeIssue;
@@ -126,7 +126,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issueA = buildIssue("0001");
     const issueB = buildIssue("0002");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -139,7 +139,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
       .mockResolvedValue([]);
     useAppStore.setState({
       refreshIssueLists: jest.fn().mockImplementation(async () => {
-        useAppStore.setState({ mainIssueLists: [issueA] });
+        useAppStore.setState({ mainIssueLists: [issueA].map((issueFolder) => accessIssueFolderRow(issueFolder).get()) });
         return [issueA];
       }),
     });
@@ -155,7 +155,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
     const issueB = buildIssue("0002");
     const issueC = buildIssue("0003");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB, issueC],
+      mainIssueLists: [issueA, issueB, issueC].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
@@ -169,7 +169,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
       .mockResolvedValue([]);
     useAppStore.setState({
       refreshIssueLists: jest.fn().mockImplementation(async () => {
-        useAppStore.setState({ mainIssueLists: [issueC] });
+        useAppStore.setState({ mainIssueLists: [issueC].map((issueFolder) => accessIssueFolderRow(issueFolder).get()) });
         return [issueC];
       }),
     });
@@ -186,7 +186,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
   it("does nothing when confirmation is cancelled", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -205,7 +205,7 @@ describe("RemoveSelectedIssuePaletteCommand", () => {
   it("shows an error toast when remove throws", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });

@@ -6,7 +6,7 @@ import {
   useCurrentTrackerRepoStore,
 } from "../../../src/store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import { INITIAL_NAVIGATION_STACK } from "../../fixture/navigationStack.ts";
 import { TogglePinIssuePaletteCommand } from "../../../src/views/PaletteCommands/TogglePinIssuePaletteCommand.ts";
@@ -78,7 +78,7 @@ describe("TogglePinIssuePaletteCommand", () => {
   it("toggles pin state for the selected issue and refreshes the list", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });

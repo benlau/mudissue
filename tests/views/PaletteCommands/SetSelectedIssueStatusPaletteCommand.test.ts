@@ -17,7 +17,7 @@ import {
 } from "../../../src/store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import { usePopupStore } from "../../../src/store/PopupStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { DEFAULT_STATUS_LIST } from "../../../src/types/status.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import {
@@ -122,7 +122,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
   it("marks the current status with (*) in the pick dialog", async () => {
     const issue = buildIssue("0001", "closed");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -147,7 +147,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     const issue = buildIssue("0001", "open");
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -208,11 +208,11 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
       "closed",
       mockRepo.name,
     );
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.status).toBe(
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.status).toBe(
       "closed",
     );
     expect(
-      useAppStore.getState().mainIssueLists?.[0]?.metadata?.updatedAt,
+      useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.updatedAt,
     ).toEqual(updatedAt);
     expect(requestReloadSpy).toHaveBeenCalledWith(
       "/repo/issues/0001-test/issue.md",
@@ -230,7 +230,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     const issueB = buildIssue("0002", "open");
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
@@ -273,10 +273,10 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
     await new SetSelectedIssueStatusPaletteCommand().callback();
 
     expect(commandSpy).toHaveBeenCalledTimes(2);
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.status).toBe(
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.status).toBe(
       "closed",
     );
-    expect(useAppStore.getState().mainIssueLists?.[1]?.metadata?.status).toBe(
+    expect(useAppStore.getState().mainIssueLists?.[1]?.issueFolder.metadata?.status).toBe(
       "closed",
     );
     expect(
@@ -288,7 +288,7 @@ describe("SetSelectedIssueStatusPaletteCommand", () => {
   it("does nothing when the pick dialog is cancelled", async () => {
     const issue = buildIssue("0001", "open");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 

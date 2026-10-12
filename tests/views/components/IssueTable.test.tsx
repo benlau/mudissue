@@ -47,7 +47,7 @@ import { resetIssueSearchStore } from "../../../src/store/IssueSearchStore.ts";
 import { useTextEditDialogStore } from "../../../src/store/TextEditDialogStore.ts";
 import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { AnsiEscapeCode } from "../../../src/types/ansi.ts";
 import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { usePaletteCommandStore } from "../../../src/store/PaletteCommandStore.ts";
@@ -243,7 +243,7 @@ describe("IssueTable", () => {
     );
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -307,7 +307,7 @@ describe("IssueTable", () => {
     );
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -367,7 +367,7 @@ describe("IssueTable", () => {
     );
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -424,7 +424,7 @@ describe("IssueTable", () => {
     usePickItemDialogStore.setState({ open: pickOpenMock });
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -505,7 +505,7 @@ describe("IssueTable", () => {
     ];
 
     useAppStore.setState({
-      mainIssueLists: [issueBeforeA, issueBeforeB],
+      mainIssueLists: [issueBeforeA, issueBeforeB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: "MI0002-b",
       filter: "status:open",
     });
@@ -513,11 +513,13 @@ describe("IssueTable", () => {
     refreshIssueListsMock = jest.fn().mockImplementation(async () => {
       useAppStore.setState({
         filter: null,
-        mainIssueLists: issuesAfterSwitch,
+        mainIssueLists: issuesAfterSwitch.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
         searchRestoreIssueId: null,
         tableRangeSelectionAnchorIssueId: null,
       });
-      return issuesAfterSwitch;
+      return issuesAfterSwitch.map((issueFolder) =>
+        accessIssueFolderRow(issueFolder).get(),
+      );
     });
     useAppStore.setState({ refreshIssueLists: refreshIssueListsMock });
 
@@ -584,7 +586,7 @@ describe("IssueTable", () => {
     ];
 
     useAppStore.setState({
-      mainIssueLists: duplicateIssues,
+      mainIssueLists: duplicateIssues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: "AB0001-start",
     });
 
@@ -626,7 +628,7 @@ describe("IssueTable", () => {
     ];
 
     useAppStore.setState({
-      mainIssueLists: duplicateIssues,
+      mainIssueLists: duplicateIssues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: "AB0001-hello-world",
     });
 
@@ -666,7 +668,7 @@ describe("IssueTable", () => {
     ];
 
     useAppStore.setState({
-      mainIssueLists: issues,
+      mainIssueLists: issues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issues[0]!.issueId,
     });
 
@@ -714,7 +716,7 @@ describe("IssueTable", () => {
     });
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       filter: "status:open",
     });
@@ -742,7 +744,7 @@ describe("IssueTable", () => {
     });
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       filter: "status:open",
     });
@@ -786,7 +788,7 @@ describe("IssueTable", () => {
     ];
 
     useAppStore.setState({
-      mainIssueLists: issues,
+      mainIssueLists: issues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issues[0]!.issueId,
     });
 
@@ -853,7 +855,7 @@ describe("IssueTable", () => {
     });
 
     useAppStore.setState({
-      mainIssueLists: [openIssue, closedIssue],
+      mainIssueLists: [openIssue, closedIssue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: openIssue.issueId,
     });
 

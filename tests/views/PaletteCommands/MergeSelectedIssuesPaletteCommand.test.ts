@@ -9,7 +9,7 @@ import {
 } from "../../../src/store/CurrentTrackerRepoStore.ts";
 import { useTextInputDialogStore } from "../../../src/store/TextInputDialogStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import { IssueMergeSectionGenerator } from "../../../src/async/generators/IssueMergeSectionGenerator.ts";
 import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
@@ -145,7 +145,7 @@ describe("MergeSelectedIssuesPaletteCommand", () => {
   it("alerts when only a single issue is selected", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -175,7 +175,7 @@ describe("MergeSelectedIssuesPaletteCommand", () => {
     const issueA = buildIssue("0001");
     const issueB = buildIssue("0002");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
@@ -196,7 +196,7 @@ describe("MergeSelectedIssuesPaletteCommand", () => {
     const issueA = buildIssue("0001");
     const issueB = buildIssue("0002");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,

@@ -99,7 +99,7 @@ export class ChangeIssueIdPaletteCommand implements PaletteCommand {
 
       const refreshedList = await useAppStore.getState().refreshIssueLists();
       const updatedIssue = refreshedList.find(
-        (item) => item.issueId === result.newIssueFolderName,
+        (row) => row.issueFolder.issueId === result.newIssueFolderName,
       );
 
       useAppStore.getState().clearTableRangeSelection();
@@ -107,7 +107,7 @@ export class ChangeIssueIdPaletteCommand implements PaletteCommand {
 
       const currentPage = useAppStore.getState().getCurrentPage();
       if (currentPage.name === "ISSUE_VIEWER" && updatedIssue != null) {
-        useAppStore.getState().replaceIssueViewer(updatedIssue);
+        useAppStore.getState().replaceIssueViewer(updatedIssue.issueFolder);
       }
 
       await useToastStore.getState().info(

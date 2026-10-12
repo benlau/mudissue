@@ -16,7 +16,7 @@ import {
 } from "../../../src/store/IssueSearchingDialogStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import { DEFAULT_LINK_TYPES, LinkageTypesAccessor } from "../../../src/types/linkage.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { IssueMarkdownFileStorage } from "../../../src/async/storage/IssueMarkdownFileStorage.ts";
@@ -188,7 +188,7 @@ describe("LinkPaletteCommand", () => {
     const src1 = buildIssue("0001");
     const src2 = buildIssue("0002");
     useAppStore.setState({
-      mainIssueLists: [src1, src2],
+      mainIssueLists: [src1, src2].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: src2.issueId,
       tableRangeSelectionAnchorIssueId: src1.issueId,
     });
@@ -242,7 +242,7 @@ describe("LinkPaletteCommand", () => {
   it("stops when link type pick is cancelled", async () => {
     const src = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [src],
+      mainIssueLists: [src].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: src.issueId,
     });
 
@@ -259,7 +259,7 @@ describe("LinkPaletteCommand", () => {
   it("offers linkage types from effective config", async () => {
     const src = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [src],
+      mainIssueLists: [src].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: src.issueId,
     });
 
@@ -284,7 +284,7 @@ describe("LinkPaletteCommand", () => {
   it("falls back to default link types when config has none", async () => {
     const src = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [src],
+      mainIssueLists: [src].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: src.issueId,
     });
 
@@ -302,7 +302,7 @@ describe("LinkPaletteCommand", () => {
   it("shows alert when link helper throws error response", async () => {
     const src = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [src],
+      mainIssueLists: [src].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: src.issueId,
     });
 

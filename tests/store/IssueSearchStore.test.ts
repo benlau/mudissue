@@ -22,7 +22,10 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../src/types/Tracker.ts";
 
 function buildIssue(id: string, updatedAt?: Date): IssueFolder {
-  return { issueId: id, label: id, path: `/repo/issues/${id }`,
+  return {
+    issueId: id,
+    label: id,
+    path: `/repo/issues/${id}`,
     ...(updatedAt != null ? { metadata: { updatedAt } } : {}),
   };
 }
@@ -313,5 +316,95 @@ describe("IssueSearchStore", () => {
     const result = await issueSearchStore().getState().searchAllFolders("67");
 
     expect(result.map((x) => x.issueId)).toEqual(["0167", "0067", "0001"]);
+  });
+
+  test("searchIssueTableRows groups subissues under the parent when the filter is empty", async () => {
+    const repo: TrackerRepo = {
+      projectPath: "/repo-a",
+      trackerPath: "/repo-a",
+      name: "repo-a",
+      config: { issue_path: "issues" },
+    };
+    const parent = buildIssue("0001", new Date("2026-01-01"));
+    parent.metadata = {
+      ...parent.metadata,
+      createdAt: new Date("2026-01-01"),
+      frontmatter: { subissues: ["[[0002]]"] },
+    };
+    const child = buildIssue("0002", new Date("2026-03-01"));
+    child.metadata = {
+      ...child.metadata,
+      createdAt: new Date("2026-02-01"),
+      frontmatter: { parent: "[[0001]]" },
+    };
+    const other = buildIssue("0003", new Date("2026-02-01"));
+
+    jest
+      .spyOn(RegistryService.getInstance(), "getIssueListSortOrder")
+      .mockResolvedValue({ field: "updated_at", order: "desc" });
+    jest
+      .spyOn(RegistryService.getInstance(), "getPinnedIssueFolderNames")
+      .mockResolvedValue([]);
+    jest
+      .spyOn(IssueSearcher.prototype, "search")
+      .mockResolvedValueOnce([child, other, parent]);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue([parent, child, other]);
+    setTrackerRepoStoreMocks([repo]);
+
+    const result = await issueSearchStore()
+      .getState()
+      .searchIssueTableRows(null);
+
+    expect(result.map((row) => row.issueFolder.issueId)).toEqual([
+      "0003",
+      "0001",
+      "0002",
+    ]);
+    expect(result.map((row) => row.depth)).toEqual([0, 0, 1]);
+  });
+
+  test("searchIssueTableRows keeps a flat list while searching", async () => {
+    const repo: TrackerRepo = {
+      projectPath: "/repo-a",
+      trackerPath: "/repo-a",
+      name: "repo-a",
+      config: { issue_path: "issues" },
+    };
+    const parent = buildIssue("0001", new Date("2026-01-01"));
+    parent.metadata = {
+      ...parent.metadata,
+      frontmatter: { subissues: ["[[0002]]"] },
+    };
+    const child = buildIssue("0002", new Date("2026-03-01"));
+    child.metadata = {
+      ...child.metadata,
+      frontmatter: { parent: "[[0001]]" },
+    };
+
+    jest
+      .spyOn(RegistryService.getInstance(), "getIssueListSortOrder")
+      .mockResolvedValue({ field: "updated_at", order: "desc" });
+    jest
+      .spyOn(RegistryService.getInstance(), "getPinnedIssueFolderNames")
+      .mockResolvedValue([]);
+    jest
+      .spyOn(IssueSearcher.prototype, "search")
+      .mockResolvedValueOnce([parent, child]);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue([parent, child]);
+    setTrackerRepoStoreMocks([repo]);
+
+    const result = await issueSearchStore()
+      .getState()
+      .searchIssueTableRows("status:open");
+
+    expect(result.map((row) => row.issueFolder.issueId)).toEqual([
+      "0002",
+      "0001",
+    ]);
+    expect(result.every((row) => row.depth === 0)).toBe(true);
   });
 });

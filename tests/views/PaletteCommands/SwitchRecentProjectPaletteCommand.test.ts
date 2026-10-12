@@ -6,7 +6,7 @@ import {
   useCurrentTrackerRepoStore,
 } from "../../../src/store/CurrentTrackerRepoStore.ts";
 import { resetGlobalConfigStore } from "../../../src/store/GlobalConfigStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import {
   PickItemDialogResponseType,
   usePickItemDialogStore,
@@ -83,10 +83,10 @@ describe("SwitchRecentProjectPaletteCommand", () => {
 
     refreshIssueListsMock = jest.fn().mockImplementation(async () => {
       useAppStore.setState({
-        mainIssueLists: issuesAfterSwitch,
+        mainIssueLists: issuesAfterSwitch.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
         pinnedIssueIds: ["ZZ0001-x"],
       });
-      return issuesAfterSwitch;
+      return issuesAfterSwitch.map((issueFolder) => accessIssueFolderRow(issueFolder).get());
     });
     useAppStore.setState({ refreshIssueLists: refreshIssueListsMock });
 

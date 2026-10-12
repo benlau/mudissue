@@ -1,4 +1,5 @@
 import React from "react";
+import { accessIssueFolderRow } from "../../../../src/types/Issue.ts";
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import { Box, Text } from "ink";
 import { cleanup, render } from "ink-testing-library";
@@ -230,7 +231,7 @@ function createSnapshotCaseContext(): SnapshotCaseContext {
     destroy: jest.fn(),
   } as IssueSearchStore);
   useAppStore.setState({
-    mainIssueLists: [defaultIssue],
+    mainIssueLists: [defaultIssue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
     filter: "status:open",
     refreshIssueLists: jest.fn().mockImplementation(async () => {
       return useAppStore.getState().mainIssueLists ?? [];

@@ -11,7 +11,13 @@ import { TrackerRepoStorage } from "../async/storage/TrackerRepoStorage.ts";
 import { useCurrentTrackerRepoStore } from "./CurrentTrackerRepoStore.ts";
 import { useGlobalConfigStore } from "./GlobalConfigStore.ts";
 import { RegistryService } from "../services/RegistryService.ts";
-import { accessIssueFolderList, type IssueFolder } from "../types/Issue.ts";
+import {
+  accessIssueFolderList,
+  IssueFolderRowListAccessor,
+  type IssueFolder,
+  type IssueFolderRow,
+  type IssueSortingRules,
+} from "../types/Issue.ts";
 import { DEFAULT_SORTING_ORDER } from "../types/SortingOrder.ts";
 
 const issueSearcher = new IssueSearcher();
@@ -39,6 +45,7 @@ export type IssueSearchStoreState = {
     filter: string | null,
     options?: SearchAllFoldersOptions,
   ) => Promise<IssueFolder[]>;
+  searchIssueTableRows: (filter: string | null) => Promise<IssueFolderRow[]>;
 };
 
 export type IssueSearchStore = StoreApi<IssueSearchStoreState>;
@@ -49,13 +56,11 @@ const globalIssueSearchStores: Partial<
 
 function createIssueSearchStore(): IssueSearchStore {
   return createStore<IssueSearchStoreState>()(
-    immer((set, get) => ({
-      savedSearchResults: [],
-
-      searchFolders: async (issues, parsedTerms, options) =>
-        issueSearcher.search(issues, parsedTerms, options),
-
-      searchAllFolders: async (filter, options) => {
+    immer((set, get) => {
+      const loadIssueSearch = async (
+        filter: string | null,
+        options?: SearchAllFoldersOptions,
+      ): Promise<{ allResults: IssueFolder[]; rules: IssueSortingRules }> => {
         const terms =
           filter != null && filter.trim() !== ""
             ? searchQueryParser.parse(filter)
@@ -99,24 +104,53 @@ function createIssueSearchStore(): IssueSearchStore {
           rootRepo != null
             ? (await trackerRepoStore.getPriorityTable(rootRepo)).priorities
             : [];
-        const sorted = accessIssueFolderList(allResults)
-          .sortBy({
+        return {
+          allResults,
+          rules: {
             orders: [sortingOrder],
             issueSelector:
               options?.matchedIdFirst === true ? filter : undefined,
             pinnedIssueIds,
             statusList,
             priorityList,
-          })
-          .get();
+          },
+        };
+      };
 
-        set((draft) => {
-          draft.savedSearchResults = sorted;
-        });
+      return {
+        savedSearchResults: [],
 
-        return sorted;
-      },
-    })),
+        searchFolders: async (issues, parsedTerms, options) =>
+          issueSearcher.search(issues, parsedTerms, options),
+
+        searchAllFolders: async (filter, options) => {
+          const { allResults, rules } = await loadIssueSearch(filter, options);
+          const sorted = accessIssueFolderList(allResults).sortBy(rules).get();
+
+          set((draft) => {
+            draft.savedSearchResults = sorted;
+          });
+
+          return sorted;
+        },
+
+        searchIssueTableRows: async (filter) => {
+          const { allResults, rules } = await loadIssueSearch(filter);
+          const groupSubissues = filter == null || filter.trim() === "";
+          const rows = IssueFolderRowListAccessor.createFromIssueFolderList(
+            allResults,
+          )
+            .sortBy(rules, { groupByParentSubissue: groupSubissues })
+            .get();
+
+          set((draft) => {
+            draft.savedSearchResults = rows.map((row) => row.issueFolder);
+          });
+
+          return rows;
+        },
+      };
+    }),
   );
 }
 

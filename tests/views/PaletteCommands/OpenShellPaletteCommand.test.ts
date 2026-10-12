@@ -10,7 +10,7 @@ import {
   resetReactSessionStore,
   useReactSessionStore,
 } from "../../../src/store/ReactSessionStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import {
   INITIAL_NAVIGATION_STACK,
@@ -134,7 +134,7 @@ describe("OpenShellPaletteCommand", () => {
   it("includes the issue folder when the issue viewer is open", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });
@@ -155,7 +155,7 @@ describe("OpenShellPaletteCommand", () => {
   it("includes the worktree folder when it exists on disk", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });
@@ -176,7 +176,7 @@ describe("OpenShellPaletteCommand", () => {
   it("omits the worktree folder when it does not exist on disk", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });

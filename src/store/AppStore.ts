@@ -2,9 +2,10 @@ import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
   accessIssueFolder,
-  accessIssueFolderList,
+  IssueFolderRowListAccessor,
   type IssueFolder,
   type IssueFolderMetadata,
+  type IssueFolderRow,
 } from "../types/Issue.ts";
 import {
   accessNavigationStack,
@@ -19,6 +20,19 @@ import {
 } from "./IssueSearchStore.ts";
 import { RegistryService } from "../services/RegistryService.ts";
 import { useToastStore } from "./ToastStore.ts";
+
+async function loadIssueTableRows(
+  filter: string | null,
+): Promise<IssueFolderRow[]> {
+  const searchState = IssueSearchStoreFactory.createOrGet(
+    IssueSearchStoreKey.IssueTable,
+  ).getState();
+  if (searchState.searchIssueTableRows != null) {
+    return searchState.searchIssueTableRows(filter);
+  }
+  const folders = await searchState.searchAllFolders(filter);
+  return IssueFolderRowListAccessor.createFromIssueFolderList(folders).get();
+}
 
 function buildIssueViewerPage(
   issue: IssueFolder,
@@ -37,7 +51,7 @@ function buildIssueViewerPage(
 }
 
 export type AppStoreState = {
-  mainIssueLists: IssueFolder[] | null;
+  mainIssueLists: IssueFolderRow[] | null;
   pinnedIssueIds: string[];
   filter: string | null;
   navigationStack: NavigationStack;
@@ -52,7 +66,7 @@ export type AppStoreState = {
   toggleTableRangeSelection: () => void;
   clearTableRangeSelection: () => void;
   reset: () => void;
-  refreshIssueLists: () => Promise<IssueFolder[]>;
+  refreshIssueLists: () => Promise<IssueFolderRow[]>;
   searchIssues: (filter: string | null) => Promise<void>;
   pushIssueViewer: (
     issue: IssueFolder,
@@ -80,7 +94,7 @@ export type AppStoreState = {
 };
 
 const initialDataSlice = {
-  mainIssueLists: null as IssueFolder[] | null,
+  mainIssueLists: null as IssueFolderRow[] | null,
   pinnedIssueIds: [] as string[],
   filter: null as string | null,
   navigationStack: INITIAL_NAVIGATION_STACK,
@@ -156,11 +170,7 @@ export const useAppStore = create<AppStoreState>()(
               rootRepo.projectPath,
             )
           : [];
-      const list = await IssueSearchStoreFactory.createOrGet(
-        IssueSearchStoreKey.IssueTable,
-      )
-        .getState()
-        .searchAllFolders(filter);
+      const list = await loadIssueTableRows(filter);
       set((draft) => {
         draft.mainIssueLists = list;
         draft.pinnedIssueIds = pinnedIssueIds;
@@ -173,11 +183,7 @@ export const useAppStore = create<AppStoreState>()(
         newFilter != null && newFilter.trim() !== "" ? newFilter.trim() : null;
       const { filter, selectedIssueId, searchRestoreIssueId } = get();
       const wasSearching = filter != null && filter.trim() !== "";
-      const list = await IssueSearchStoreFactory.createOrGet(
-        IssueSearchStoreKey.IssueTable,
-      )
-        .getState()
-        .searchAllFolders(normalized);
+      const list = await loadIssueTableRows(normalized);
       set((draft) => {
         draft.filter = normalized;
         draft.mainIssueLists = list;
@@ -186,7 +192,7 @@ export const useAppStore = create<AppStoreState>()(
           draft.searchRestoreIssueId = wasSearching
             ? searchRestoreIssueId
             : selectedIssueId;
-          draft.selectedIssueId = list[0]?.issueId ?? null;
+          draft.selectedIssueId = list[0]?.issueFolder.issueId ?? null;
         } else {
           draft.selectedIssueId = searchRestoreIssueId ?? selectedIssueId;
           draft.searchRestoreIssueId = null;
@@ -268,7 +274,7 @@ export const useAppStore = create<AppStoreState>()(
       }
       const active = currentPage.args.issue;
       const currentIndex = issues.findIndex(
-        (issue) => issue.issueId === active.issueId,
+        (row) => row.issueFolder.issueId === active.issueId,
       );
       if (currentIndex < 0) return;
       if (currentIndex === 0) {
@@ -277,7 +283,7 @@ export const useAppStore = create<AppStoreState>()(
           .info("Already at the first issue.", { position: "top-middle" });
         return;
       }
-      const previousIssue = issues[currentIndex - 1] ?? active;
+      const previousIssue = issues[currentIndex - 1]?.issueFolder ?? active;
       get().replaceIssueViewer(previousIssue);
     },
 
@@ -293,7 +299,7 @@ export const useAppStore = create<AppStoreState>()(
       }
       const active = currentPage.args.issue;
       const currentIndex = issues.findIndex(
-        (issue) => issue.issueId === active.issueId,
+        (row) => row.issueFolder.issueId === active.issueId,
       );
       if (currentIndex < 0) return;
       if (currentIndex === issues.length - 1) {
@@ -302,7 +308,7 @@ export const useAppStore = create<AppStoreState>()(
           .info("Already at the last issue.", { position: "top-middle" });
         return;
       }
-      const nextIssue = issues[currentIndex + 1] ?? active;
+      const nextIssue = issues[currentIndex + 1]?.issueFolder ?? active;
       get().replaceIssueViewer(nextIssue);
     },
 
@@ -333,29 +339,36 @@ export const useAppStore = create<AppStoreState>()(
       }
       if (tableRangeSelectionAnchorIssueId != null) {
         const anchorIdx = mainIssueLists.findIndex(
-          (item) => item.issueId === tableRangeSelectionAnchorIssueId,
+          (row) => row.issueFolder.issueId === tableRangeSelectionAnchorIssueId,
         );
         const focusIdx = mainIssueLists.findIndex(
-          (item) => item.issueId === selectedIssueId,
+          (row) => row.issueFolder.issueId === selectedIssueId,
         );
         if (anchorIdx >= 0 && focusIdx >= 0) {
           const lo = Math.min(anchorIdx, focusIdx);
           const hi = Math.max(anchorIdx, focusIdx);
-          return mainIssueLists.slice(lo, hi + 1);
+          return mainIssueLists.slice(lo, hi + 1).map((row) => row.issueFolder);
         }
       }
       const selected = mainIssueLists.find(
-        (item) => item.issueId === selectedIssueId,
+        (row) => row.issueFolder.issueId === selectedIssueId,
       );
-      return selected != null ? [selected] : [];
+      return selected != null ? [selected.issueFolder] : [];
     },
 
     applyIssueMetadataUpdate: (issueId, metadata) => {
       set((draft) => {
         if (draft.mainIssueLists != null) {
-          draft.mainIssueLists = accessIssueFolderList(draft.mainIssueLists)
-            .updateMetadata(issueId, metadata)
-            .get();
+          draft.mainIssueLists = draft.mainIssueLists.map((row) =>
+            row.issueFolder.issueId === issueId
+              ? {
+                  ...row,
+                  issueFolder: accessIssueFolder(row.issueFolder)
+                    .mergeMetadata(metadata)
+                    .get(),
+                }
+              : row,
+          );
         }
         draft.navigationStack = draft.navigationStack.map((page) => {
           if (
@@ -394,18 +407,23 @@ export const useAppStore = create<AppStoreState>()(
         const trackerRepoStore = useCurrentTrackerRepoStore.getState();
         const statusList = await trackerRepoStore.getStatusList(repo);
         const priorityTable = await trackerRepoStore.getPriorityTable(repo);
+        const groupSubissues =
+          get().filter == null || get().filter?.trim() === "";
         set((draft) => {
           if (draft.mainIssueLists == null) {
             return;
           }
-          draft.mainIssueLists = accessIssueFolderList(draft.mainIssueLists)
-            .sortBy({
-              orders: [sortingOrder],
-              pinnedIssueIds,
-              statusList,
-              priorityList: priorityTable.priorities,
-            })
-            .get();
+          const folders = draft.mainIssueLists.map((row) => row.issueFolder);
+          const rules = {
+            orders: [sortingOrder],
+            pinnedIssueIds,
+            statusList,
+            priorityList: priorityTable.priorities,
+          };
+          draft.mainIssueLists =
+            IssueFolderRowListAccessor.createFromIssueFolderList(folders)
+              .sortBy(rules, { groupByParentSubissue: groupSubissues })
+              .get();
           draft.pinnedIssueIds = pinnedIssueIds;
         });
       })();

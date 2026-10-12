@@ -6,7 +6,7 @@ import { useAppStore } from "../../store/AppStore.ts";
 import { useConfirmationDialogStore } from "../../store/ConfirmationDialogStore.ts";
 import { useCurrentTrackerRepoStore } from "../../store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../store/ToastStore.ts";
-import type { IssueFolder } from "../../types/Issue.ts";
+import type { IssueFolder, IssueFolderRow } from "../../types/Issue.ts";
 import type { PaletteCommand } from "../../types/PaletteCommand.ts";
 import { ErrorResponseAccessor } from "../../types/Response.ts";
 import { Maths } from "../../types/maths.ts";
@@ -62,11 +62,13 @@ const messages = defineMessages({
 });
 
 function minListIndexForIssues(
-  list: IssueFolder[],
+  list: IssueFolderRow[],
   targets: IssueFolder[],
 ): number {
   const indices = targets
-    .map((target) => list.findIndex((item) => item.issueId === target.issueId))
+    .map((target) =>
+      list.findIndex((row) => row.issueFolder.issueId === target.issueId),
+    )
     .filter((index) => index >= 0);
   return indices.length === 0 ? -1 : Math.min(...indices);
 }
@@ -166,7 +168,9 @@ export class RemoveSelectedIssuePaletteCommand implements PaletteCommand {
     useAppStore
       .getState()
       .setSelectedIssueId(
-        nextIndex >= 0 ? (refreshedList[nextIndex]?.issueId ?? null) : null,
+        nextIndex >= 0
+          ? (refreshedList[nextIndex]?.issueFolder.issueId ?? null)
+          : null,
       );
 
     await useToastStore

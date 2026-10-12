@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import { useTextEditDialogStore } from "../../../src/store/TextEditDialogStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { INITIAL_NAVIGATION_STACK } from "../../fixture/navigationStack.ts";
 import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { EditIssuePaletteCommand } from "../../../src/views/PaletteCommands/EditIssuePaletteCommand.ts";
@@ -73,7 +73,7 @@ describe("EditIssuePaletteCommand", () => {
       });
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });

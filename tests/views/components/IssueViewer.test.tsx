@@ -18,7 +18,7 @@ import { useTerminalSizeStore } from "../../../src/views/hooks/useTerminal.ts";
 import { viewerNavigationStack } from "../../fixture/navigationStack.ts";
 import { createMockSystemContext } from "../../fixture/MockSystemContext.tsx";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import { EditIssueMarkdownFileHelper } from "../../../src/helpers/EditIssueMarkdownFileHelper.ts";
 import {
@@ -166,7 +166,7 @@ describe("IssueViewer", () => {
     } as never);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: viewerNavigationStack(issue),
       selectedIssueId: issue.issueId,
     });
@@ -241,7 +241,7 @@ describe("IssueViewer", () => {
     } as never);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: viewerNavigationStack(issue),
       selectedIssueId: issue.issueId,
     });
@@ -306,7 +306,7 @@ describe("IssueViewer", () => {
     } as never);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: attachmentViewerNavigationStack(issue, ATTACHMENT_PATH),
       selectedIssueId: issue.issueId,
     });
@@ -353,7 +353,7 @@ describe("IssueViewer", () => {
     } as never);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: attachmentViewerNavigationStack(issue, ATTACHMENT_PATH),
       selectedIssueId: issue.issueId,
     });
@@ -401,7 +401,7 @@ describe("IssueViewer", () => {
     } as never);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: attachmentViewerNavigationStack(issue, ATTACHMENT_PATH),
       selectedIssueId: issue.issueId,
     });
@@ -441,7 +441,7 @@ describe("IssueViewer", () => {
     mockFileService.readFile.mockRejectedValue(enoent);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: viewerNavigationStack(issue),
       selectedIssueId: issue.issueId,
     });
@@ -490,7 +490,7 @@ describe("IssueViewer", () => {
     mockFileService.readFile.mockRejectedValue(enoent);
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: viewerNavigationStack(issue),
       selectedIssueId: issue.issueId,
     });
@@ -540,7 +540,7 @@ describe("IssueViewer", () => {
     );
 
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       navigationStack: viewerNavigationStack(issue),
       selectedIssueId: issue.issueId,
     });

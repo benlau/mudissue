@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { ClipboardService } from "../../../src/services/ClipboardService.ts";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { IssueFolderStorage } from "../../../src/async/storage/IssueFolderStorage.ts";
 import {
   PickItemDialogResponseType,
@@ -99,7 +99,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const issue = buildIssue("MI0001");
     const filePath = "/repo/issues/MI0001-test/issue.md";
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
     jest
@@ -137,7 +137,7 @@ describe("CopyToClipboardPaletteCommand", () => {
   it("opens the pick dialog with only issue ID when no markdown file exists", async () => {
     const issue = buildIssue("MI0002");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
     jest
@@ -158,7 +158,7 @@ describe("CopyToClipboardPaletteCommand", () => {
   it("copies issue ID and shows a success toast when that target is selected", async () => {
     const issue = buildIssue("MI0003");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
     jest
@@ -184,7 +184,7 @@ describe("CopyToClipboardPaletteCommand", () => {
     const issue = buildIssue("MI0004");
     const filePath = "/repo/issues/MI0004-test/issue.md";
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
     jest
@@ -209,7 +209,7 @@ describe("CopyToClipboardPaletteCommand", () => {
   it("does not copy when the pick dialog is cancelled", async () => {
     const issue = buildIssue("MI0005");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
     jest
@@ -229,7 +229,7 @@ describe("CopyToClipboardPaletteCommand", () => {
   it("shows an error toast when clipboard write fails", async () => {
     const issue = buildIssue("MI0006");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
     jest

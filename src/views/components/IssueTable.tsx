@@ -20,6 +20,7 @@ import {
 import { ToolBar, type ToolbarConfigItem } from "./ToolBar.tsx";
 import { useTerminalSize, useTerminalName } from "../hooks/useTerminal.ts";
 import { useQuit } from "../hooks/useQuit.ts";
+import { IssueSubissueTreeFormatter } from "../../foundation/formatter/IssueSubissueTreeFormatter.ts";
 import { TableLayouter } from "../../foundation/layouter/TableLayouter.ts";
 import type { TableColumnDef } from "../../types/TableLayout.ts";
 import { AnsiEscapeCode } from "../../types/ansi.ts";
@@ -161,19 +162,19 @@ export function IssueTable({
     (s) => s.clearTableRangeSelection,
   );
 
-  const issues = useMemo(() => mainIssueLists ?? [], [mainIssueLists]);
+  const issueRows = useMemo(() => mainIssueLists ?? [], [mainIssueLists]);
   const pinnedIssueIdSet = useMemo(
     () => new Set(pinnedIssueIds),
     [pinnedIssueIds],
   );
   const selectedIndex = useMemo(() => {
-    if (issues.length === 0) return 0;
+    if (issueRows.length === 0) return 0;
     if (selectedIssueId == null) return 0;
-    const idx = issues.findIndex(
-      (issue) => issue.issueId === selectedIssueId,
+    const idx = issueRows.findIndex(
+      (row) => row.issueFolder.issueId === selectedIssueId,
     );
     return idx >= 0 ? idx : 0;
-  }, [issues, selectedIssueId]);
+  }, [issueRows, selectedIssueId]);
   const [scrollOffset, setScrollOffset] = useState(0);
   const currentTrackerRepo = useCurrentTrackerRepoStore(
     (s) => s.currentTrackerRepo,
@@ -210,9 +211,7 @@ export function IssueTable({
   const isSearchingMode = filter != null && filter.trim() !== "";
   const showProjectNameHeader =
     !isSearchingMode && rows >= largeTerminalHeightThreshold;
-  const chromeRows = isSearchingMode
-    ? 3
-    : (showProjectNameHeader ? 1 : 0) + 2;
+  const chromeRows = isSearchingMode ? 3 : (showProjectNameHeader ? 1 : 0) + 2;
   const pageSize = Math.max(1, rows - chromeRows);
   const innerCols = cols;
   const tableLayouterRef = useRef<TableLayouter | null>(null);
@@ -221,14 +220,14 @@ export function IssueTable({
   }
   const tableLayouter = tableLayouterRef.current;
   tableLayouter.layout(innerCols);
-  const maxIndex = Math.max(0, issues.length - 1);
+  const maxIndex = Math.max(0, issueRows.length - 1);
   const clampedIndex = Maths.clamp(selectedIndex, 0, maxIndex);
   const rangeBounds = useMemo(() => {
-    if (tableRangeSelectionAnchorIssueId == null || issues.length === 0) {
+    if (tableRangeSelectionAnchorIssueId == null || issueRows.length === 0) {
       return null;
     }
-    const anchorIdx = issues.findIndex(
-      (issue) => issue.issueId === tableRangeSelectionAnchorIssueId,
+    const anchorIdx = issueRows.findIndex(
+      (row) => row.issueFolder.issueId === tableRangeSelectionAnchorIssueId,
     );
     if (anchorIdx < 0) {
       return null;
@@ -236,24 +235,20 @@ export function IssueTable({
     const lo = Math.min(anchorIdx, clampedIndex);
     const hi = Math.max(anchorIdx, clampedIndex);
     return { lo, hi };
-  }, [
-    issues,
-    tableRangeSelectionAnchorIssueId,
-    clampedIndex,
-  ]);
-  const isEmpty = issues.length === 0;
+  }, [issueRows, tableRangeSelectionAnchorIssueId, clampedIndex]);
+  const isEmpty = issueRows.length === 0;
   const isSearchEmpty = isSearchingMode && isEmpty;
 
   const setIndex = useCallback(
     (next: number) => {
       const idx = Maths.clamp(next, 0, maxIndex);
-      setSelectedIssueId(issues[idx]?.issueId ?? null);
+      setSelectedIssueId(issueRows[idx]?.issueFolder.issueId ?? null);
     },
-    [issues, maxIndex, setSelectedIssueId],
+    [issueRows, maxIndex, setSelectedIssueId],
   );
 
   useEffect(() => {
-    if (issues.length === 0) {
+    if (issueRows.length === 0) {
       if (selectedIssueId != null) {
         setSelectedIssueId(null);
       }
@@ -264,20 +259,20 @@ export function IssueTable({
     }
     const valid =
       selectedIssueId != null &&
-      issues.some((issue) => issue.issueId === selectedIssueId);
+      issueRows.some((row) => row.issueFolder.issueId === selectedIssueId);
     if (!valid) {
-      setSelectedIssueId(issues[0]?.issueId ?? null);
+      setSelectedIssueId(issueRows[0]?.issueFolder.issueId ?? null);
     }
     if (
       tableRangeSelectionAnchorIssueId != null &&
-      !issues.some(
-        (issue) => issue.issueId === tableRangeSelectionAnchorIssueId,
+      !issueRows.some(
+        (row) => row.issueFolder.issueId === tableRangeSelectionAnchorIssueId,
       )
     ) {
       clearTableRangeSelection();
     }
   }, [
-    issues,
+    issueRows,
     selectedIssueId,
     setSelectedIssueId,
     tableRangeSelectionAnchorIssueId,
@@ -307,15 +302,15 @@ export function IssueTable({
   }, [filter, searchIssues, searchingDialog.methods]);
 
   const handleEditSelectedIssue = useCallback(async () => {
-    if (issues.length === 0) return;
-    const issue = issues[clampedIndex];
+    if (issueRows.length === 0) return;
+    const issue = issueRows[clampedIndex]?.issueFolder;
     if (!issue) return;
     await EditIssueMarkdownFileHelper.edit(issue);
-  }, [clampedIndex, issues]);
+  }, [clampedIndex, issueRows]);
 
   const handlePickEditorForSelectedIssue = useCallback(async () => {
-    if (issues.length === 0 || isEditingFile) return;
-    const issue = issues[clampedIndex];
+    if (issueRows.length === 0 || isEditingFile) return;
+    const issue = issueRows[clampedIndex]?.issueFolder;
     if (!issue) return;
     const issueFilePath = await new IssueFolderStorage(issue).findIssueFile();
     if (!issueFilePath) return;
@@ -325,7 +320,7 @@ export function IssueTable({
     } finally {
       setIsEditingFile(false);
     }
-  }, [clampedIndex, editFile, isEditingFile, issues]);
+  }, [clampedIndex, editFile, isEditingFile, issueRows]);
 
   const customScriptPaletteHelper = useMemo(
     () => new CustomScriptPaletteHelper(),
@@ -409,7 +404,7 @@ export function IssueTable({
         description: intl.formatMessage(
           issueTableToolbarMessages.externalEditDescription,
         ),
-        isDisabled: issues.length === 0,
+        isDisabled: issueRows.length === 0,
         callback: () => {
           void handlePickEditorForSelectedIssue();
         },
@@ -422,14 +417,11 @@ export function IssueTable({
         description: intl.formatMessage(
           issueTableToolbarMessages.recentProjectsDescription,
         ),
-        callback: () =>
-          void switchRecentProjectPaletteCommand.callback(),
+        callback: () => void switchRecentProjectPaletteCommand.callback(),
       },
     ];
     list.push({
-      label: intl.formatMessage(
-        issueTableToolbarMessages.commandToolbarLabel,
-      ),
+      label: intl.formatMessage(issueTableToolbarMessages.commandToolbarLabel),
       key: ">",
       showInHelpDialog: false,
       description: intl.formatMessage(
@@ -463,14 +455,14 @@ export function IssueTable({
     openIssueTablePalette,
     handleEditSelectedIssue,
     handlePickEditorForSelectedIssue,
-    issues.length,
+    issueRows.length,
     openCreateIssueDialog,
     toggleTableRangeSelection,
   ]);
 
   const visible = useMemo(
-    () => issues.slice(scrollOffset, scrollOffset + pageSize),
-    [issues, scrollOffset, pageSize]
+    () => issueRows.slice(scrollOffset, scrollOffset + pageSize),
+    [issueRows, scrollOffset, pageSize],
   );
 
   useInput((input, key) => {
@@ -486,7 +478,7 @@ export function IssueTable({
       void quitIfConfirmed();
       return;
     }
-    if (issues.length === 0) return;
+    if (issueRows.length === 0) return;
     if (key.upArrow) {
       setIndex(clampedIndex - 1);
       return;
@@ -511,10 +503,9 @@ export function IssueTable({
       setIndex(maxIndex);
       return true;
     }
-    const isEnter =
-      key.return || input === "\r" || input === "\n";
+    const isEnter = key.return || input === "\r" || input === "\n";
     if (isEnter) {
-      const issue = issues[clampedIndex];
+      const issue = issueRows[clampedIndex]?.issueFolder;
       if (issue) {
         openIssue(issue);
       }
@@ -545,10 +536,7 @@ export function IssueTable({
   );
   const searchFilterDisplay = `${searchFilterPrefix}${truncate(filter ?? "", searchFilterWidth)}${searchFilterSuffix}`;
 
-  const toolbarWidth = Math.max(
-    MIN_TOOLBAR_WIDTH,
-    innerCols,
-  );
+  const toolbarWidth = Math.max(MIN_TOOLBAR_WIDTH, innerCols);
 
   return (
     <Box position="relative" flexDirection="column" width={cols} height={rows}>
@@ -570,12 +558,7 @@ export function IssueTable({
         {!isEmpty ? (
           <Box>
             <Text bold color={DefaultTheme.accents.cyan}>
-              {tableLayouter.makeRow([
-                "ID",
-                "TITLE",
-                "STATUS",
-                "PRIORITY",
-              ])}
+              {tableLayouter.makeRow(["ID", "TITLE", "STATUS", "PRIORITY"])}
             </Text>
           </Box>
         ) : null}
@@ -600,7 +583,8 @@ export function IssueTable({
                 ))}
             </Box>
           ) : (
-            visible.map((issue, i) => {
+            visible.map((row, i) => {
+              const issue = row.issueFolder;
               const globalIndex = scrollOffset + i;
               const isHighlighted =
                 rangeBounds != null
@@ -620,9 +604,9 @@ export function IssueTable({
                       pinnedIssueIdSet.has(issue.issueId)
                         ? `*${issue.label}`
                         : issue.label,
-                      formatIssueTableTitle(
+                      `${IssueSubissueTreeFormatter.formatTitlePrefix(issueRows, globalIndex)}${formatIssueTableTitle(
                         issue.metadata?.title ?? issue.issueId,
-                      ),
+                      )}`,
                       issue.metadata?.status ?? "",
                       issue.metadata?.priority ?? "",
                     ])}
@@ -640,7 +624,7 @@ export function IssueTable({
           />
         </Box>
       </Box>
-        <SearchingDialog {...searchingDialog.props} />
+      <SearchingDialog {...searchingDialog.props} />
     </Box>
   );
 }

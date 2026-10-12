@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 import { RegistryService } from "../../../src/services/RegistryService.ts";
 import { resetAppStore, useAppStore } from "../../../src/store/AppStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import {
   resetCurrentTrackerRepoStore,
   useCurrentTrackerRepoStore,
@@ -134,7 +134,7 @@ describe("SetSortingOrderPaletteCommand", () => {
             path: "/repo/0002-b",
     };
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
     });

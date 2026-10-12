@@ -8,7 +8,7 @@ import {
   MarkdownViewerHandleStoreManager,
 } from "../../src/store/MarkdownViewerHandleStore.ts";
 import { useToastStore } from "../../src/store/ToastStore.ts";
-import type { IssueFolder } from "../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../src/types/Issue.ts";
 import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
 
 function resetToastStore(): void {
@@ -73,7 +73,7 @@ describe("ExtractContentIntoNewIssueHelper", () => {
       path: "/repo/issues/MI0001-parent",
     });
     useAppStore.setState({
-      mainIssueLists: [parent],
+      mainIssueLists: [parent].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: parent.issueId,
     });
 
@@ -98,7 +98,7 @@ describe("ExtractContentIntoNewIssueHelper", () => {
       path: "/repo/issues/MI0002-extracted-title",
     });
     useAppStore.setState({
-      mainIssueLists: [parent],
+      mainIssueLists: [parent].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: parent.issueId,
     });
 
@@ -144,7 +144,7 @@ describe("ExtractContentIntoNewIssueHelper", () => {
       path: "/repo/issues/MI0001-parent",
     });
     useAppStore.setState({
-      mainIssueLists: [parent],
+      mainIssueLists: [parent].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: parent.issueId,
     });
 

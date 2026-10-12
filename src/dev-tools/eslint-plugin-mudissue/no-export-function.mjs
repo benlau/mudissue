@@ -76,7 +76,7 @@ export const noExportFunctionRule = {
     schema: [],
     messages: {
       noExportFunction:
-        "Do not export functions from src/helpers or src/types. Use class-based static methods instead. Functions named access* are allowed.",
+        "Do not export functions from src/helpers or src/types. Use class-based static methods instead. See .claude/skills/monad-accessor/SKILL.md",
     },
   },
   create(context) {

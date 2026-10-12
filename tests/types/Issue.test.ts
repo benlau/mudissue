@@ -4,6 +4,7 @@ import type { IssueFolder } from "../../src/types/Issue.ts";
 import {
   accessIssueFolder,
   accessIssueFolderList,
+  IssueFolderRowListAccessor,
 } from "../../src/types/Issue.ts";
 import { DEFAULT_SORTING_ORDER } from "../../src/types/SortingOrder.ts";
 import { buildIssueFolder } from "../fixture/buildIssueFolder.ts";
@@ -412,5 +413,334 @@ describe("IssueFolderListAccessor", () => {
       .get();
 
     expect(sorted.map((i) => i.issueId)).toEqual(["0001", "0002"]);
+  });
+});
+
+describe("groupByParentSubissue", () => {
+  function linkedIssue(
+    issueId: string,
+    frontmatter: Record<string, unknown>,
+    overrides?: Parameters<typeof buildIssue>[1],
+  ): IssueFolder {
+    return buildIssue(issueId, {
+      ...overrides,
+      metadata: { frontmatter },
+    });
+  }
+
+  it("places each subissue under its parent with depth", () => {
+    const parent = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]", "[[MI0003]]"] },
+      {
+        title: "Parent",
+        createdAt: new Date("2026-01-01"),
+        updatedAt: new Date("2026-01-01"),
+      },
+    );
+    const firstChild = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      {
+        title: "Beta",
+        createdAt: new Date("2026-01-02"),
+        updatedAt: new Date("2026-01-03"),
+      },
+    );
+    const secondChild = linkedIssue(
+      "MI0003",
+      { parent: "[[MI0001]]" },
+      {
+        title: "Alpha",
+        createdAt: new Date("2026-01-03"),
+        updatedAt: new Date("2026-01-02"),
+      },
+    );
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      secondChild,
+      parent,
+      firstChild,
+    ])
+      .sortBy(
+        {
+          ...defaultSortingRules,
+          orders: [{ field: "title", order: "asc" }],
+        },
+        { groupByParentSubissue: true },
+      )
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0001",
+      "MI0003",
+      "MI0002",
+    ]);
+    expect(grouped.map((issue) => issue.depth)).toEqual([0, 1, 1]);
+  });
+
+  it("sorts updated_at oldest-first by the latest date in the family", () => {
+    const parent = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      {
+        createdAt: new Date("2026-01-01"),
+        updatedAt: new Date("2026-01-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      {
+        createdAt: new Date("2026-01-02"),
+        updatedAt: new Date("2026-03-01"),
+      },
+    );
+    const other = buildIssue("MI0003", {
+      updatedAt: new Date("2026-02-01"),
+    });
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      parent,
+      child,
+      other,
+    ])
+      .sortBy(
+        {
+          ...defaultSortingRules,
+          orders: [{ field: "updated_at", order: "asc" }],
+        },
+        { groupByParentSubissue: true },
+      )
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0003",
+      "MI0001",
+      "MI0002",
+    ]);
+  });
+
+  it("sorts updated_at youngest-first by the earliest date in the family", () => {
+    const parent = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      {
+        createdAt: new Date("2026-01-01"),
+        updatedAt: new Date("2026-01-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      {
+        createdAt: new Date("2026-01-02"),
+        updatedAt: new Date("2026-03-01"),
+      },
+    );
+    const other = buildIssue("MI0003", {
+      updatedAt: new Date("2026-02-01"),
+    });
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      child,
+      other,
+      parent,
+    ])
+      .sortBy(
+        {
+          ...defaultSortingRules,
+          orders: [{ field: "updated_at", order: "desc" }],
+        },
+        { groupByParentSubissue: true },
+      )
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0003",
+      "MI0001",
+      "MI0002",
+    ]);
+  });
+
+  it("sorts created_at oldest-first by the latest created date in the family", () => {
+    const parent = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      {
+        createdAt: new Date("2026-01-01"),
+        updatedAt: new Date("2026-04-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      {
+        createdAt: new Date("2026-03-01"),
+        updatedAt: new Date("2026-01-01"),
+      },
+    );
+    const other = buildIssue("MI0003", {
+      createdAt: new Date("2026-02-01"),
+    });
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      parent,
+      child,
+      other,
+    ])
+      .sortBy(
+        {
+          ...defaultSortingRules,
+          orders: [{ field: "created_at", order: "asc" }],
+        },
+        { groupByParentSubissue: true },
+      )
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0003",
+      "MI0001",
+      "MI0002",
+    ]);
+  });
+
+  it("sorts by the parent title and status", () => {
+    const parent = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      {
+        title: "Zebra",
+        status: "closed",
+        createdAt: new Date("2026-01-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      {
+        title: "Alpha",
+        status: "open",
+        createdAt: new Date("2026-01-02"),
+      },
+    );
+    const other = buildIssue("MI0003", {
+      title: "Middle",
+      status: "open",
+    });
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      child,
+      other,
+      parent,
+    ])
+      .sortBy(
+        {
+          ...defaultSortingRules,
+          orders: [{ field: "title", order: "asc" }],
+        },
+        { groupByParentSubissue: true },
+      )
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0003",
+      "MI0001",
+      "MI0002",
+    ]);
+    expect(grouped[2]?.issueFolder.metadata?.title).toBe("Alpha");
+    expect(grouped[2]?.issueFolder.metadata?.status).toBe("open");
+  });
+
+  it("moves the whole group to the top when a child is pinned", () => {
+    const parent = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      {
+        createdAt: new Date("2026-01-01"),
+        updatedAt: new Date("2026-01-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      {
+        createdAt: new Date("2026-01-02"),
+        updatedAt: new Date("2026-01-02"),
+      },
+    );
+    const other = buildIssue("MI0003", {
+      updatedAt: new Date("2026-03-01"),
+    });
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      other,
+      child,
+      parent,
+    ])
+      .sortBy(
+        {
+          ...defaultSortingRules,
+          orders: [{ field: "updated_at", order: "desc" }],
+          pinnedIssueIds: ["MI0002"],
+        },
+        { groupByParentSubissue: true },
+      )
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0001",
+      "MI0002",
+      "MI0003",
+    ]);
+    expect(grouped.map((issue) => issue.depth)).toEqual([0, 1, 0]);
+  });
+
+  it("picks the earliest created issue as root when the link is cyclic", () => {
+    const later = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]", subissues: ["[[MI0001]]"] },
+      {
+        title: "Later",
+        createdAt: new Date("2026-02-01"),
+      },
+    );
+    const earlier = linkedIssue(
+      "MI0001",
+      { parent: "[[MI0002]]", subissues: ["[[MI0002]]"] },
+      {
+        title: "Earlier",
+        createdAt: new Date("2026-01-01"),
+      },
+    );
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      later,
+      earlier,
+    ])
+      .sortBy(defaultSortingRules, { groupByParentSubissue: true })
+      .get();
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0001",
+      "MI0002",
+    ]);
+    expect(grouped.map((issue) => issue.depth)).toEqual([0, 1]);
+  });
+
+  it("breaks a created_at tie by issue id", () => {
+    const createdAt = new Date("2026-01-01");
+    const higherId = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]" },
+      { title: "Alpha", createdAt },
+    );
+    const lowerId = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      { title: "Zebra", createdAt },
+    );
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      higherId,
+      lowerId,
+    ])
+      .sortBy(defaultSortingRules, { groupByParentSubissue: true })
+      .get();
+    expect(grouped[0]?.issueFolder.issueId).toBe("MI0001");
+    expect(grouped[1]?.depth).toBe(1);
   });
 });

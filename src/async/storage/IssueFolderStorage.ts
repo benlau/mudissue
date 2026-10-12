@@ -257,26 +257,8 @@ export class IssueFolderStorage {
     await storage.save();
   }
 
-  /**
-   * Flattens a linkage frontmatter value into a string list.
-   * Frontmatter may store one link as a string (`"[[0001]]"`) or several as an
-   * array (`["[[0001]]", "[[0002]]"]`); callers get a uniform `string[]`.
-   * Missing/invalid values become `[]`.
-   */
   static normalizeLinkageValues(existing: unknown): string[] {
-    const collect = (value: unknown): string[] => {
-      if (typeof value === "string") {
-        return [value];
-      }
-      if (Array.isArray(value)) {
-        return value.flatMap(collect);
-      }
-      return [];
-    };
-    if (existing === undefined) {
-      return [];
-    }
-    return collect(existing);
+    return IssueFolderLinkFormatter.normalizeLinkageValues(existing);
   }
 
   static mergeApplyLinkage(

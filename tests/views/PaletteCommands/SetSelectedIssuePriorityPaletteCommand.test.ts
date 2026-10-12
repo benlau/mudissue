@@ -12,7 +12,7 @@ import {
 } from "../../../src/store/CurrentTrackerRepoStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import { usePopupStore } from "../../../src/store/PopupStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { DEFAULT_PRIORITY_TABLE } from "../../../src/types/priority.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import {
@@ -115,7 +115,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
   it("marks the current priority with (*) in the pick dialog", async () => {
     const issue = buildIssue("0001", "high");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -139,7 +139,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     const issue = buildIssue("0001", "low");
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -178,8 +178,8 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
       "urgent",
       mockRepo.name,
     );
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.priority).toBe("urgent");
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.updatedAt).toEqual(
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.priority).toBe("urgent");
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.updatedAt).toEqual(
       updatedAt,
     );
     expect(requestReloadSpy).toHaveBeenCalledWith(
@@ -193,7 +193,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     const issueB = buildIssue("0002", "low");
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
@@ -223,8 +223,8 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
     await new SetSelectedIssuePriorityPaletteCommand().callback();
 
     expect(commandSpy).toHaveBeenCalledTimes(2);
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.priority).toBe("urgent");
-    expect(useAppStore.getState().mainIssueLists?.[1]?.metadata?.priority).toBe("urgent");
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.priority).toBe("urgent");
+    expect(useAppStore.getState().mainIssueLists?.[1]?.issueFolder.metadata?.priority).toBe("urgent");
     expect(
       useFileWatcherStore.getState().generationByPath["/repo/issues/issue.md"],
     ).toBe(2);
@@ -234,7 +234,7 @@ describe("SetSelectedIssuePriorityPaletteCommand", () => {
   it("does nothing when the pick dialog is cancelled", async () => {
     const issue = buildIssue("0001", "low");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 

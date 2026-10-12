@@ -12,7 +12,7 @@ import {
 } from "../../../src/store/FileWatcherStore.ts";
 import { useTextInputDialogStore } from "../../../src/store/TextInputDialogStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import type { TrackerRepo } from "../../../src/types/Tracker.ts";
 import { ChangeIssueIdPaletteCommand } from "../../../src/views/PaletteCommands/ChangeIssueIdPaletteCommand.ts";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
@@ -144,7 +144,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
   it("opens the text input dialog for the first selected issue", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -173,7 +173,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
     const issue = buildIssue("0001");
     const updated = buildIssue("MI042");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -181,7 +181,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
       findTrackerRepoForIssueFolder: jest.fn().mockResolvedValue(mockRepo),
     });
 
-    refreshIssueListsMock.mockResolvedValue([updated]);
+    refreshIssueListsMock.mockResolvedValue([accessIssueFolderRow(updated).get()]);
     useTextInputDialogStore.setState({
       open: jest.fn().mockResolvedValue({
         type: "accepted",
@@ -209,7 +209,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
       label: "MI042",
     });
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: viewerNavigationStack(issue),
     });
@@ -217,7 +217,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
       findTrackerRepoForIssueFolder: jest.fn().mockResolvedValue(mockRepo),
     });
 
-    refreshIssueListsMock.mockResolvedValue([updated]);
+    refreshIssueListsMock.mockResolvedValue([accessIssueFolderRow(updated).get()]);
     useTextInputDialogStore.setState({
       open: jest.fn().mockResolvedValue({
         type: "accepted",
@@ -239,7 +239,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
     const issue = buildIssue("0001");
     const updated = buildIssue("MI042");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -247,7 +247,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
       findTrackerRepoForIssueFolder: jest.fn().mockResolvedValue(mockRepo),
     });
 
-    refreshIssueListsMock.mockResolvedValue([updated]);
+    refreshIssueListsMock.mockResolvedValue([accessIssueFolderRow(updated).get()]);
     useTextInputDialogStore.setState({
       open: jest.fn().mockResolvedValue({
         type: "accepted",
@@ -264,7 +264,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
   it("shows a red error toast when the target issue id already exists", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });
@@ -298,7 +298,7 @@ describe("ChangeIssueIdPaletteCommand", () => {
   it("resumes watchers when an unexpected id change error is thrown", async () => {
     const issue = buildIssue("0001");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
       navigationStack: INITIAL_NAVIGATION_STACK,
     });

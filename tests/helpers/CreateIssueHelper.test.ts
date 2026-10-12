@@ -18,7 +18,7 @@ import {
 import { IssueResource } from "../../src/async/resources/IssueResource.ts";
 import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
-import type { IssueFolder } from "../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../src/types/Issue.ts";
 import {
   INITIAL_NAVIGATION_STACK,
   viewerNavigationStack,
@@ -329,7 +329,7 @@ describe("CreateIssueHelper", () => {
 
     useAppStore.setState({
       filter: "status:open",
-      mainIssueLists: filteredIssues,
+      mainIssueLists: filteredIssues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: filteredIssues[0]!.issueId,
       searchRestoreIssueId: "MI0003-sample",
     });
@@ -404,7 +404,7 @@ describe("CreateIssueHelper", () => {
 
     useAppStore.setState({
       filter: "status:open",
-      mainIssueLists: filteredIssues,
+      mainIssueLists: filteredIssues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: filteredIssues[0]!.issueId,
       searchRestoreIssueId: "MI0003-sample",
     });

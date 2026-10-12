@@ -8,7 +8,7 @@ import {
 import { useAlertDialogStore } from "../../../src/store/AlertDialogStore.ts";
 import { useToastStore } from "../../../src/store/ToastStore.ts";
 import { usePopupStore } from "../../../src/store/PopupStore.ts";
-import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { accessIssueFolderRow, type IssueFolder } from "../../../src/types/Issue.ts";
 import { buildIssueFolder } from "../../fixture/buildIssueFolder.ts";
 import { TouchPaletteCommand } from "../../../src/views/PaletteCommands/TouchPaletteCommand.ts";
 
@@ -90,7 +90,7 @@ describe("TouchPaletteCommand", () => {
     const filePath = "/repo/issues/0001-test/issue.md";
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
-      mainIssueLists: [issue],
+      mainIssueLists: [issue].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issue.issueId,
     });
 
@@ -109,7 +109,7 @@ describe("TouchPaletteCommand", () => {
     await new TouchPaletteCommand().callback();
 
     expect(IssueFolderStorage.prototype.touchUpdatedAt).toHaveBeenCalledTimes(1);
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.updatedAt).toEqual(
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.updatedAt).toEqual(
       updatedAt,
     );
     expect(requestReloadSpy).toHaveBeenCalledWith(filePath);
@@ -122,7 +122,7 @@ describe("TouchPaletteCommand", () => {
     const issueB = buildIssue("0002");
     const updatedAt = new Date("2026-05-24T12:00:00.000Z");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
     });
@@ -137,10 +137,10 @@ describe("TouchPaletteCommand", () => {
     await new TouchPaletteCommand().callback();
 
     expect(touchSpy).toHaveBeenCalledTimes(2);
-    expect(useAppStore.getState().mainIssueLists?.[0]?.metadata?.updatedAt).toEqual(
+    expect(useAppStore.getState().mainIssueLists?.[0]?.issueFolder.metadata?.updatedAt).toEqual(
       updatedAt,
     );
-    expect(useAppStore.getState().mainIssueLists?.[1]?.metadata?.updatedAt).toEqual(
+    expect(useAppStore.getState().mainIssueLists?.[1]?.issueFolder.metadata?.updatedAt).toEqual(
       updatedAt,
     );
     expect(
@@ -153,7 +153,7 @@ describe("TouchPaletteCommand", () => {
     const issueA = buildIssue("0001");
     const issueB = buildIssue("0002");
     useAppStore.setState({
-      mainIssueLists: [issueA, issueB],
+      mainIssueLists: [issueA, issueB].map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
       selectedIssueId: issueB.issueId,
       tableRangeSelectionAnchorIssueId: issueA.issueId,
     });

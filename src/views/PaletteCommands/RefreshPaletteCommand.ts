@@ -37,11 +37,15 @@ export class RefreshPaletteCommand implements PaletteCommand {
       const refreshedList = await useAppStore.getState().refreshIssueLists();
       const stillSelected =
         selectedIssueId != null &&
-        refreshedList.some((issue) => issue.issueId === selectedIssueId);
+        refreshedList.some(
+          (row) => row.issueFolder.issueId === selectedIssueId,
+        );
       useAppStore
         .getState()
         .setSelectedIssueId(
-          stillSelected ? selectedIssueId : (refreshedList[0]?.issueId ?? null),
+          stillSelected
+            ? selectedIssueId
+            : (refreshedList[0]?.issueFolder.issueId ?? null),
         );
       const elapsed = Date.now() - start;
       if (elapsed < MIN_LOADING_MS) {
