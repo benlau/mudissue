@@ -135,7 +135,12 @@ function createIssueSearchStore(): IssueSearchStore {
         },
 
         searchIssueTableRows: async (filter) => {
-          const { allResults, rules } = await loadIssueSearch(filter);
+          const { allResults, rules } = await loadIssueSearch(
+            filter,
+            filter != null && filter.trim() !== ""
+              ? { matchedIdFirst: true }
+              : undefined,
+          );
           const groupSubissues = filter == null || filter.trim() === "";
           const rows = IssueFolderRowListAccessor.createFromIssueFolderList(
             allResults,

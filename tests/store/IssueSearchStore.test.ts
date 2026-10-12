@@ -407,4 +407,48 @@ describe("IssueSearchStore", () => {
     ]);
     expect(result.every((row) => row.depth === 0)).toBe(true);
   });
+
+  test("searchIssueTableRows promotes issue number match to the top while searching", async () => {
+    const repo: TrackerRepo = {
+      projectPath: "/repo-a",
+      trackerPath: "/repo-a",
+      name: "repo-a",
+      config: { issue_path: "issues" },
+    };
+
+    jest
+      .spyOn(RegistryService.getInstance(), "getIssueListSortOrder")
+      .mockResolvedValue({
+        field: "updated_at",
+        order: "desc",
+      });
+    jest
+      .spyOn(RegistryService.getInstance(), "getPinnedIssueFolderNames")
+      .mockResolvedValue([]);
+
+    jest
+      .spyOn(SearchQueryParser.prototype, "parse")
+      .mockReturnValue([{ type: "text", value: "485", negated: false }]);
+    jest.spyOn(IssueSearcher.prototype, "search").mockResolvedValueOnce([
+      buildIssue("PR0485", new Date("2026-01-01")),
+      buildIssue("PR0486", new Date("2026-03-01")),
+    ]);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue([
+        buildIssue("PR0485"),
+        buildIssue("PR0486"),
+      ]);
+
+    setTrackerRepoStoreMocks([repo]);
+
+    const result = await issueSearchStore()
+      .getState()
+      .searchIssueTableRows("485");
+
+    expect(result.map((row) => row.issueFolder.issueId)).toEqual([
+      "PR0485",
+      "PR0486",
+    ]);
+  });
 });
