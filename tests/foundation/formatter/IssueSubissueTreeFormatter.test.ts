@@ -31,4 +31,29 @@ describe("IssueSubissueTreeFormatter", () => {
 
     expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 1)).toBe("└─ ");
   });
+
+  it("indents a grandchild under the last child", () => {
+    const issues = [row("MI0001", 0), row("MI0002", 1), row("MI0003", 2)];
+
+    expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 0)).toBe("");
+    expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 1)).toBe("└─ ");
+    expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 2)).toBe(
+      "  └─ ",
+    );
+  });
+
+  it("continues the branch line when a sibling follows a nested child", () => {
+    const issues = [
+      row("MI0001", 0),
+      row("MI0002", 1),
+      row("MI0003", 2),
+      row("MI0004", 1),
+    ];
+
+    expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 1)).toBe("├─ ");
+    expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 2)).toBe(
+      "│  └─ ",
+    );
+    expect(IssueSubissueTreeFormatter.formatTitlePrefix(issues, 3)).toBe("└─ ");
+  });
 });

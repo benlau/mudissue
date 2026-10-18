@@ -517,17 +517,68 @@ function pinParentSubissueGroups(
   return [...pinned, ...unpinned];
 }
 
+function directChildFolders(
+  parent: IssueFolder,
+  members: readonly IssueFolder[],
+  rules: IssueSortingRules,
+): IssueFolder[] {
+  const byId = new Map(members.map((issue) => [issue.issueId, issue]));
+  const childIds = new Set<string>();
+  for (const childId of IssueFolderLinkFormatter.linkedFolderIds(
+    parent.metadata?.frontmatter?.subissues,
+  )) {
+    if (childId !== parent.issueId && byId.has(childId)) {
+      childIds.add(childId);
+    }
+  }
+  for (const issue of members) {
+    if (issue.issueId === parent.issueId) {
+      continue;
+    }
+    const parentId = IssueFolderLinkFormatter.linkedFolderIds(
+      issue.metadata?.frontmatter?.parent,
+    )[0];
+    if (parentId === parent.issueId) {
+      childIds.add(issue.issueId);
+    }
+  }
+  const children = [...childIds]
+    .map((issueId) => byId.get(issueId))
+    .filter((issue): issue is IssueFolder => issue != null);
+  return new IssueFolderListAccessor(children)
+    .sortBy({ ...rules, pinnedIssueIds: [] })
+    .get();
+}
+
 function flattenParentSubissueGroup(
   group: ParentSubissueGroup,
   rules: IssueSortingRules,
 ): IssueFolderRow[] {
-  const children = new IssueFolderListAccessor(group.children)
+  const members = [group.root, ...group.children];
+  const rows: IssueFolderRow[] = [];
+  const seen = new Set<string>();
+
+  const walk = (issue: IssueFolder, depth: number) => {
+    if (seen.has(issue.issueId)) {
+      return;
+    }
+    seen.add(issue.issueId);
+    rows.push(withListDepth(issue, depth));
+    for (const child of directChildFolders(issue, members, rules)) {
+      walk(child, depth + 1);
+    }
+  };
+
+  walk(group.root, 0);
+  const leftovers = new IssueFolderListAccessor(
+    members.filter((issue) => !seen.has(issue.issueId)),
+  )
     .sortBy({ ...rules, pinnedIssueIds: [] })
     .get();
-  return [
-    withListDepth(group.root, 0),
-    ...children.map((child) => withListDepth(child, 1)),
-  ];
+  for (const issue of leftovers) {
+    walk(issue, 1);
+  }
+  return rows;
 }
 
 function groupIssueFoldersByParentSubissue(

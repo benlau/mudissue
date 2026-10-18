@@ -478,6 +478,51 @@ describe("groupByParentSubissue", () => {
     expect(grouped.map((issue) => issue.depth)).toEqual([0, 1, 1]);
   });
 
+  it("nests a grandchild under its parent instead of beside it", () => {
+    const root = linkedIssue(
+      "MI0001",
+      { subissues: ["[[MI0002]]"] },
+      {
+        title: "A",
+        createdAt: new Date("2026-01-01"),
+        updatedAt: new Date("2026-01-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0002",
+      { parent: "[[MI0001]]", subissues: ["[[MI0003]]"] },
+      {
+        title: "B",
+        createdAt: new Date("2026-01-02"),
+        updatedAt: new Date("2026-01-02"),
+      },
+    );
+    const grandchild = linkedIssue(
+      "MI0003",
+      { parent: "[[MI0002]]" },
+      {
+        title: "C",
+        createdAt: new Date("2026-01-03"),
+        updatedAt: new Date("2026-01-03"),
+      },
+    );
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      grandchild,
+      root,
+      child,
+    ])
+      .sortBy(defaultSortingRules, { groupByParentSubissue: true })
+      .get();
+
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MI0001",
+      "MI0002",
+      "MI0003",
+    ]);
+    expect(grouped.map((issue) => issue.depth)).toEqual([0, 1, 2]);
+  });
+
   it("sorts updated_at oldest-first by the latest date in the family", () => {
     const parent = linkedIssue(
       "MI0001",
