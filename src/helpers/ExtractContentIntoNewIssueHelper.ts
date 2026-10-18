@@ -69,9 +69,9 @@ export class ExtractContentIntoNewIssueHelper {
     const createIssueHelper = new CreateIssueHelper();
 
     try {
-      const created = await createIssueHelper.createSubissueOnDisk(
+      const created = await createIssueHelper.createIssueOnDisk(
         title,
-        parent,
+        undefined,
         content,
       );
       const link = IssueFolderLinkFormatter.formatFolderReference(
@@ -87,6 +87,7 @@ export class ExtractContentIntoNewIssueHelper {
       }
 
       await viewerStore.getState().save();
+      await createIssueHelper.linkSubissueOnDisk(parent, created);
       await createIssueHelper.openCreatedIssue(created);
       await useToastStore
         .getState()

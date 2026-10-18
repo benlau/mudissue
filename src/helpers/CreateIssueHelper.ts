@@ -40,6 +40,15 @@ export class CreateIssueHelper {
     content?: string,
   ): Promise<IssueFolder> {
     const created = await this.createIssueOnDisk(title, undefined, content);
+    await this.linkSubissueOnDisk(parent, created);
+    return created;
+  }
+
+  /** Writes parent `subissues` and child `parent` without creating files or navigating. */
+  async linkSubissueOnDisk(
+    parent: IssueFolder,
+    child: IssueFolder,
+  ): Promise<void> {
     const repo = await useCurrentTrackerRepoStore
       .getState()
       .getCurrentTrackerRepo();
@@ -49,13 +58,13 @@ export class CreateIssueHelper {
     const storage = new TrackerRepoStorage(repo, globalConfig);
     const issueFilePattern = storage.getIssueFilePattern();
     const parentFolderStorage = new IssueFolderStorage(parent);
-    await parentFolderStorage.appendSubissue(created.issueId, issueFilePattern);
-    const childFolderStorage = new IssueFolderStorage(created);
+    await parentFolderStorage.appendSubissue(child.issueId, issueFilePattern);
+    const childFolderStorage = new IssueFolderStorage(child);
     await childFolderStorage.setParent(parent.issueId, issueFilePattern);
-    return created;
   }
 
-  private async createIssueOnDisk(
+  /** Creates issue files only; no parent link and no navigation. */
+  async createIssueOnDisk(
     title?: string,
     filePath?: string,
     content?: string,

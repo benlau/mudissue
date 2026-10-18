@@ -18,7 +18,10 @@ import {
 import { IssueResource } from "../../src/async/resources/IssueResource.ts";
 import { IssueFolderStorage } from "../../src/async/storage/IssueFolderStorage.ts";
 import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
-import { accessIssueFolderRow, type IssueFolder } from "../../src/types/Issue.ts";
+import {
+  accessIssueFolderRow,
+  type IssueFolder,
+} from "../../src/types/Issue.ts";
 import {
   INITIAL_NAVIGATION_STACK,
   viewerNavigationStack,
@@ -45,9 +48,7 @@ function currentViewerIssue(): IssueFolder | null {
   return page.name === "ISSUE_VIEWER" ? page.args.issue : null;
 }
 
-function mockIssueSearchStore(
-  state: IssueSearchStoreState,
-): IssueSearchStore {
+function mockIssueSearchStore(state: IssueSearchStoreState): IssueSearchStore {
   return {
     getState: () => state,
     setState: jest.fn(),
@@ -136,7 +137,9 @@ describe("CreateIssueHelper", () => {
       undefined,
     );
     expect(currentViewerIssue()).toEqual(createdFolder);
-    expect(useAppStore.getState().navigationStack).toEqual(viewerPageStack(createdFolder));
+    expect(useAppStore.getState().navigationStack).toEqual(
+      viewerPageStack(createdFolder),
+    );
   });
 
   it("createIssue forwards optional body content to IssueResource.create", async () => {
@@ -276,6 +279,41 @@ describe("CreateIssueHelper", () => {
     );
   });
 
+  it("linkSubissueOnDisk writes parent subissues and child parent", async () => {
+    const parentIssue = buildIssue("0001");
+    const childIssue = buildIssueFolder("0002-child-issue", {
+      label: "0002",
+      path: "/repo/issues/0002-child-issue",
+      title: "Child issue",
+    });
+    const repo = {
+      name: "repo",
+      projectPath: "/repo",
+      trackerPath: "/repo",
+      config: {
+        issue_path: "issues",
+        status_list: "pending, open, closed",
+      },
+    };
+    useCurrentTrackerRepoStore.setState({
+      getCurrentTrackerRepo: jest.fn().mockResolvedValue(repo),
+    });
+    useGlobalConfigStore.setState({
+      ensureGlobalConfig: jest.fn().mockResolvedValue({}),
+    });
+    const appendSubissueSpy = jest
+      .spyOn(IssueFolderStorage.prototype, "appendSubissue")
+      .mockResolvedValue(undefined);
+    const setParentSpy = jest
+      .spyOn(IssueFolderStorage.prototype, "setParent")
+      .mockResolvedValue(undefined);
+
+    await helper.linkSubissueOnDisk(parentIssue, childIssue);
+
+    expect(appendSubissueSpy).toHaveBeenCalledWith(childIssue.issueId, "long");
+    expect(setParentSpy).toHaveBeenCalledWith(parentIssue.issueId, "long");
+  });
+
   it("createIssue preserves search filter and opens the new issue when search is active", async () => {
     const repo = {
       name: "repo",
@@ -329,7 +367,9 @@ describe("CreateIssueHelper", () => {
 
     useAppStore.setState({
       filter: "status:open",
-      mainIssueLists: filteredIssues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
+      mainIssueLists: filteredIssues.map((issueFolder) =>
+        accessIssueFolderRow(issueFolder).get(),
+      ),
       selectedIssueId: filteredIssues[0]!.issueId,
       searchRestoreIssueId: "MI0003-sample",
     });
@@ -404,7 +444,9 @@ describe("CreateIssueHelper", () => {
 
     useAppStore.setState({
       filter: "status:open",
-      mainIssueLists: filteredIssues.map((issueFolder) => accessIssueFolderRow(issueFolder).get()),
+      mainIssueLists: filteredIssues.map((issueFolder) =>
+        accessIssueFolderRow(issueFolder).get(),
+      ),
       selectedIssueId: filteredIssues[0]!.issueId,
       searchRestoreIssueId: "MI0003-sample",
     });
