@@ -359,6 +359,45 @@ function compareCycleRoot(left: IssueFolder, right: IssueFolder): number {
   );
 }
 
+function pickParentSubissueGroupRoot(
+  component: IssueFolder[],
+): IssueFolder | undefined {
+  const memberIds = new Set(component.map((issue) => issue.issueId));
+  const hasIncoming = new Set<string>();
+
+  for (const issue of component) {
+    const frontmatter = issue.metadata?.frontmatter;
+    const parentId = IssueFolderLinkFormatter.linkedFolderIds(
+      frontmatter?.parent,
+    )[0];
+    if (
+      parentId != null &&
+      parentId !== issue.issueId &&
+      memberIds.has(parentId)
+    ) {
+      hasIncoming.add(issue.issueId);
+    }
+    for (const childId of IssueFolderLinkFormatter.linkedFolderIds(
+      frontmatter?.subissues,
+    )) {
+      if (childId !== issue.issueId && memberIds.has(childId)) {
+        hasIncoming.add(childId);
+      }
+    }
+  }
+
+  const roots = component.filter((issue) => !hasIncoming.has(issue.issueId));
+  if (roots.length === 1) {
+    return roots[0];
+  }
+  // No root is a cycle; several roots means inconsistent links. Tie-break
+  // among the candidates that are still roots, or the whole component.
+  const candidates = roots.length === 0 ? component : roots;
+  return [...candidates].sort((left, right) =>
+    compareCycleRoot(left, right),
+  )[0];
+}
+
 function partitionParentSubissueGroups(
   issues: IssueFolder[],
 ): ParentSubissueGroup[] {
@@ -416,9 +455,7 @@ function partitionParentSubissueGroups(
         }
       }
     }
-    const root = [...component].sort((left, right) =>
-      compareCycleRoot(left, right),
-    )[0];
+    const root = pickParentSubissueGroupRoot(component);
     if (root == null) {
       continue;
     }

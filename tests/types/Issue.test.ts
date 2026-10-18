@@ -478,6 +478,38 @@ describe("groupByParentSubissue", () => {
     expect(grouped.map((issue) => issue.depth)).toEqual([0, 1, 1]);
   });
 
+  it("nests an older child under a parent that was created later", () => {
+    const parent = linkedIssue(
+      "MZ0029",
+      { subissues: ["[[MI0536]]"] },
+      {
+        title: "v0.0.6 release",
+        createdAt: new Date("2026-02-01"),
+      },
+    );
+    const child = linkedIssue(
+      "MI0536",
+      { parent: "[[MZ0029]]" },
+      {
+        title: "Dependency Alerts",
+        createdAt: new Date("2026-01-01"),
+      },
+    );
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      child,
+      parent,
+    ])
+      .sortBy(defaultSortingRules, { groupByParentSubissue: true })
+      .get();
+
+    expect(grouped.map((issue) => issue.issueFolder.issueId)).toEqual([
+      "MZ0029",
+      "MI0536",
+    ]);
+    expect(grouped.map((issue) => issue.depth)).toEqual([0, 1]);
+  });
+
   it("nests a grandchild under its parent instead of beside it", () => {
     const root = linkedIssue(
       "MI0001",
