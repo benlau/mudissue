@@ -1,3 +1,20 @@
+v0.0.6 Release
+=========
+
+New Features:
+- Nest grandchild issues under their parent in the issue table so multi-level subissue chains render as a tree
+
+Bug Fixes:
+- Choose the issue-table root from parent and subissue links so an older child is not shown as the parent
+
+Changed:
+- Link extracted sub-issues after the parent issue viewer saves so subissues frontmatter is not overwritten by stale data
+- Drop Mermaid PNG rendering from worktree graph creation
+
+Dependencies:
+- Remove optional Mermaid CLI npm dependencies added in v0.0.3
+
+
 v0.0.5 Release
 =========
 
