@@ -8,7 +8,6 @@ import { GitFolderValidator } from "../async/validators/GitFolderValidator.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
 import { WorktreeHelper } from "../helpers/WorktreeHelper.ts";
 import { MermaidGitGraphGenerator } from "../async/generators/MermaidGitGraphGenerator.ts";
-import { MermaidService } from "../services/MermaidService.ts";
 import type {
   ErrorResponse,
   IssueWorktreeCreateGraphCommandSuccessResult,
@@ -24,10 +23,8 @@ export type IssueWorktreeCreateGraphCommandSuccessResponse =
 
 export type IssueWorktreeCreateGraphRunInput = {
   project?: string;
-  /** Write Mermaid source to a file instead of rendering PNG. */
-  text?: boolean;
   open?: boolean;
-  /** Explicit output path; otherwise a temp file (.png or .mmd). */
+  /** Explicit output path; otherwise a temp `.mmd` file. */
   output?: string;
   outputJson?: boolean;
 };
@@ -36,7 +33,7 @@ const msg = defineMessages({
   worktreeGraphDescribe: {
     id: "cli.worktree.graph.describe",
     defaultMessage:
-      "Build a Mermaid history graph for issue worktrees and write PNG or Mermaid to a file",
+      "Build a Mermaid history graph for issue worktrees and write it to a file",
   },
   optionProject: {
     id: "cli.common.option.project",
@@ -44,16 +41,11 @@ const msg = defineMessages({
   },
   worktreeGraphOpen: {
     id: "cli.worktree.graph.option.open",
-    defaultMessage: "Open the PNG with the default application",
-  },
-  worktreeGraphText: {
-    id: "cli.worktree.graph.option.text",
-    defaultMessage: "Write Mermaid source to a file instead of rendering PNG",
+    defaultMessage: "Open the Mermaid file with the default application",
   },
   worktreeGraphOutput: {
     id: "cli.worktree.graph.option.output",
-    defaultMessage:
-      "Output file path (default: temp file; .mmd with --text, .png otherwise)",
+    defaultMessage: "Output file path (default: temp `.mmd` file)",
   },
   worktreeGraphNoIssueWorktrees: {
     id: "cli.worktree.graph.error.noIssueWorktrees",
@@ -84,11 +76,6 @@ export class IssueWorktreeCreateGraphCommand extends Command {
             default: false,
             describe: intl.formatMessage(msg.worktreeGraphOpen),
           })
-          .option("text", {
-            type: "boolean",
-            default: false,
-            describe: intl.formatMessage(msg.worktreeGraphText),
-          })
           .option("output", {
             type: "string",
             describe: intl.formatMessage(msg.worktreeGraphOutput),
@@ -100,14 +87,11 @@ export class IssueWorktreeCreateGraphCommand extends Command {
           json: outputJson,
           interactive: false,
         });
-        const text = argv.text === true;
-        const openFile = argv.open === true && !text;
         await cmd.runCommand(
           { outputJson },
           {
             project: argv.project as string | undefined,
-            text,
-            open: openFile,
+            open: argv.open === true,
             outputJson,
             output: argv.output as string | undefined,
           },
@@ -119,7 +103,7 @@ export class IssueWorktreeCreateGraphCommand extends Command {
   async command(
     input: IssueWorktreeCreateGraphRunInput,
   ): Promise<IssueWorktreeCreateGraphCommandSuccessResponse | ErrorResponse> {
-    const { project, text, open, outputJson, output: outputPath } = input;
+    const { project, open, outputJson, output: outputPath } = input;
 
     const loggerService = LoggerService.getInstance();
     const fileService = FileService.getInstance();
@@ -175,25 +159,10 @@ export class IssueWorktreeCreateGraphCommand extends Command {
       ? path.resolve(shellService.cwd(), outputPath)
       : path.join(
           shellService.tmpdir(),
-          `mudissue-graph-${Date.now().toString(36)}.${text ? "mmd" : "png"}`,
+          `mudissue-graph-${Date.now().toString(36)}.mmd`,
         );
 
-    if (text) {
-      await fileService.writeFile(outPath, `${mermaidGraph}\n`);
-      if (!outputJson) {
-        loggerService.info(outPath);
-      }
-      return {
-        status: "ok",
-        result: { mermaidGraph, path: outPath },
-      };
-    }
-
-    await MermaidService.getInstance().writeMermaidToPng(
-      mermaidGraph,
-      outPath,
-      fileService,
-    );
+    await fileService.writeFile(outPath, `${mermaidGraph}\n`);
 
     if (open) {
       await shellService.open(outPath);

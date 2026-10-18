@@ -26,9 +26,6 @@ await build({
     "gray-matter",
     "which",
     "isomorphic-git",
-    "sharp",
-    "mermaid",
-    "svgdom",
   ],
   loader: {
     ".tsx": "tsx",

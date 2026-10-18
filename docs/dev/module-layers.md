@@ -142,8 +142,6 @@ Test files mirror `src/` under `tests/`, with one test file per production modul
 | L3 (`store/`) | Yes | Direct unit tests |
 | L4 (`commands/`, `views/`, …) | Yes | Direct unit tests; mock L1 services, not raw `fs` or external libraries |
 
-Example: `MermaidService` optional-dependency errors are asserted in `tests/commands/IssueWorktreeCreateGraphCommand.test.ts` by stubbing `MermaidService.writeMermaidToPng`, not in a dedicated service test.
-
 See also [AGENTS.md](../../AGENTS.md) for project-wide architecture notes.
 
 ## Examples

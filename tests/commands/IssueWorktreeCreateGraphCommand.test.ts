@@ -1,7 +1,6 @@
 import { jest } from "@jest/globals";
 import * as path from "path";
 import { IssueWorktreeCreateGraphCommand } from "../../src/commands/IssueWorktreeCreateGraphCommand.ts";
-import { MermaidService } from "../../src/services/MermaidService.ts";
 import {
   resetGlobalConfigStore,
   useGlobalConfigStore,
@@ -82,14 +81,12 @@ describe("IssueWorktreeCreateGraphCommand", () => {
     jest.clearAllMocks();
     ShellService.setInstance(bundle.shellService as unknown as ShellService);
     trackerRepoStore.getCurrentTrackerRepo.mockResolvedValue(mockRepo);
-    MermaidService.setInstance(null);
     shellService.tmpdir.mockReturnValue("/tmp");
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
     ShellService.setInstance(null);
-    MermaidService.setInstance(null);
     resetGlobalConfigStore();
   });
 
@@ -107,77 +104,13 @@ describe("IssueWorktreeCreateGraphCommand", () => {
     });
   });
 
-  it("returns MERMAID_LEGACY_DEPS_MISSING when PNG path and optional packages missing", async () => {
-    jest.spyOn(MermaidService.prototype, "writeMermaidToPng").mockRejectedValue({
-      status: "error",
-      error: { code: "MERMAID_LEGACY_DEPS_MISSING", message: "ignored" },
-    });
-
-    const cmd = new IssueWorktreeCreateGraphCommand();
-    const result = await cmd.runCommand({ outputJson: true }, {
-      outputJson: true,
-    });
-
-    expect(result).toMatchObject({
-      status: "error",
-      error: { code: "MERMAID_LEGACY_DEPS_MISSING" },
-    });
-  });
-
-  it("writes PNG via MermaidService to temp path when output omitted", async () => {
-    shellService.cwd.mockReturnValue("/cwd");
-
-    const writeMermaidToPng = jest.fn().mockResolvedValue(undefined);
-    MermaidService.setInstance({
-      writeMermaidToPng,
-    } as unknown as MermaidService);
-
+  it("writes Mermaid source to temp mmd when output omitted", async () => {
     const cmd = new IssueWorktreeCreateGraphCommand();
     const result = await cmd.runCommand({ outputJson: true }, {
       outputJson: true,
     });
 
     expect(result?.status).toBe("ok");
-    expect(writeMermaidToPng).toHaveBeenCalledWith(
-      expect.stringContaining("gitGraph"),
-      expect.stringMatching(/^\/tmp\/mudissue-graph-[0-9a-z]+\.png$/),
-      fileService,
-    );
-  });
-
-  it("writes PNG to explicit output path", async () => {
-    shellService.cwd.mockReturnValue("/cwd");
-
-    const writeMermaidToPng = jest.fn().mockResolvedValue(undefined);
-    MermaidService.setInstance({
-      writeMermaidToPng,
-    } as unknown as MermaidService);
-
-    const cmd = new IssueWorktreeCreateGraphCommand();
-    const result = await cmd.runCommand({ outputJson: true }, {
-      outputJson: true,
-      output: path.join("rel", "graph.png"),
-    });
-
-    expect(result?.status).toBe("ok");
-    expect(writeMermaidToPng).toHaveBeenCalledWith(
-      expect.stringContaining("gitGraph"),
-      path.resolve("/cwd", path.join("rel", "graph.png")),
-      fileService,
-    );
-  });
-
-  it("writes Mermaid source to temp mmd when text", async () => {
-    const pngSpy = jest.spyOn(MermaidService.prototype, "writeMermaidToPng");
-
-    const cmd = new IssueWorktreeCreateGraphCommand();
-    const result = await cmd.runCommand({ outputJson: true }, {
-      text: true,
-      outputJson: true,
-    });
-
-    expect(result?.status).toBe("ok");
-    expect(pngSpy).not.toHaveBeenCalled();
     expect(fileService.writeFile).toHaveBeenCalledWith(
       expect.stringMatching(/^\/tmp\/mudissue-graph-[0-9a-z]+\.mmd$/),
       expect.stringMatching(/gitGraph/),
@@ -187,25 +120,34 @@ describe("IssueWorktreeCreateGraphCommand", () => {
     );
   });
 
-  it("writes Mermaid source to explicit path when text and output set", async () => {
+  it("writes Mermaid source to explicit output path", async () => {
     shellService.cwd.mockReturnValue("/cwd");
-    const pngSpy = jest.spyOn(MermaidService.prototype, "writeMermaidToPng");
 
     const cmd = new IssueWorktreeCreateGraphCommand();
     const result = await cmd.runCommand({ outputJson: true }, {
-      text: true,
       outputJson: true,
-      output: "custom.mmd",
+      output: path.join("rel", "graph.mmd"),
     });
 
     expect(result?.status).toBe("ok");
-    expect(pngSpy).not.toHaveBeenCalled();
     expect(fileService.writeFile).toHaveBeenCalledWith(
-      path.resolve("/cwd", "custom.mmd"),
+      path.resolve("/cwd", path.join("rel", "graph.mmd")),
       expect.stringMatching(/gitGraph/),
     );
-    expect((result as { result: { path: string } }).result.path).toBe(
-      path.resolve("/cwd", "custom.mmd"),
+  });
+
+  it("opens output file when open is true", async () => {
+    shellService.cwd.mockReturnValue("/cwd");
+
+    const cmd = new IssueWorktreeCreateGraphCommand();
+    await cmd.runCommand({ outputJson: true }, {
+      outputJson: true,
+      open: true,
+      output: "graph.mmd",
+    });
+
+    expect(shellService.open).toHaveBeenCalledWith(
+      path.resolve("/cwd", "graph.mmd"),
     );
   });
 });

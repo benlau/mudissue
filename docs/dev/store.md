@@ -77,13 +77,6 @@ classDiagram
         +writeText(text) Promise
     }
 
-    class MermaidService {
-        <<singleton>>
-        +getInstance() MermaidService
-        +renderMermaidToSvg(definition) Promise
-        +writeMermaidToPng(definition, outPath) Promise
-    }
-
     LoggerService <|-- SilentLogger
     LoggerService <|-- DebugLoggerService
     GitService ..> FileService : reads via
@@ -296,7 +289,6 @@ classDiagram
 | `GitService` | — | Read-only git metadata (commands/async, not stores) |
 | `LoggerService` | — | Console logging (`SilentLogger`, `DebugLoggerService` variants) |
 | `ClipboardService` | — | System clipboard (views/commands) |
-| `MermaidService` | — | Mermaid → SVG/PNG rendering (commands) |
 
 Only three services are referenced directly from store modules today. The others are consumed by commands, views, and async at L4/L2.
 
