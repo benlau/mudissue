@@ -1,4 +1,5 @@
-import { IssueFolderLinkFormatter } from "../foundation/formatter/IssueFolderLinkFormatter.ts";
+import { IssueFolderRowGraphBuilder } from "../foundation/algo/IssueFolderRowGraphBuilder.ts";
+import { accessDirectedGraph, type DirectedGraph } from "./DirectedGraph.ts";
 import { IssueSelectorMatcher } from "../foundation/matchers/IssueSelectorMatcher.ts";
 import type { PriorityList } from "./priority.ts";
 import {
@@ -155,10 +156,6 @@ type ParentSubissueGroup = {
   root: IssueFolder;
   children: IssueFolder[];
 };
-
-function withListDepth(issue: IssueFolder, depth: number): IssueFolderRow {
-  return accessIssueFolderRow(issue, depth).get();
-}
 
 function aggregateFamilyDate(
   members: IssueFolder[],
@@ -337,134 +334,20 @@ function compareIssueFoldersByField(
   }
 }
 
-function compareCycleRoot(left: IssueFolder, right: IssueFolder): number {
-  const leftTime = left.metadata?.createdAt?.getTime();
-  const rightTime = right.metadata?.createdAt?.getTime();
-  const leftDefined = leftTime != null && !Number.isNaN(leftTime);
-  const rightDefined = rightTime != null && !Number.isNaN(rightTime);
-  if (leftDefined && rightDefined && leftTime !== rightTime) {
-    return leftTime - rightTime;
-  }
-  if (leftDefined !== rightDefined) {
-    return leftDefined ? -1 : 1;
-  }
-  const idCompared = left.issueId.localeCompare(right.issueId);
-  if (idCompared !== 0) {
-    return idCompared;
-  }
-  return (left.metadata?.title ?? "").localeCompare(
-    right.metadata?.title ?? "",
-    undefined,
-    { sensitivity: "base" },
-  );
-}
-
-function pickParentSubissueGroupRoot(
-  component: IssueFolder[],
-): IssueFolder | undefined {
-  const memberIds = new Set(component.map((issue) => issue.issueId));
-  const hasIncoming = new Set<string>();
-
-  for (const issue of component) {
-    const frontmatter = issue.metadata?.frontmatter;
-    const parentId = IssueFolderLinkFormatter.linkedFolderIds(
-      frontmatter?.parent,
-    )[0];
-    if (
-      parentId != null &&
-      parentId !== issue.issueId &&
-      memberIds.has(parentId)
-    ) {
-      hasIncoming.add(issue.issueId);
-    }
-    for (const childId of IssueFolderLinkFormatter.linkedFolderIds(
-      frontmatter?.subissues,
-    )) {
-      if (childId !== issue.issueId && memberIds.has(childId)) {
-        hasIncoming.add(childId);
-      }
-    }
-  }
-
-  const roots = component.filter((issue) => !hasIncoming.has(issue.issueId));
-  if (roots.length === 1) {
-    return roots[0];
-  }
-  // No root is a cycle; several roots means inconsistent links. Tie-break
-  // among the candidates that are still roots, or the whole component.
-  const candidates = roots.length === 0 ? component : roots;
-  return [...candidates].sort((left, right) =>
-    compareCycleRoot(left, right),
-  )[0];
-}
-
 function partitionParentSubissueGroups(
   issues: IssueFolder[],
+  resolved: DirectedGraph<IssueFolderRow>,
 ): ParentSubissueGroup[] {
-  const byId = new Map(issues.map((issue) => [issue.issueId, issue]));
-  const neighbors = new Map<string, Set<string>>();
-  const link = (leftId: string, rightId: string) => {
-    if (leftId === rightId || !byId.has(leftId) || !byId.has(rightId)) {
-      return;
-    }
-    const left = neighbors.get(leftId) ?? new Set<string>();
-    left.add(rightId);
-    neighbors.set(leftId, left);
-    const right = neighbors.get(rightId) ?? new Set<string>();
-    right.add(leftId);
-    neighbors.set(rightId, right);
-  };
-
-  for (const issue of issues) {
-    const frontmatter = issue.metadata?.frontmatter;
-    const parentId = IssueFolderLinkFormatter.linkedFolderIds(
-      frontmatter?.parent,
-    )[0];
-    if (parentId != null) {
-      link(issue.issueId, parentId);
-    }
-    for (const childId of IssueFolderLinkFormatter.linkedFolderIds(
-      frontmatter?.subissues,
-    )) {
-      link(issue.issueId, childId);
-    }
-  }
-
-  const seen = new Set<string>();
-  const groups: ParentSubissueGroup[] = [];
-  for (const issue of issues) {
-    if (seen.has(issue.issueId)) {
-      continue;
-    }
-    const component: IssueFolder[] = [];
-    const stack = [issue.issueId];
-    seen.add(issue.issueId);
-    while (stack.length > 0) {
-      const issueId = stack.pop();
-      if (issueId == null) {
-        continue;
-      }
-      const node = byId.get(issueId);
-      if (node != null) {
-        component.push(node);
-      }
-      for (const nextId of neighbors.get(issueId) ?? []) {
-        if (!seen.has(nextId)) {
-          seen.add(nextId);
-          stack.push(nextId);
-        }
-      }
-    }
-    const root = pickParentSubissueGroupRoot(component);
-    if (root == null) {
-      continue;
-    }
-    groups.push({
-      root,
-      children: component.filter((item) => item.issueId !== root.issueId),
-    });
-  }
-  return groups;
+  const byPath = new Map(issues.map((issue) => [issue.path, issue] as const));
+  const graph = accessDirectedGraph(resolved);
+  return graph.roots().map((rootNode) => {
+    const root = byPath.get(rootNode.id) ?? rootNode.data.issueFolder;
+    const descendantPaths = graph.collectDescendantIds(rootNode.id);
+    const children = descendantPaths
+      .map((path) => byPath.get(path))
+      .filter((issue): issue is IssueFolder => issue != null);
+    return { root, children };
+  });
 }
 
 function groupSortStandIn(
@@ -554,33 +437,15 @@ function pinParentSubissueGroups(
   return [...pinned, ...unpinned];
 }
 
-function directChildFolders(
-  parent: IssueFolder,
-  members: readonly IssueFolder[],
+function resolvedChildFolders(
+  parentPath: string,
+  resolved: DirectedGraph<IssueFolderRow>,
   rules: IssueSortingRules,
 ): IssueFolder[] {
-  const byId = new Map(members.map((issue) => [issue.issueId, issue]));
-  const childIds = new Set<string>();
-  for (const childId of IssueFolderLinkFormatter.linkedFolderIds(
-    parent.metadata?.frontmatter?.subissues,
-  )) {
-    if (childId !== parent.issueId && byId.has(childId)) {
-      childIds.add(childId);
-    }
-  }
-  for (const issue of members) {
-    if (issue.issueId === parent.issueId) {
-      continue;
-    }
-    const parentId = IssueFolderLinkFormatter.linkedFolderIds(
-      issue.metadata?.frontmatter?.parent,
-    )[0];
-    if (parentId === parent.issueId) {
-      childIds.add(issue.issueId);
-    }
-  }
-  const children = [...childIds]
-    .map((issueId) => byId.get(issueId))
+  const graph = accessDirectedGraph(resolved);
+  const children = graph
+    .childIds(parentPath)
+    .map((childPath) => graph.getNode(childPath)?.data.issueFolder)
     .filter((issue): issue is IssueFolder => issue != null);
   return new IssueFolderListAccessor(children)
     .sortBy({ ...rules, pinnedIssueIds: [] })
@@ -589,32 +454,29 @@ function directChildFolders(
 
 function flattenParentSubissueGroup(
   group: ParentSubissueGroup,
+  resolved: DirectedGraph<IssueFolderRow>,
   rules: IssueSortingRules,
 ): IssueFolderRow[] {
-  const members = [group.root, ...group.children];
+  const graph = accessDirectedGraph(resolved);
   const rows: IssueFolderRow[] = [];
   const seen = new Set<string>();
 
-  const walk = (issue: IssueFolder, depth: number) => {
-    if (seen.has(issue.issueId)) {
+  const walk = (issuePath: string) => {
+    if (seen.has(issuePath)) {
       return;
     }
-    seen.add(issue.issueId);
-    rows.push(withListDepth(issue, depth));
-    for (const child of directChildFolders(issue, members, rules)) {
-      walk(child, depth + 1);
+    seen.add(issuePath);
+    const node = graph.getNode(issuePath);
+    if (node == null) {
+      return;
+    }
+    rows.push(node.data);
+    for (const child of resolvedChildFolders(issuePath, resolved, rules)) {
+      walk(child.path);
     }
   };
 
-  walk(group.root, 0);
-  const leftovers = new IssueFolderListAccessor(
-    members.filter((issue) => !seen.has(issue.issueId)),
-  )
-    .sortBy({ ...rules, pinnedIssueIds: [] })
-    .get();
-  for (const issue of leftovers) {
-    walk(issue, 1);
-  }
+  walk(group.root.path);
   return rows;
 }
 
@@ -622,10 +484,17 @@ function groupIssueFoldersByParentSubissue(
   issues: IssueFolder[],
   rules: IssueSortingRules,
 ): IssueFolderRow[] {
-  const groups = partitionParentSubissueGroups(issues);
+  const resolved = new IssueFolderRowGraphBuilder()
+    .build(issues)
+    .normalize()
+    .sortAndSetDepth()
+    .get();
+  const groups = partitionParentSubissueGroups(issues, resolved);
   const ordered = orderParentSubissueGroups(groups, rules);
   const pinned = pinParentSubissueGroups(ordered, rules.pinnedIssueIds);
-  return pinned.flatMap((group) => flattenParentSubissueGroup(group, rules));
+  return pinned.flatMap((group) =>
+    flattenParentSubissueGroup(group, resolved, rules),
+  );
 }
 
 export class IssueFolderListAccessor {

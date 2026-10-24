@@ -68,6 +68,10 @@ const filenameConventionRules = [
     regexes: [/^.+Parser\.ts$/],
   },
   {
+    directory: "src/foundation/algo",
+    regexes: [/^.+GraphBuilder\.ts$/],
+  },
+  {
     directory: "src/async/storage",
     regexes: [/^.+Storage\.ts$/],
   },

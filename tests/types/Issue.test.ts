@@ -798,6 +798,35 @@ describe("groupByParentSubissue", () => {
     expect(grouped.map((issue) => issue.depth)).toEqual([0, 1]);
   });
 
+  it("shows a second root when multi-parent links would merge unrelated trees", () => {
+    const one = linkedIssue("0001-1", { subissues: ["[[0002-2]]"] });
+    const two = linkedIssue("0002-2", {
+      parent: "[[0001-1]]",
+      subissues: ["[[0003-3]]"],
+    });
+    const three = linkedIssue("0003-3", {
+      parent: ["[[0002-2]]", "[[0004-4]]"],
+    });
+    const four = linkedIssue("0004-4", { subissues: ["[[0003-3]]"] });
+
+    const grouped = IssueFolderRowListAccessor.createFromIssueFolderList([
+      four,
+      three,
+      two,
+      one,
+    ])
+      .sortBy(defaultSortingRules, { groupByParentSubissue: true })
+      .get();
+
+    expect(grouped.map((row) => row.issueFolder.issueId)).toEqual([
+      "0001-1",
+      "0002-2",
+      "0003-3",
+      "0004-4",
+    ]);
+    expect(grouped.map((row) => row.depth)).toEqual([0, 1, 2, 0]);
+  });
+
   it("breaks a created_at tie by issue id", () => {
     const createdAt = new Date("2026-01-01");
     const higherId = linkedIssue(

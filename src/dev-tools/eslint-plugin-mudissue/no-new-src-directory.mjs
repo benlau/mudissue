@@ -19,6 +19,7 @@ const allowedSrcDirectories = new Set([
   "src/foundation/layouter",
   "src/foundation/matchers",
   "src/foundation/parser",
+  "src/foundation/algo",
   "src/helpers",
   "src/rules",
   "src/services",

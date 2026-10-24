@@ -53,7 +53,7 @@ flowchart TB
 ### L0 — Foundation
 
 - **types** — shared interfaces and accessors
-- **foundation** — pure helpers with no I/O: `formatter/` (dates, filenames, branches), `parser/` (e.g. `MarkdownParser`), `layouter/` (terminal table layout); may import `types`
+- **foundation** — pure helpers with no I/O: `formatter/` (dates, filenames, branches), `parser/` (e.g. `MarkdownParser`), `layouter/` (terminal table layout), `algo/` (directed-graph issue row resolution); may import `types`
 
 L0 modules must not import `services`, `async`, or anything above.
 
@@ -106,6 +106,7 @@ Class files use **CamelCase** basenames. ESLint checks the basename against the 
 | `src/foundation/layouter/` | `*Layouter.ts` | — |
 | `src/foundation/matchers/` | `*Matcher.ts` | — |
 | `src/foundation/parser/` | `*Parser.ts` | — |
+| `src/foundation/algo/` | `*GraphBuilder.ts` | — |
 | `src/async/` (root, no files) | — | use subdirectories below |
 | `src/async/storage/` | `*Storage.ts` | — |
 | `src/async/resources/` | `Resource.ts`, `IssueResource.ts`, `index.ts` | — |
