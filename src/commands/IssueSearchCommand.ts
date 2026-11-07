@@ -219,13 +219,12 @@ export class IssueSearchCommand extends Command {
     for (const repo of repoList) {
       const storage = new TrackerRepoStorage(repo, globalConfig);
       const issues = await storage.listIssues();
-      const resolvedStatusList =
-        await trackerRepoStore.getResolvedStatusList(repo);
+      const statusAliases = await trackerRepoStore.getStatusAliases(repo);
       let results = await IssueSearchStoreFactory.createOrGet(
         IssueSearchStoreKey.Headless,
       )
         .getState()
-        .searchFolders(issues, parsedTerms, { resolvedStatusList });
+        .searchFolders(issues, parsedTerms, { statusAliases });
       if (sortOrders != null) {
         const statusList = await trackerRepoStore.getStatusList(repo);
         const priorityList = (await trackerRepoStore.getPriorityTable(repo))

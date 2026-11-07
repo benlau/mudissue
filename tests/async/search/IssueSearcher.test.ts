@@ -3,6 +3,7 @@ import { IssueSearcher } from "../../../src/async/search/IssueSearcher.ts";
 import { FileService } from "../../../src/services/FileService.ts";
 import type { ParsedSearchTerm } from "../../../src/async/search/types.ts";
 import type { IssueFolder } from "../../../src/types/Issue.ts";
+import { SystemStatus } from "../../../src/types/status.ts";
 
 const issueRoot = "/repo/issues";
 
@@ -206,7 +207,9 @@ describe("IssueSearcher", () => {
       if (path === issueOnePath) {
         return Promise.resolve(`---\ntitle: Keep me\nstatus: open\n---\nBody`);
       }
-      return Promise.resolve(`---\ntitle: Remove me\nstatus: closed\n---\nBody`);
+      return Promise.resolve(
+        `---\ntitle: Remove me\nstatus: closed\n---\nBody`,
+      );
     });
     mockFileService.stat.mockResolvedValue({
       birthtime: new Date("2026-01-01"),
@@ -373,7 +376,9 @@ describe("IssueSearcher", () => {
     mockFileService.exists.mockImplementation(
       existsIssuesMd([`${issueRoot}/0001`, `${issueRoot}/0002`]),
     );
-    mockFileService.readFile.mockResolvedValue(`---\nstatus: open\n---\nIssue body`);
+    mockFileService.readFile.mockResolvedValue(
+      `---\nstatus: open\n---\nIssue body`,
+    );
     mockFileService.stat.mockImplementation((path) => {
       if (path === issueOnePath) {
         return Promise.resolve({
@@ -397,11 +402,21 @@ describe("IssueSearcher", () => {
 
   test("returns results sorted by id descending", async () => {
     const searcher = new IssueSearcher();
-    const issues = [issueFolder("0001"), issueFolder("0002"), issueFolder("0003")];
+    const issues = [
+      issueFolder("0001"),
+      issueFolder("0002"),
+      issueFolder("0003"),
+    ];
     mockFileService.exists.mockImplementation(
-      existsIssuesMd([`${issueRoot}/0001`, `${issueRoot}/0002`, `${issueRoot}/0003`]),
+      existsIssuesMd([
+        `${issueRoot}/0001`,
+        `${issueRoot}/0002`,
+        `${issueRoot}/0003`,
+      ]),
     );
-    mockFileService.readFile.mockResolvedValue(`---\nstatus: open\n---\nIssue body`);
+    mockFileService.readFile.mockResolvedValue(
+      `---\nstatus: open\n---\nIssue body`,
+    );
     mockFileService.stat.mockResolvedValue({
       birthtime: new Date("2026-01-01"),
       mtime: new Date("2026-01-01"),
@@ -417,11 +432,17 @@ describe("IssueSearcher", () => {
 
   test("skips folders without issue file", async () => {
     const searcher = new IssueSearcher();
-    const issues = [issueFolder("0001"), issueFolder("0002-no-md"), issueFolder("0003")];
+    const issues = [
+      issueFolder("0001"),
+      issueFolder("0002-no-md"),
+      issueFolder("0003"),
+    ];
     mockFileService.exists.mockImplementation(
       existsIssuesMd([`${issueRoot}/0001`, `${issueRoot}/0003`]),
     );
-    mockFileService.readFile.mockResolvedValue(`---\nstatus: open\n---\nIssue body`);
+    mockFileService.readFile.mockResolvedValue(
+      `---\nstatus: open\n---\nIssue body`,
+    );
     mockFileService.stat.mockResolvedValue({
       birthtime: new Date("2026-01-01"),
       mtime: new Date("2026-01-01"),
@@ -436,7 +457,9 @@ describe("IssueSearcher", () => {
   test("enriches title, status, createdAt and updatedAt", async () => {
     const searcher = new IssueSearcher();
     const issues = [issueFolder("0001")];
-    mockFileService.exists.mockImplementation(existsIssuesMd([`${issueRoot}/0001`]));
+    mockFileService.exists.mockImplementation(
+      existsIssuesMd([`${issueRoot}/0001`]),
+    );
     mockFileService.readFile.mockResolvedValue(
       `---\ntitle: My Issue Title\nstatus: in-progress\n---\nBody`,
     );
@@ -463,7 +486,9 @@ describe("IssueSearcher", () => {
   test("enriches createdAt and updatedAt from frontmatter over file stat", async () => {
     const searcher = new IssueSearcher();
     const issues = [issueFolder("0001")];
-    mockFileService.exists.mockImplementation(existsIssuesMd([`${issueRoot}/0001`]));
+    mockFileService.exists.mockImplementation(
+      existsIssuesMd([`${issueRoot}/0001`]),
+    );
     mockFileService.readFile.mockResolvedValue(
       `---\ncreated_at: 2026-03-01 10:00+08:00\nupdated_at: 2026-04-01 12:00+08:00\n---\nBody`,
     );
@@ -600,7 +625,7 @@ describe("IssueSearcher", () => {
     expect(results.map((x) => x.issueId)).toEqual(["0002"]);
   });
 
-  test("status:resolved respects a custom resolvedStatusList", async () => {
+  test("status:resolved respects a custom resolved alias list", async () => {
     const searcher = new IssueSearcher();
     const issues = [issueFolder("0001"), issueFolder("0002")];
     mockFileService.exists.mockImplementation(
@@ -621,7 +646,7 @@ describe("IssueSearcher", () => {
       { type: "status", value: "resolved", negated: false },
     ];
     const results = await searcher.search(issues, terms, {
-      resolvedStatusList: ["done", "wontfix"],
+      statusAliases: { [SystemStatus.Resolved]: ["done", "wontfix"] },
     });
 
     expect(results.map((x) => x.issueId)).toEqual(["0001"]);
@@ -648,7 +673,7 @@ describe("IssueSearcher", () => {
       { type: "status", value: "Resolved", negated: false },
     ];
     const results = await searcher.search(issues, terms, {
-      resolvedStatusList: ["closed", "canceled"],
+      statusAliases: { [SystemStatus.Resolved]: ["closed", "canceled"] },
     });
 
     expect(results.map((x) => x.issueId)).toEqual(["0001"]);
@@ -692,5 +717,40 @@ describe("IssueSearcher", () => {
     const results = await searcher.search(issues, terms);
 
     expect(results.map((x) => x.issueId)).toEqual(["0003"]);
+  });
+
+  test("status alias matches configured statuses and negation excludes them", async () => {
+    const searcher = new IssueSearcher();
+    const issues = [issueFolder("0001"), issueFolder("0002")];
+    mockFileService.exists.mockImplementation(
+      existsIssuesMd([`${issueRoot}/0001`, `${issueRoot}/0002`]),
+    );
+    mockFileService.readFile.mockImplementation((path) => {
+      if (path === issueOnePath) {
+        return Promise.resolve(`---\nstatus: open\n---\nIssue one body`);
+      }
+      return Promise.resolve(`---\nstatus: in_progress\n---\nIssue two body`);
+    });
+    mockFileService.stat.mockResolvedValue({
+      birthtime: new Date("2026-01-01"),
+      mtime: new Date("2026-01-01"),
+    } as unknown as { birthtime: Date; mtime: Date });
+
+    const statusAliases = {
+      active: ["open", "in_progress"],
+    };
+    const included = await searcher.search(
+      issues,
+      [{ type: "status", value: "active", negated: false }],
+      { statusAliases },
+    );
+    const excluded = await searcher.search(
+      issues,
+      [{ type: "status", value: "active", negated: true }],
+      { statusAliases },
+    );
+
+    expect(included.map((x) => x.issueId)).toEqual(["0002", "0001"]);
+    expect(excluded.map((x) => x.issueId)).toEqual([]);
   });
 });

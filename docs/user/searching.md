@@ -62,20 +62,21 @@ For dates and numbers, prefix the value with `>=` or `<=`:
 | `tag:bug` | Has tag `bug` |
 | `-tag:wip` | Does not have tag `wip` |
 
-## Resolved status alias
+## Status aliases
 
-`status:resolved` is a special alias. It matches any status in the effective **resolved** list from config (`resolved_status_list` in `mud.conf`, else `default_resolved_status_list` in global config, else the built-in defaults `closed`, `canceled`, `duplicated`).
+`status:<aliasName>` matches any workflow status in that alias’s list. Alias names come from `status_aliases` in `mud.conf` and `default_status_aliases` in global config. The built-in alias is `resolved` (`closed`, `canceled`, and `duplicated` unless you override it). Older `resolved_status_list` / `default_resolved_status_list` keys still fill the `resolved` alias when `resolved` is not set in `status_aliases`.
 
 | Query | Meaning |
 |-------|---------|
 | `status:resolved` | Status is one of the resolved statuses |
 | `-status:resolved` | Status is not resolved |
+| `status:active` | Status is one of the statuses configured for `active` |
 
-Matching is case-insensitive for both the alias (`status:Resolved`) and the status values compared to the list. Issues with a missing or empty `status` do not match `status:resolved`.
+Matching is case-insensitive for both the alias name (`status:Resolved`) and the status values compared to the list. Issues with a missing or empty `status` do not match an alias. If an alias name is also a literal status, the alias wins.
 
-Other status values (for example `status:closed`) still match that literal frontmatter value.
+Other status values (for example `status:closed`) still match that literal frontmatter value when `closed` is not itself an alias name.
 
-See [status.md](../status.md) for configuring the resolved list.
+See [status.md](../concept/status.md) for configuring aliases.
 
 ## OR and comma lists
 

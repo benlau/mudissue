@@ -38,53 +38,67 @@ When `mud.conf` and global config omit status overrides, mudissue uses this list
 
 The **Set Status** command shows statuses in list order (same order as in config).
 
-## Resolved statuses
+## Status aliases
 
-`resolved_status_list` defines which status values count as **resolved**. In the issue table (TUI), rows with a resolved status are shown dimmed (except when selected).
+`status_aliases` groups workflow `status` values under a name. Search can match that name (`status:<alias>`), and the built-in alias `resolved` also drives issue-table dimming and resolved predicates.
 
-Search also treats `resolved` as a status alias against this list:
-
-- `status:resolved` — issues whose status is in the effective resolved list
-- `-status:resolved` — issues whose status is not in that list
-
-Matching is case-insensitive for both the alias (`status:Resolved`) and the status values compared to the list.
-
-### Built-in defaults
-
-When `mud.conf` and global config omit resolved-status overrides, mudissue treats these as resolved:
-
-`closed`, `canceled`, `duplicated`
-
-### Override (project `mud.conf`)
+Aliases are not linkage frontmatter fields. Each entry is an object with a `statuses` list (comma-separated string or YAML array). Provide the **full list** for that alias — partial patches are not supported.
 
 ```yaml
 # mud.conf
+status_aliases:
+  resolved:
+    statuses: done, 取消
+  active:
+    statuses:
+      - open
+      - in_progress
+```
+
+### Built-in `resolved` alias
+
+When neither config defines a `resolved` alias, mudissue treats these statuses as resolved:
+
+`closed`, `canceled`, `duplicated`
+
+In the issue table (TUI), rows with a resolved status are shown dimmed (except when selected).
+
+Search:
+
+- `status:resolved` — issues whose status is in the effective resolved list
+- `-status:resolved` — issues whose status is not in that list
+- `status:<aliasName>` — same idea for any configured alias
+
+Matching is case-insensitive for both the alias name (`status:Resolved`) and the status values compared to the list. If an alias name is also a real status, the alias wins.
+
+### Older resolved-list keys
+
+`resolved_status_list` (project) and `default_resolved_status_list` (global) still work. Each is copied into that config layer’s `resolved` alias **only when that layer does not already define `resolved`**. If `status_aliases.resolved` is set, it wins over `resolved_status_list` on the same file.
+
+```yaml
+# mud.conf — equivalent to status_aliases.resolved when resolved is not set above
 resolved_status_list: closed, canceled, duplicated
 ```
 
-Or as a YAML array:
-
-```yaml
-resolved_status_list:
-  - done
-  - wontfix
-```
-
-Provide the **full list** — partial patches are not supported.
-
 ### Global defaults (`~/.mudissue/global.conf`)
 
-Project `resolved_status_list` overrides global `default_resolved_status_list` when set.
+Use `default_status_aliases` for aliases shared by every project. Repo `status_aliases` replaces **only the alias names it sets**; other global aliases stay in effect.
 
 ```yaml
-default_resolved_status_list: closed, canceled, duplicated
+default_status_aliases:
+  resolved:
+    statuses: closed, canceled, duplicated
+  active:
+    statuses: open, in_progress
 ```
+
+`default_resolved_status_list` fills the global `resolved` alias when `default_status_aliases` does not already include `resolved`.
 
 ---
 
 ## Advanced topics
 
-### Global defaults (`~/.mudissue/global.conf`)
+### Global status list (`~/.mudissue/global.conf`)
 
 Use global config when you want the same custom catalog for **all** projects. Project `status_list` overrides global `default_status_list` when set.
 

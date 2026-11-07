@@ -76,10 +76,9 @@ function createIssueSearchStore(): IssueSearchStore {
         for (const repo of repoList) {
           const storage = new TrackerRepoStorage(repo, globalConfig);
           const issues = await storage.listIssues();
-          const resolvedStatusList =
-            await trackerRepoStore.getResolvedStatusList(repo);
+          const statusAliases = await trackerRepoStore.getStatusAliases(repo);
           const results = await get().searchFolders(issues, terms, {
-            resolvedStatusList,
+            statusAliases,
           });
           allResults.push(...results);
         }

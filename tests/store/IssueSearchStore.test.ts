@@ -16,6 +16,7 @@ import { DEFAULT_PRIORITY_TABLE } from "../../src/types/priority.ts";
 import {
   DEFAULT_RESOLVED_STATUS_LIST,
   DEFAULT_STATUS_LIST,
+  SystemStatus,
 } from "../../src/types/status.ts";
 import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
@@ -42,6 +43,9 @@ function setTrackerRepoStoreMocks(repos: TrackerRepo[]): void {
     getResolvedStatusList: jest
       .fn()
       .mockResolvedValue(DEFAULT_RESOLVED_STATUS_LIST),
+    getStatusAliases: jest.fn().mockResolvedValue({
+      [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+    }),
   });
 }
 
@@ -112,13 +116,21 @@ describe("IssueSearchStore", () => {
       1,
       [buildIssue("0001")],
       parsedTerms,
-      { resolvedStatusList: DEFAULT_RESOLVED_STATUS_LIST },
+      {
+        statusAliases: {
+          [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+        },
+      },
     );
     expect(searchSpy).toHaveBeenNthCalledWith(
       2,
       [buildIssue("0002")],
       parsedTerms,
-      { resolvedStatusList: DEFAULT_RESOLVED_STATUS_LIST },
+      {
+        statusAliases: {
+          [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+        },
+      },
     );
     expect(result.map((x) => x.issueId)).toEqual(["0002", "0001"]);
     expect(
@@ -226,7 +238,9 @@ describe("IssueSearchStore", () => {
     expect(parseSpy).not.toHaveBeenCalled();
     expect(listIssuesSpy).toHaveBeenCalledTimes(1);
     expect(searchSpy).toHaveBeenCalledWith([buildIssue("0001")], [], {
-      resolvedStatusList: DEFAULT_RESOLVED_STATUS_LIST,
+      statusAliases: {
+        [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+      },
     });
   });
 
@@ -429,16 +443,15 @@ describe("IssueSearchStore", () => {
     jest
       .spyOn(SearchQueryParser.prototype, "parse")
       .mockReturnValue([{ type: "text", value: "485", negated: false }]);
-    jest.spyOn(IssueSearcher.prototype, "search").mockResolvedValueOnce([
-      buildIssue("PR0485", new Date("2026-01-01")),
-      buildIssue("PR0486", new Date("2026-03-01")),
-    ]);
+    jest
+      .spyOn(IssueSearcher.prototype, "search")
+      .mockResolvedValueOnce([
+        buildIssue("PR0485", new Date("2026-01-01")),
+        buildIssue("PR0486", new Date("2026-03-01")),
+      ]);
     jest
       .spyOn(TrackerRepoStorage.prototype, "listIssues")
-      .mockResolvedValue([
-        buildIssue("PR0485"),
-        buildIssue("PR0486"),
-      ]);
+      .mockResolvedValue([buildIssue("PR0485"), buildIssue("PR0486")]);
 
     setTrackerRepoStoreMocks([repo]);
 

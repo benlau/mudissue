@@ -7,7 +7,11 @@ import {
 } from "../../src/types/Tracker.ts";
 import type { GlobalConfig } from "../../src/types/GlobalConfig.ts";
 import { DEFAULT_PRIORITY_TABLE } from "../../src/types/priority.ts";
-import { DEFAULT_STATUS_LIST, DEFAULT_RESOLVED_STATUS_LIST } from "../../src/types/status.ts";
+import {
+  DEFAULT_STATUS_LIST,
+  DEFAULT_RESOLVED_STATUS_LIST,
+  SystemStatus,
+} from "../../src/types/status.ts";
 import { DEFAULT_LINK_TYPES } from "../../src/types/linkage.ts";
 
 describe("TrackerRepoConfigAccessor", () => {
@@ -219,6 +223,67 @@ describe("TrackerRepoConfigAccessor", () => {
         "done",
         "wontfix",
       ]);
+    });
+
+    it("uses status_aliases resolved statuses instead of resolved_status_list", () => {
+      const accessor = new TrackerRepoConfigAccessor(
+        {
+          resolved_status_list: ["closed"],
+          status_aliases: {
+            [SystemStatus.Resolved]: { statuses: ["done", "wontfix"] },
+          },
+        },
+        emptyGlobal,
+      );
+      expect(accessor.getEffectiveResolvedStatusList()).toEqual([
+        "done",
+        "wontfix",
+      ]);
+    });
+
+    it("fills resolved from resolved_status_list when status_aliases omits it", () => {
+      const accessor = new TrackerRepoConfigAccessor(
+        {
+          resolved_status_list: "done, wontfix",
+          status_aliases: {
+            active: { statuses: "open, in_progress" },
+          },
+        },
+        emptyGlobal,
+      );
+      expect(accessor.getEffectiveStatusAliases()).toEqual({
+        active: ["open", "in_progress"],
+        [SystemStatus.Resolved]: ["done", "wontfix"],
+      });
+    });
+  });
+
+  describe("getEffectiveStatusAliases", () => {
+    it("returns the built-in resolved alias when unset", () => {
+      const accessor = new TrackerRepoConfigAccessor(emptyRepo, emptyGlobal);
+      expect(accessor.getEffectiveStatusAliases()).toEqual({
+        [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+      });
+    });
+
+    it("lets a repo alias replace only that global alias", () => {
+      const accessor = new TrackerRepoConfigAccessor(
+        {
+          status_aliases: {
+            active: { statuses: ["open"] },
+          },
+        },
+        {
+          default_status_aliases: {
+            [SystemStatus.Resolved]: { statuses: ["done"] },
+            active: { statuses: ["backlog", "open"] },
+          },
+        },
+      );
+      expect(accessor.getEffectiveStatusAliases()).toEqual({
+        [SystemStatus.Resolved]: ["done"],
+        active: ["open"],
+      });
     });
   });
 

@@ -65,6 +65,16 @@ describe("GlobalConfigStorage", () => {
       await expect(storage.read()).rejects.toThrow(EXAMPLE_GLOBAL_CONFIG);
     });
 
+    it("throws when default_status_aliases is invalid", async () => {
+      mockFileService.exists.mockResolvedValue(true);
+      mockFileService.readFile.mockResolvedValue(
+        "default_status_aliases:\n  resolved:\n    statuses: []\n" as unknown as Buffer,
+      );
+      const storage = new GlobalConfigStorage();
+      await expect(storage.read()).rejects.toThrow(/Invalid config/);
+      await expect(storage.read()).rejects.toThrow(EXAMPLE_GLOBAL_CONFIG);
+    });
+
     it("throws when default_issue_file_pattern is invalid", async () => {
       mockFileService.exists.mockResolvedValue(true);
       mockFileService.readFile.mockResolvedValue(

@@ -11,14 +11,19 @@ import {
 import { useCurrentTrackerRepoStore } from "../../src/store/CurrentTrackerRepoStore.ts";
 import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
 import type { IssueFolder } from "../../src/types/Issue.ts";
-import { DEFAULT_RESOLVED_STATUS_LIST } from "../../src/types/status.ts";
+import {
+  DEFAULT_RESOLVED_STATUS_LIST,
+  SystemStatus,
+} from "../../src/types/status.ts";
 import {
   createMockSystemContext,
   type MockSystemContextBundle,
 } from "../fixture/MockSystemContext.tsx";
 
 const defaultSearchOptions = {
-  resolvedStatusList: DEFAULT_RESOLVED_STATUS_LIST,
+  statusAliases: {
+    [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+  },
 };
 describe("IssueSearchCommand", () => {
   let bundle: MockSystemContextBundle;
@@ -38,9 +43,7 @@ describe("IssueSearchCommand", () => {
       subscribe: jest.fn(),
       destroy: jest.fn(),
     } as IssueSearchStore);
-    LoggerService.setInstance(
-      bundle.loggerService as unknown as LoggerService,
-    );
+    LoggerService.setInstance(bundle.loggerService as unknown as LoggerService);
   });
 
   afterEach(() => {
@@ -93,7 +96,9 @@ describe("IssueSearchCommand", () => {
     };
 
     bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([stubRepo]);
-    jest.spyOn(TrackerRepoStorage.prototype, "listIssues").mockResolvedValue(issues);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue(issues);
     searchFoldersMock.mockResolvedValue(results);
 
     const command = new IssueSearchCommand();
@@ -114,7 +119,7 @@ describe("IssueSearchCommand", () => {
 
   test("filters by full text search terms", async () => {
     const expectedTerms: ParsedSearchTerm[] = new SearchQueryParser().parse(
-      "\"A B C\"",
+      '"A B C"',
     );
     const issues = [buildIssueFolder("0001"), buildIssueFolder("0002")];
     const results = [buildIssueFolder("0001")];
@@ -126,7 +131,9 @@ describe("IssueSearchCommand", () => {
     };
 
     bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([stubRepo]);
-    jest.spyOn(TrackerRepoStorage.prototype, "listIssues").mockResolvedValue(issues);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue(issues);
     searchFoldersMock.mockResolvedValue(results);
 
     const command = new IssueSearchCommand();
@@ -153,7 +160,9 @@ describe("IssueSearchCommand", () => {
       config: { issue_path: "issues" },
     };
     bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([stubRepo]);
-    jest.spyOn(TrackerRepoStorage.prototype, "listIssues").mockResolvedValue([]);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue([]);
     searchFoldersMock.mockResolvedValue([]);
 
     const command = new IssueSearchCommand();
@@ -183,7 +192,10 @@ describe("IssueSearchCommand", () => {
     const resultsA = [buildIssueFolder("0002")];
     const resultsB = [buildIssueFolder("0001")];
 
-    bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([repoA, repoB]);
+    bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([
+      repoA,
+      repoB,
+    ]);
     jest
       .spyOn(TrackerRepoStorage.prototype, "listIssues")
       .mockResolvedValueOnce(issuesA)
@@ -234,8 +246,12 @@ describe("IssueSearchCommand", () => {
     const issuesA = [buildIssueFolder("0001"), buildIssueFolder("0002")];
     const resultsA = [buildIssueFolder("0002")];
 
-    (bundle.trackerRepoStore.getTrackerRepoByProjectName as jest.Mock).mockResolvedValue(repoA);
-    jest.spyOn(TrackerRepoStorage.prototype, "listIssues").mockResolvedValue(issuesA);
+    (
+      bundle.trackerRepoStore.getTrackerRepoByProjectName as jest.Mock
+    ).mockResolvedValue(repoA);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue(issuesA);
     searchFoldersMock.mockResolvedValue(resultsA);
 
     const command = new IssueSearchCommand();
@@ -247,7 +263,9 @@ describe("IssueSearchCommand", () => {
     expect(result.result.projects[0].name).toBe("proj-a");
     expect(result.result.projects[0].issues).toHaveLength(1);
     expect(result.result.projects[0].issues[0].issueId).toBe("0002");
-    expect(bundle.trackerRepoStore.getTrackerRepoByProjectName).toHaveBeenCalledWith("proj-a");
+    expect(
+      bundle.trackerRepoStore.getTrackerRepoByProjectName,
+    ).toHaveBeenCalledWith("proj-a");
     expect(bundle.trackerRepoStore.getTrackerRepoList).not.toHaveBeenCalled();
     expect(searchFoldersMock).toHaveBeenCalledTimes(1);
     expect(searchFoldersMock).toHaveBeenCalledWith(
@@ -258,11 +276,15 @@ describe("IssueSearchCommand", () => {
   });
 
   test("with project option throws when project not found", async () => {
-    (bundle.trackerRepoStore.getTrackerRepoByProjectName as jest.Mock).mockResolvedValue(null);
+    (
+      bundle.trackerRepoStore.getTrackerRepoByProjectName as jest.Mock
+    ).mockResolvedValue(null);
 
     const command = new IssueSearchCommand();
 
-    await expect(command.command("nonexistent", "status:open")).rejects.toMatchObject({
+    await expect(
+      command.command("nonexistent", "status:open"),
+    ).rejects.toMatchObject({
       error: {
         code: "PROJECT_NOT_FOUND",
         message: expect.stringContaining("Project not found"),
@@ -281,7 +303,9 @@ describe("IssueSearchCommand", () => {
     ];
 
     bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([stubRepo]);
-    jest.spyOn(TrackerRepoStorage.prototype, "listIssues").mockResolvedValue(issues);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue(issues);
     searchFoldersMock.mockResolvedValue(results);
 
     const command = new IssueSearchCommand();
@@ -311,7 +335,9 @@ describe("IssueSearchCommand", () => {
     ];
 
     bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([stubRepo]);
-    jest.spyOn(TrackerRepoStorage.prototype, "listIssues").mockResolvedValue(issues);
+    jest
+      .spyOn(TrackerRepoStorage.prototype, "listIssues")
+      .mockResolvedValue(issues);
     searchFoldersMock.mockResolvedValue(results);
 
     const command = new IssueSearchCommand();
@@ -344,7 +370,10 @@ describe("IssueSearchCommand", () => {
     const resultsA = [buildIssueFolder("0001"), buildIssueFolder("0002")];
     const resultsB = [buildIssueFolder("0003")];
 
-    bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([repoA, repoB]);
+    bundle.trackerRepoStore.getTrackerRepoList.mockResolvedValue([
+      repoA,
+      repoB,
+    ]);
     jest
       .spyOn(TrackerRepoStorage.prototype, "listIssues")
       .mockResolvedValueOnce([])

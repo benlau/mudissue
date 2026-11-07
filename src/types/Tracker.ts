@@ -16,8 +16,12 @@ import {
 import {
   DEFAULT_RESOLVED_STATUS_LIST,
   DEFAULT_STATUS_LIST,
+  StatusAliasesAccessor,
+  StatusAliasesInputSchema,
   StatusListInputSchema,
   StatusListAccessor,
+  SystemStatus,
+  type StatusAliases,
 } from "./status.ts";
 import { CustomScriptsSchema, type CustomScriptEntry } from "./CustomScript.ts";
 import {
@@ -46,6 +50,7 @@ export const TrackerRepoConfigSchema = z.object({
   priority_list: StringListSchema.optional(),
   status_list: StatusListInputSchema.optional(),
   resolved_status_list: StringListSchema.optional(),
+  status_aliases: StatusAliasesInputSchema.optional(),
   link_types: LinkTypesInputSchema.optional(),
   worktree_git_ff_only_enabled: z.boolean().optional(),
   scripts: CustomScriptsSchema,
@@ -188,16 +193,86 @@ export class TrackerRepoConfigAccessor {
     return this.getEffectiveStatusList()[0];
   }
 
+  getEffectiveStatusAliases(): StatusAliases {
+    const globalAliases = this.resolveStatusAliasLayer(
+      this.globalConfig.default_status_aliases,
+      this.globalConfig.default_resolved_status_list,
+    );
+    const repoAliases = this.resolveStatusAliasLayer(
+      this.trackerRepoConfig.status_aliases,
+      this.trackerRepoConfig.resolved_status_list,
+    );
+    const merged = this.mergeStatusAliases(globalAliases, repoAliases);
+    if (this.statusAliasKey(merged, SystemStatus.Resolved) === undefined) {
+      return {
+        ...merged,
+        [SystemStatus.Resolved]: [...DEFAULT_RESOLVED_STATUS_LIST],
+      };
+    }
+    return merged;
+  }
+
   getEffectiveResolvedStatusList(): string[] {
-    const source =
-      this.trackerRepoConfig.resolved_status_list ??
-      this.globalConfig.default_resolved_status_list ??
-      DEFAULT_RESOLVED_STATUS_LIST;
-    return StringListSchema.parse(source);
+    const aliases = this.getEffectiveStatusAliases();
+    const key = this.statusAliasKey(aliases, SystemStatus.Resolved);
+    if (key === undefined) {
+      return [...DEFAULT_RESOLVED_STATUS_LIST];
+    }
+    return [...aliases[key]];
   }
 
   isResolved(status: string): boolean {
     return this.getEffectiveResolvedStatusList().includes(status);
+  }
+
+  private resolveStatusAliasLayer(
+    rawAliases: unknown,
+    legacyResolved: unknown,
+  ): StatusAliases {
+    const accessor =
+      rawAliases !== undefined
+        ? StatusAliasesAccessor.parse(rawAliases)
+        : StatusAliasesAccessor.empty();
+    if (legacyResolved !== undefined && !accessor.has(SystemStatus.Resolved)) {
+      return accessor
+        .withAliasIfAbsent(
+          SystemStatus.Resolved,
+          StringListSchema.parse(legacyResolved),
+        )
+        .get();
+    }
+    return accessor.get();
+  }
+
+  /** Repo alias names replace the same name from global, case-insensitively. */
+  private mergeStatusAliases(
+    base: StatusAliases,
+    override: StatusAliases,
+  ): StatusAliases {
+    const overrideKeys = new Set(
+      Object.keys(override).map((name) => name.trim().toLowerCase()),
+    );
+    const merged: StatusAliases = {};
+    for (const [name, statuses] of Object.entries(base)) {
+      if (overrideKeys.has(name.trim().toLowerCase())) {
+        continue;
+      }
+      merged[name] = [...statuses];
+    }
+    for (const [name, statuses] of Object.entries(override)) {
+      merged[name] = [...statuses];
+    }
+    return merged;
+  }
+
+  private statusAliasKey(
+    aliases: StatusAliases,
+    aliasName: string,
+  ): string | undefined {
+    const needle = aliasName.trim().toLowerCase();
+    return Object.keys(aliases).find(
+      (name) => name.trim().toLowerCase() === needle,
+    );
   }
 
   getEffectiveLinkTypes(): LinkagePair[] {

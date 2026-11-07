@@ -2,7 +2,11 @@ import type { ParsedSearchTerm } from "./types.ts";
 import { IssueFolderStorage } from "../storage/IssueFolderStorage.ts";
 import { IssueMarkdownFileStorage } from "../storage/IssueMarkdownFileStorage.ts";
 import { accessIssueFolderList, type IssueFolder } from "../../types/Issue.ts";
-import { DEFAULT_RESOLVED_STATUS_LIST } from "../../types/status.ts";
+import {
+  DEFAULT_RESOLVED_STATUS_LIST,
+  SystemStatus,
+  type StatusAliases,
+} from "../../types/status.ts";
 import { IssueSelectorMatcher } from "../../foundation/matchers/IssueSelectorMatcher.ts";
 
 type ParsedValue =
@@ -19,8 +23,14 @@ type IssueSearchContext = {
 };
 
 export type IssueSearchOptions = {
-  resolvedStatusList?: string[];
+  statusAliases?: StatusAliases;
 };
+
+function defaultStatusAliases(): StatusAliases {
+  return {
+    [SystemStatus.Resolved]: [...DEFAULT_RESOLVED_STATUS_LIST],
+  };
+}
 
 export class IssueSearcher {
   public async search(
@@ -28,8 +38,7 @@ export class IssueSearcher {
     parsedTerms: ParsedSearchTerm[],
     options?: IssueSearchOptions,
   ): Promise<IssueFolder[]> {
-    const resolvedStatusList =
-      options?.resolvedStatusList ?? DEFAULT_RESOLVED_STATUS_LIST;
+    const statusAliases = options?.statusAliases ?? defaultStatusAliases();
     const results: IssueFolder[] = [];
 
     for (const entry of issues) {
@@ -54,7 +63,7 @@ export class IssueSearcher {
         updatedAt,
       };
 
-      if (this.matchesTerms(issueContext, parsedTerms, resolvedStatusList)) {
+      if (this.matchesTerms(issueContext, parsedTerms, statusAliases)) {
         const title = String(frontmatter?.title ?? "").trim();
         const status = issueStorage.getStatus();
         const priority = issueStorage.getPriority();
@@ -79,28 +88,26 @@ export class IssueSearcher {
   private matchesTerms(
     issue: IssueSearchContext,
     terms: ParsedSearchTerm[],
-    resolvedStatusList: string[],
+    statusAliases: StatusAliases,
   ): boolean {
-    return terms.every((term) =>
-      this.matchesTerm(issue, term, resolvedStatusList),
-    );
+    return terms.every((term) => this.matchesTerm(issue, term, statusAliases));
   }
 
   private matchesTerm(
     issue: IssueSearchContext,
     term: ParsedSearchTerm,
-    resolvedStatusList: string[],
+    statusAliases: StatusAliases,
   ): boolean {
     if (term.type === "or") {
       const result = (term.terms ?? []).some((child) =>
-        this.matchesTerm(issue, child, resolvedStatusList),
+        this.matchesTerm(issue, child, statusAliases),
       );
       return term.negated ? !result : result;
     }
 
     if (term.type === "group") {
       const result = (term.terms ?? []).every((child) =>
-        this.matchesTerm(issue, child, resolvedStatusList),
+        this.matchesTerm(issue, child, statusAliases),
       );
       return term.negated ? !result : result;
     }
@@ -140,15 +147,15 @@ export class IssueSearcher {
       return term.negated ? !result : result;
     }
 
-    if (
-      term.type === "status" &&
-      this.stringsEqualIgnoreCase(term.value, "resolved")
-    ) {
-      const result = this.matchesResolvedStatus(
-        issue.frontmatter.status,
-        resolvedStatusList,
-      );
-      return term.negated ? !result : result;
+    if (term.type === "status") {
+      const aliasStatuses = this.findAliasStatuses(term.value, statusAliases);
+      if (aliasStatuses !== undefined) {
+        const result = this.matchesStatusInAliasList(
+          issue.frontmatter.status,
+          aliasStatuses,
+        );
+        return term.negated ? !result : result;
+      }
     }
 
     const fieldValue = this.resolveFieldValue(issue, term.type);
@@ -156,15 +163,28 @@ export class IssueSearcher {
     return term.negated ? !result : result;
   }
 
-  private matchesResolvedStatus(
+  private findAliasStatuses(
+    aliasName: string,
+    statusAliases: StatusAliases,
+  ): string[] | undefined {
+    const needle = aliasName.trim().toLowerCase();
+    for (const [name, statuses] of Object.entries(statusAliases)) {
+      if (name.trim().toLowerCase() === needle) {
+        return statuses;
+      }
+    }
+    return undefined;
+  }
+
+  private matchesStatusInAliasList(
     status: unknown,
-    resolvedStatusList: string[],
+    aliasStatuses: string[],
   ): boolean {
     if (typeof status !== "string" || status.trim() === "") {
       return false;
     }
-    return resolvedStatusList.some((resolved) =>
-      this.stringsEqualIgnoreCase(status, resolved),
+    return aliasStatuses.some((aliasStatus) =>
+      this.stringsEqualIgnoreCase(status, aliasStatus),
     );
   }
 

@@ -6,7 +6,7 @@ import {
   DuplicatedStatusRuleConfigPartialSchema,
 } from "./rules.ts";
 import { StringListSchema } from "./schema.ts";
-import { StatusListInputSchema } from "./status.ts";
+import { StatusAliasesInputSchema, StatusListInputSchema } from "./status.ts";
 
 export const IssueFileTypeSchema = z.enum(["fixed", "short", "long"]);
 export type IssueFileType = z.infer<typeof IssueFileTypeSchema>;
@@ -20,6 +20,7 @@ export const GlobalConfigSchema = z.object({
   default_priority_list: PriorityListInputSchema.optional(),
   default_status_list: StatusListInputSchema.optional(),
   default_resolved_status_list: StringListSchema.optional(),
+  default_status_aliases: StatusAliasesInputSchema.optional(),
   default_link_types: LinkTypesInputSchema.optional(),
   worktree_git_ff_only_enabled: z.boolean().optional(),
   default_system_blocked_post_hook:

@@ -18,7 +18,10 @@ import type {
   TrackerRepo,
   TrackerRepoConfig,
 } from "../../src/types/Tracker.ts";
-import { DEFAULT_RESOLVED_STATUS_LIST } from "../../src/types/status.ts";
+import {
+  DEFAULT_RESOLVED_STATUS_LIST,
+  SystemStatus,
+} from "../../src/types/status.ts";
 
 describe("CurrentTrackerRepoStore", () => {
   let mockShellService: jest.Mocked<Pick<ShellService, "which" | "isAbsolute">>;
@@ -197,10 +200,16 @@ describe("CurrentTrackerRepoStore", () => {
       config: { issue_path: "issues-b" },
     };
 
-    const issueInA: IssueFolder = { issueId: "MI0257-in-proj-a", label: "MI0257", path: "/workspace/issues-a/MI0257-in-proj-a",
-     };
-    const issueInB: IssueFolder = { issueId: "MI0257-in-proj-b", label: "MI0257", path: "/workspace/sub/issues-b/MI0257-in-proj-b",
-     };
+    const issueInA: IssueFolder = {
+      issueId: "MI0257-in-proj-a",
+      label: "MI0257",
+      path: "/workspace/issues-a/MI0257-in-proj-a",
+    };
+    const issueInB: IssueFolder = {
+      issueId: "MI0257-in-proj-b",
+      label: "MI0257",
+      path: "/workspace/sub/issues-b/MI0257-in-proj-b",
+    };
 
     beforeEach(() => {
       useGlobalConfigStore.setState({ globalConfig: {} });
@@ -257,8 +266,11 @@ describe("CurrentTrackerRepoStore", () => {
       config: { issue_path: "issues-b" },
     };
 
-    const buildIssue = (absPath: string): IssueFolder => ({ issueId: "0001-test", label: "0001", path: absPath,
-     });
+    const buildIssue = (absPath: string): IssueFolder => ({
+      issueId: "0001-test",
+      label: "0001",
+      path: absPath,
+    });
 
     it("returns the repo whose issue root contains the issue folder path", async () => {
       useGlobalConfigStore.setState({ globalConfig: {} });
@@ -296,10 +308,7 @@ describe("CurrentTrackerRepoStore", () => {
         currentTrackerRepo: repoA,
         subTrackerRepoList: [],
       });
-      const issueRoot = new TrackerRepoStorage(
-        repoA,
-        {},
-      ).getIssuePath();
+      const issueRoot = new TrackerRepoStorage(repoA, {}).getIssuePath();
       const issue = buildIssue(`${issueRoot}/0001-test`);
 
       const found = await useCurrentTrackerRepoStore
@@ -379,8 +388,11 @@ describe("CurrentTrackerRepoStore", () => {
       trackerPath: "/repo",
       config: { issue_path: "issues" },
     };
-    const issue: IssueFolder = { issueId: "MI0089-mi-issue-branch-create", label: "MI0089", path: "/repo/issues/MI0089-mi-issue-branch-create",
-     };
+    const issue: IssueFolder = {
+      issueId: "MI0089-mi-issue-branch-create",
+      label: "MI0089",
+      path: "/repo/issues/MI0089-mi-issue-branch-create",
+    };
 
     it("uses the issue folder name by default", async () => {
       useGlobalConfigStore.setState({ globalConfig: {} });
@@ -399,16 +411,18 @@ describe("CurrentTrackerRepoStore", () => {
         },
       });
 
-      const branch = await useCurrentTrackerRepoStore.getState().getIssueBranchName(
-        {
-          ...repo,
-          config: {
-            ...repo.config,
-            issue_branch_name_template: "repo/<%= issue_folder_name %>-dev",
+      const branch = await useCurrentTrackerRepoStore
+        .getState()
+        .getIssueBranchName(
+          {
+            ...repo,
+            config: {
+              ...repo.config,
+              issue_branch_name_template: "repo/<%= issue_folder_name %>-dev",
+            },
           },
-        },
-        issue,
-      );
+          issue,
+        );
 
       expect(branch).toBe("repo/MI0089-mi-issue-branch-crea");
     });
@@ -444,58 +458,69 @@ describe("CurrentTrackerRepoStore", () => {
     });
 
     it("returns a trimmed branch name", async () => {
-      const branch = await useCurrentTrackerRepoStore.getState().getIssueBranchName(
-        {
-          ...repo,
-          config: {
-            ...repo.config,
-            issue_branch_name_template: "  pr/<%= issue_folder_name %>  ",
+      const branch = await useCurrentTrackerRepoStore
+        .getState()
+        .getIssueBranchName(
+          {
+            ...repo,
+            config: {
+              ...repo.config,
+              issue_branch_name_template: "  pr/<%= issue_folder_name %>  ",
+            },
           },
-        },
-        issue,
-      );
+          issue,
+        );
 
       expect(branch).toBe("pr/MI0089-mi-issue-branch-create");
     });
 
     it("normalizes rendered branch names", async () => {
-      const branch = await useCurrentTrackerRepoStore.getState().getIssueBranchName(
-        {
-          ...repo,
-          config: {
-            ...repo.config,
-            issue_branch_name_template:
-              " /feature//<%= issue_folder_name %>:fix bug?/@{draft}. ",
+      const branch = await useCurrentTrackerRepoStore
+        .getState()
+        .getIssueBranchName(
+          {
+            ...repo,
+            config: {
+              ...repo.config,
+              issue_branch_name_template:
+                " /feature//<%= issue_folder_name %>:fix bug?/@{draft}. ",
+            },
           },
-        },
-        issue,
-      );
+          issue,
+        );
 
       expect(branch).toBe("feature/MI0089-mi-issue-branch-c");
     });
 
     it("truncates the branch name to ISSUE_BRANCH_NAME_MAX_LENGTH characters", async () => {
-      const longIssue: IssueFolder = { issueId: "MI0001-very-long-issue-folder-name-that-exceeds-the-limit", label: "MI0001", path: "/repo/issues/MI0001-very-long-issue-folder-name-that-exceeds-the-limit",
-       };
+      const longIssue: IssueFolder = {
+        issueId: "MI0001-very-long-issue-folder-name-that-exceeds-the-limit",
+        label: "MI0001",
+        path: "/repo/issues/MI0001-very-long-issue-folder-name-that-exceeds-the-limit",
+      };
 
       const branch = await useCurrentTrackerRepoStore
         .getState()
         .getIssueBranchName(repo, longIssue);
 
-      expect(branch).toBe(longIssue.issueId.slice(0, ISSUE_BRANCH_NAME_MAX_LENGTH));
+      expect(branch).toBe(
+        longIssue.issueId.slice(0, ISSUE_BRANCH_NAME_MAX_LENGTH),
+      );
     });
 
     it("falls back to the issue id when rendered branch name is empty after normalization", async () => {
-      const branch = await useCurrentTrackerRepoStore.getState().getIssueBranchName(
-        {
-          ...repo,
-          config: {
-            ...repo.config,
-            issue_branch_name_template: " @ ",
+      const branch = await useCurrentTrackerRepoStore
+        .getState()
+        .getIssueBranchName(
+          {
+            ...repo,
+            config: {
+              ...repo.config,
+              issue_branch_name_template: " @ ",
+            },
           },
-        },
-        issue,
-      );
+          issue,
+        );
 
       expect(branch).toBe("MI0089-mi-issue-branch-create");
     });
@@ -532,6 +557,36 @@ describe("CurrentTrackerRepoStore", () => {
         });
 
       expect(list).toEqual(DEFAULT_RESOLVED_STATUS_LIST);
+    });
+  });
+
+  describe("getStatusAliases", () => {
+    it("returns the effective alias map for the repo", async () => {
+      useGlobalConfigStore.setState({
+        globalConfig: {
+          default_status_aliases: {
+            active: { statuses: ["open", "backlog"] },
+          },
+        },
+      });
+
+      const aliases = await useCurrentTrackerRepoStore
+        .getState()
+        .getStatusAliases({
+          name: "repo",
+          projectPath: "/tmp/repo",
+          trackerPath: "/tmp/repo",
+          config: {
+            status_aliases: {
+              active: { statuses: ["open"] },
+            },
+          },
+        });
+
+      expect(aliases).toEqual({
+        [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
+        active: ["open"],
+      });
     });
   });
 });

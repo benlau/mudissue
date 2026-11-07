@@ -11,7 +11,7 @@ import {
 import type { IssueFolder } from "../types/Issue.ts";
 import { IssueSelectorMatcher } from "../foundation/matchers/IssueSelectorMatcher.ts";
 import type { PriorityTable } from "../types/priority.ts";
-import type { StatusList } from "../types/status.ts";
+import type { StatusAliases, StatusList } from "../types/status.ts";
 import {
   TrackerRepoConfigAccessor,
   type TrackerRepo,
@@ -131,6 +131,7 @@ type CurrentTrackerRepoStoreState = {
   getPriorityTable: (repo: TrackerRepo) => Promise<PriorityTable>;
   getStatusList: (repo: TrackerRepo) => Promise<StatusList>;
   getResolvedStatusList: (repo: TrackerRepo) => Promise<string[]>;
+  getStatusAliases: (repo: TrackerRepo) => Promise<StatusAliases>;
   getWorktreeGitFfOnlyEnabled: (repo: TrackerRepo) => Promise<boolean>;
 };
 
@@ -376,6 +377,11 @@ export const useCurrentTrackerRepoStore =
     getResolvedStatusList: async (repo) => {
       const accessor = await createTrackerRepoConfigAccessor(repo.config);
       return accessor.getEffectiveResolvedStatusList();
+    },
+
+    getStatusAliases: async (repo) => {
+      const accessor = await createTrackerRepoConfigAccessor(repo.config);
+      return accessor.getEffectiveStatusAliases();
     },
 
     getWorktreeGitFfOnlyEnabled: async (repo) => {
