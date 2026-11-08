@@ -135,6 +135,22 @@ type CurrentTrackerRepoStoreState = {
   getWorktreeGitFfOnlyEnabled: (repo: TrackerRepo) => Promise<boolean>;
 };
 
+async function upsertRecentProjectForTrackerRepo(
+  repo: TrackerRepo,
+): Promise<void> {
+  if (repo.configFilePath === undefined) {
+    return;
+  }
+  try {
+    await RegistryService.getInstance().upsertRecentProjects({
+      name: repo.name,
+      projectPath: repo.projectPath,
+    });
+  } catch {
+    // fail silently
+  }
+}
+
 export const useCurrentTrackerRepoStore =
   create<CurrentTrackerRepoStoreState>()((set, get) => ({
     currentTrackerRepo: null,
@@ -166,15 +182,8 @@ export const useCurrentTrackerRepoStore =
       );
       set({ currentTrackerRepo, subTrackerRepoList });
 
-      if (result !== null) {
-        try {
-          await RegistryService.getInstance().upsertRecentProjects({
-            name: currentTrackerRepo.name,
-            projectPath: currentTrackerRepo.projectPath,
-          });
-        } catch {
-          // fail silently
-        }
+      if (currentTrackerRepo.configFilePath !== undefined) {
+        await upsertRecentProjectForTrackerRepo(currentTrackerRepo);
       }
     },
 
@@ -183,7 +192,6 @@ export const useCurrentTrackerRepoStore =
       const globalConfig = await useGlobalConfigStore
         .getState()
         .reloadGlobalConfig();
-      set({ currentTrackerRepo: null, subTrackerRepoList: [] });
       const storage = await TrackerRepoStorage.createByProjectPath(
         resolved,
         globalConfig,
@@ -194,6 +202,7 @@ export const useCurrentTrackerRepoStore =
         globalConfig,
       );
       set({ currentTrackerRepo, subTrackerRepoList });
+      await upsertRecentProjectForTrackerRepo(currentTrackerRepo);
     },
 
     getCurrentTrackerRepo: async () => {

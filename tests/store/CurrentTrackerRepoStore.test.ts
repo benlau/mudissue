@@ -4,6 +4,7 @@ import {
   ISSUE_WORKTREE_FOLDER_NAME_MAX_LENGTH,
 } from "../../src/constants.ts";
 import { TrackerRepoStorage } from "../../src/async/storage/TrackerRepoStorage.ts";
+import { RegistryService } from "../../src/services/RegistryService.ts";
 import { ShellService } from "../../src/services/ShellService.ts";
 import {
   resetGlobalConfigStore,
@@ -23,8 +24,16 @@ import {
   SystemStatus,
 } from "../../src/types/status.ts";
 
+function asTrackerRepoStorage(repo: TrackerRepo): TrackerRepoStorage {
+  return {
+    getTrackerRepo: () => repo,
+  } as unknown as TrackerRepoStorage;
+}
+
 describe("CurrentTrackerRepoStore", () => {
-  let mockShellService: jest.Mocked<Pick<ShellService, "which" | "isAbsolute">>;
+  let mockShellService: jest.Mocked<
+    Pick<ShellService, "which" | "isAbsolute" | "cwd">
+  >;
   const originalEnv = process.env.MUDISSUE_EDITOR;
 
   beforeEach(() => {
@@ -33,7 +42,10 @@ describe("CurrentTrackerRepoStore", () => {
     mockShellService = {
       which: jest.fn(),
       isAbsolute: jest.fn(),
-    } as unknown as jest.Mocked<Pick<ShellService, "which" | "isAbsolute">>;
+      cwd: jest.fn().mockReturnValue("/tmp/cwd"),
+    } as unknown as jest.Mocked<
+      Pick<ShellService, "which" | "isAbsolute" | "cwd">
+    >;
     ShellService.setInstance(mockShellService as unknown as ShellService);
     delete process.env.MUDISSUE_EDITOR;
   });
@@ -587,6 +599,163 @@ describe("CurrentTrackerRepoStore", () => {
         [SystemStatus.Resolved]: DEFAULT_RESOLVED_STATUS_LIST,
         active: ["open"],
       });
+    });
+  });
+
+  describe("recent projects registry", () => {
+    let upsertRecentProjectsMock: jest.Mock<() => Promise<void>>;
+
+    beforeEach(() => {
+      upsertRecentProjectsMock = jest
+        .fn<() => Promise<void>>()
+        .mockResolvedValue(undefined);
+      RegistryService.setInstance({
+        upsertRecentProjects: upsertRecentProjectsMock,
+      } as unknown as RegistryService);
+      useGlobalConfigStore.setState({ globalConfig: {} });
+    });
+
+    afterEach(() => {
+      RegistryService.setInstance(
+        null as unknown as RegistryService,
+      );
+      jest.restoreAllMocks();
+    });
+
+    it("upserts recents on ensure when the loaded tracker repo has mud.conf", async () => {
+      const repo: TrackerRepo = {
+        name: "proj-a",
+        projectPath: "/tmp/proj-a",
+        trackerPath: "/tmp/proj-a",
+        config: {},
+        configFilePath: "/tmp/proj-a/mud.conf",
+      };
+      jest.spyOn(TrackerRepoStorage, "find").mockResolvedValue({
+        root: "/tmp/proj-a",
+        configPath: "/tmp/proj-a/mud.conf",
+      });
+      jest
+        .spyOn(TrackerRepoStorage, "createByProjectPath")
+        .mockResolvedValue(asTrackerRepoStorage(repo));
+      jest.spyOn(TrackerRepoStorage, "findSubTrackerRepos").mockResolvedValue([]);
+
+      await useCurrentTrackerRepoStore.getState().ensureCurrentTrackerRepoFound();
+
+      expect(upsertRecentProjectsMock).toHaveBeenCalledWith({
+        name: "proj-a",
+        projectPath: "/tmp/proj-a",
+      });
+    });
+
+    it("does not upsert recents on ensure when no mud.conf was loaded", async () => {
+      const repo: TrackerRepo = {
+        name: "cwd",
+        projectPath: "/tmp/cwd",
+        trackerPath: "/tmp/cwd",
+        config: {},
+      };
+      jest.spyOn(TrackerRepoStorage, "find").mockResolvedValue(null);
+      jest
+        .spyOn(TrackerRepoStorage, "createByProjectPath")
+        .mockResolvedValue(asTrackerRepoStorage(repo));
+      jest.spyOn(TrackerRepoStorage, "findSubTrackerRepos").mockResolvedValue([]);
+
+      await useCurrentTrackerRepoStore.getState().ensureCurrentTrackerRepoFound();
+
+      expect(upsertRecentProjectsMock).not.toHaveBeenCalled();
+    });
+
+    it("does not upsert again when ensure is called after the tracker repo is set", async () => {
+      const findSpy = jest.spyOn(TrackerRepoStorage, "find");
+      useCurrentTrackerRepoStore.setState({
+        currentTrackerRepo: {
+          name: "already",
+          projectPath: "/tmp/already",
+          trackerPath: "/tmp/already",
+          config: {},
+          configFilePath: "/tmp/already/mud.conf",
+        },
+        subTrackerRepoList: [],
+      });
+
+      await useCurrentTrackerRepoStore.getState().ensureCurrentTrackerRepoFound();
+
+      expect(upsertRecentProjectsMock).not.toHaveBeenCalled();
+      expect(findSpy).not.toHaveBeenCalled();
+    });
+
+    it("upserts recents after loadCurrentTrackerRepoByPath when the target has mud.conf", async () => {
+      const repo: TrackerRepo = {
+        name: "proj-b",
+        projectPath: "/tmp/proj-b",
+        trackerPath: "/tmp/proj-b",
+        config: {},
+        configFilePath: "/tmp/proj-b/mud.conf",
+      };
+      useGlobalConfigStore.setState({
+        globalConfig: {},
+        reloadGlobalConfig: jest.fn().mockResolvedValue({}),
+      });
+      jest
+        .spyOn(TrackerRepoStorage, "createByProjectPath")
+        .mockResolvedValue(asTrackerRepoStorage(repo));
+      jest.spyOn(TrackerRepoStorage, "findSubTrackerRepos").mockResolvedValue([]);
+
+      await useCurrentTrackerRepoStore
+        .getState()
+        .loadCurrentTrackerRepoByPath("/tmp/proj-b");
+
+      expect(upsertRecentProjectsMock).toHaveBeenCalledWith({
+        name: "proj-b",
+        projectPath: "/tmp/proj-b",
+      });
+    });
+
+    it("keeps the previous tracker repo until load by path finishes", async () => {
+      const repoA: TrackerRepo = {
+        name: "proj-a",
+        projectPath: "/tmp/proj-a",
+        trackerPath: "/tmp/proj-a",
+        config: {},
+        configFilePath: "/tmp/proj-a/mud.conf",
+      };
+      const repoB: TrackerRepo = {
+        name: "proj-b",
+        projectPath: "/tmp/proj-b",
+        trackerPath: "/tmp/proj-b",
+        config: {},
+        configFilePath: "/tmp/proj-b/mud.conf",
+      };
+      useCurrentTrackerRepoStore.setState({
+        currentTrackerRepo: repoA,
+        subTrackerRepoList: [],
+      });
+      useGlobalConfigStore.setState({
+        globalConfig: {},
+        reloadGlobalConfig: jest.fn().mockResolvedValue({}),
+      });
+      let resolveCreate!: (value: TrackerRepoStorage) => void;
+      const createDeferred = new Promise<TrackerRepoStorage>((resolve) => {
+        resolveCreate = resolve;
+      });
+      jest
+        .spyOn(TrackerRepoStorage, "createByProjectPath")
+        .mockReturnValue(createDeferred);
+      jest.spyOn(TrackerRepoStorage, "findSubTrackerRepos").mockResolvedValue([]);
+
+      const loadPromise = useCurrentTrackerRepoStore
+        .getState()
+        .loadCurrentTrackerRepoByPath("/tmp/proj-b");
+
+      expect(useCurrentTrackerRepoStore.getState().currentTrackerRepo).toBe(
+        repoA,
+      );
+      resolveCreate(asTrackerRepoStorage(repoB));
+      await loadPromise;
+
+      expect(useCurrentTrackerRepoStore.getState().currentTrackerRepo).toBe(
+        repoB,
+      );
     });
   });
 });
