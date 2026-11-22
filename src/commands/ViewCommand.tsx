@@ -3,6 +3,8 @@ import { render } from "ink";
 import { defineMessages, IntlProvider } from "react-intl";
 import { intl } from "../intl.ts";
 import { CurrentIssueResolverHelper } from "../helpers/CurrentIssueResolverHelper.ts";
+import { ViewPathResolverHelper } from "../helpers/ViewPathResolverHelper.ts";
+import { RegistryService } from "../services/RegistryService.ts";
 import { ShellService } from "../services/ShellService.ts";
 import { useCurrentTrackerRepoStore } from "../store/CurrentTrackerRepoStore.ts";
 import { Command, outputJsonMode, type HeadlessArgv } from "./Command.ts";
@@ -10,17 +12,30 @@ import { App } from "../App.tsx";
 import { useReactSessionStore } from "../store/ReactSessionStore.ts";
 import { useAppStore } from "../store/AppStore.ts";
 import { useTerminalSizeStore } from "../views/hooks/useTerminal.ts";
+import type { TrackerRepo } from "../types/Tracker.ts";
 
 const msg = defineMessages({
   viewDescribe: {
     id: "cli.view.describe",
     defaultMessage: "View in text user interface",
   },
+  optionPath: {
+    id: "cli.view.positional.path",
+    defaultMessage: "Path under a recent project or tracker folder",
+  },
+  pickRecentProjectTitle: {
+    id: "cli.view.pickRecentProject.title",
+    defaultMessage: "Recent Projects",
+  },
 });
 
 export type ViewCommandRegisterOptions = {
   /** Called when the default command (`mud` with no subcommand) cannot launch the TUI. */
   onLaunchFailure?: () => void;
+};
+
+export type ViewCommandRunOptions = ViewCommandRegisterOptions & {
+  viewPath?: string;
 };
 
 function canLaunchInteractiveTui(): boolean {
@@ -32,8 +47,22 @@ export class ViewCommand extends Command {
 
   static register(yargs: Argv, options?: ViewCommandRegisterOptions): Argv {
     const cmd = new ViewCommand();
-    return yargs.command(
-      ["view", "$0"],
+    let instance = yargs.command(
+      "view [path]",
+      intl.formatMessage(msg.viewDescribe),
+      (builder) =>
+        builder.positional("path", {
+          type: "string",
+          describe: intl.formatMessage(msg.optionPath),
+        }),
+      async (argv) => {
+        await ViewCommand.runInteractiveFromArgv(cmd, argv as HeadlessArgv, {
+          viewPath: argv.path,
+        });
+      },
+    );
+    instance = instance.command(
+      "$0",
       intl.formatMessage(msg.viewDescribe),
       () => {},
       async (argv) => {
@@ -45,17 +74,18 @@ export class ViewCommand extends Command {
         });
       },
     );
+    return instance;
   }
 
   static async runInteractiveFromArgv(
     cmd: ViewCommand,
     argv: HeadlessArgv,
-    options?: ViewCommandRegisterOptions,
+    options?: ViewCommandRunOptions,
   ): Promise<void> {
     const reportLaunchFailure = options?.onLaunchFailure;
-    if (reportLaunchFailure && !canLaunchInteractiveTui()) {
+    if (!canLaunchInteractiveTui()) {
       process.exitCode = 1;
-      reportLaunchFailure();
+      reportLaunchFailure?.();
       return;
     }
 
@@ -78,14 +108,85 @@ export class ViewCommand extends Command {
     }
 
     useAppStore.getState().setDebug(argv.debug === true);
-    await cmd.runCommand({ outputJson });
+    await cmd.runCommand({ outputJson }, options?.viewPath);
     if (reportLaunchFailure && process.exitCode === 1) {
       reportLaunchFailure();
     }
   }
 
-  async command(): Promise<void> {
+  async command(viewPath?: string): Promise<void> {
+    if (viewPath !== undefined && viewPath !== "") {
+      await this.commandWithViewPath(viewPath);
+      return;
+    }
+    await this.commandFromCwd();
+  }
+
+  private async commandWithViewPath(viewPath: string): Promise<void> {
+    const resolvedPath = ShellService.getInstance().realpath(viewPath);
+    await ViewPathResolverHelper.assertViewPathExists(resolvedPath);
+    const trackers =
+      await ViewPathResolverHelper.findTrackerRepo(resolvedPath);
+
+    if (trackers.length === 0) {
+      ViewPathResolverHelper.throwViewPathNotUnderRecentTracker(resolvedPath);
+    }
+
+    let tracker: TrackerRepo;
+    if (trackers.length === 1) {
+      tracker = trackers[0]!;
+    } else {
+      const labels = trackers.map(ViewPathResolverHelper.formatTrackerPickItem);
+      const picked = await this.askUserPickItem(labels, {
+        title: intl.formatMessage(msg.pickRecentProjectTitle),
+      });
+      if (picked === null) {
+        return;
+      }
+      const index = labels.indexOf(picked);
+      tracker = trackers[index]!;
+    }
+
+    await useCurrentTrackerRepoStore
+      .getState()
+      .loadCurrentTrackerRepoByPath(tracker.projectPath);
+
+    await this.assertIssuePathRelative();
+
+    const issue = await ViewPathResolverHelper.resolveIssueFromViewPath(
+      resolvedPath,
+      (selector) => useCurrentTrackerRepoStore.getState().findIssue(selector),
+    );
+    if (issue) {
+      useAppStore.getState().openIssue(issue);
+    }
+
+    try {
+      await RegistryService.getInstance().upsertRecentProjects({
+        name: tracker.name,
+        projectPath: tracker.projectPath,
+      });
+    } catch {
+      // fail silently
+    }
+
+    await this.renderApp();
+  }
+
+  private async commandFromCwd(): Promise<void> {
     await useCurrentTrackerRepoStore.getState().ensureCurrentTrackerRepoFound();
+
+    await this.assertIssuePathRelative();
+
+    const issue = await CurrentIssueResolverHelper.findCurrentIssue();
+    if (issue) {
+      useAppStore.getState().openIssue(issue);
+    }
+
+    await this.renderApp();
+  }
+
+  private async assertIssuePathRelative(): Promise<void> {
     const repo = await useCurrentTrackerRepoStore
       .getState()
       .getCurrentTrackerRepo();
@@ -99,12 +200,9 @@ export class ViewCommand extends Command {
         `issue_path must be relative to tracker root (not absolute) in ${where}`,
       );
     }
+  }
 
-    const issue = await CurrentIssueResolverHelper.findCurrentIssue();
-    if (issue) {
-      useAppStore.getState().openIssue(issue);
-    }
-
+  private async renderApp(): Promise<void> {
     await useReactSessionStore.getState().run(
       () =>
         render(

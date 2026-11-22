@@ -87,7 +87,11 @@ export type ErrorCode =
   | "SCRIPT_VAR_VALUE_REQUIRED"
   | "SCRIPT_VAR_CLEAR_WITH_VALUE"
   | "COMMAND_INVALID_ARG"
-  | "CURRENT_ISSUE_REQUIRES_WORKTREE";
+  | "CURRENT_ISSUE_REQUIRES_WORKTREE"
+  | "VIEW_PATH_NOT_FOUND"
+  | "VIEW_PATH_NO_RECENT_PROJECTS"
+  | "VIEW_PATH_NOT_UNDER_RECENT_TRACKER"
+  | "VIEW_PATH_TRACKER_AMBIGUOUS";
 
 export type CommandInvalidArg = {
   argument: string;
@@ -119,6 +123,11 @@ export type GetConfigInvalidProperty = { property: string };
 export type GetConfigPropertyNotFound = {
   property: string;
   configFilePath: string;
+};
+export type ViewPathNotFound = { path: string };
+export type ViewPathNotUnderRecentTracker = { path: string };
+export type ViewPathTrackerAmbiguous = {
+  trackers: Array<{ name: string; projectPath: string }>;
 };
 
 export type ErrorPayloadCodeMap =
@@ -158,7 +167,16 @@ export type ErrorPayloadCodeMap =
       code: "GET_CONFIG_PROPERTY_NOT_FOUND";
       details: GetConfigPropertyNotFound;
     }
-  | { code: "INIT_GIT_NOT_DIRECTORY"; details?: undefined };
+  | { code: "INIT_GIT_NOT_DIRECTORY"; details?: undefined }
+  | { code: "VIEW_PATH_NOT_FOUND"; details: ViewPathNotFound }
+  | {
+      code: "VIEW_PATH_NOT_UNDER_RECENT_TRACKER";
+      details: ViewPathNotUnderRecentTracker;
+    }
+  | {
+      code: "VIEW_PATH_TRACKER_AMBIGUOUS";
+      details: ViewPathTrackerAmbiguous;
+    };
 
 export type ErrorPayload<K extends ErrorCode> =
   Extract<ErrorPayloadCodeMap, { code: K }> extends { details: infer D }

@@ -31,6 +31,24 @@ export class ShellService {
     return process.cwd();
   }
 
+  /**
+   * Expands a leading `~` and resolves to an absolute path from {@link cwd}.
+   */
+  realpath(inputPath: string): string {
+    let expanded = inputPath;
+    if (expanded === "~") {
+      expanded = os.homedir();
+    } else if (
+      expanded.startsWith("~/") ||
+      expanded.startsWith(`~${path.sep}`)
+    ) {
+      expanded = path.join(os.homedir(), expanded.slice(2));
+    }
+    return path.isAbsolute(expanded)
+      ? path.resolve(expanded)
+      : path.resolve(this.cwd(), expanded);
+  }
+
   tmpdir(): string {
     return os.tmpdir();
   }
